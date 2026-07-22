@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bleach 3D Ultra Master RPG - Chrome File Fix</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            overflow: hidden;
+            background-color: #02050a;
+            font-family: 'Noto Sans KR', sans-serif;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        #upload-pane {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(3, 10, 20, 0.92);
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 1.5px solid #00dfff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 0 20px rgba(0, 223, 255, 0.4);
+            font-size: 11px;
+            font-weight: bold;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+            pointer-events: auto !important;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #00dfff 0%, #0055a5 100%);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
+            box-shadow: 0 0 10px rgba(0, 223, 255, 0.5);
+            transition: all 0.2s;
+            pointer-events: auto !important;
+        }
+        .upload-btn:active { transform: scale(0.95); }
+
+        .mode-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ff66aa;
+            color: #ff99cc;
+            padding: 4px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.2s;
+            pointer-events: auto !important;
+        }
+        .mode-btn.active-toshiro {
+            background: #0088cc;
+            color: #fff;
+            border-color: #00dfff;
+            box-shadow: 0 0 12px #00dfff;
+        }
+        .mode-btn.active-yachiru {
+            background: #e60073;
+            color: #fff;
+            border-color: #ff99cc;
+            box-shadow: 0 0 12px #ff66aa;
+        }
+
+        #hud-top {
+            position: absolute;
+            top: 12px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .hp-card {
+            background: rgba(5, 12, 22, 0.88);
+            border: 2px solid rgba(0, 223, 255, 0.8);
+            border-radius: 14px;
+            padding: 10px 14px;
+            width: 250px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px);
+            transition: border-color 0.3s;
+        }
+        .hp-card.yachiru-style { border-color: #ff66aa; }
+
+        .unit-name {
+            font-size: 12px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .player-name { color: #80e5ff; text-shadow: 0 0 8px #00dfff; }
+
+        .hp-bar-outer {
+            width: 100%;
+            height: 12px;
+            background: rgba(0,0,0,0.8);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 6px;
+        }
+        .hp-bar-inner {
+            height: 100%;
+            width: 100%;
+            transition: width 0.2s ease-out;
+        }
+        #player-hp { background: linear-gradient(90deg, #0077b6, #00dfff); }
+        #player-exp { background: linear-gradient(90deg, #ca8a04, #facc15); }
+
+        #minimap-container {
+            position: absolute;
+            top: 12px;
+            right: 20px;
+            width: 110px;
+            height: 110px;
+            border: 2px solid #00dfff;
+            border-radius: 50%;
+            background: rgba(5, 12, 22, 0.9);
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 223, 255, 0.5);
+        }
+        #minimap-canvas { width: 100%; height: 100%; }
+
+        #combo-container {
+            position: absolute;
+            right: 150px;
+            top: 20px;
+            text-align: right;
+            font-family: 'Orbitron', sans-serif;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #combo-container.active { opacity: 1; transform: scale(1); }
+        #combo-count {
+            font-size: 38px;
+            font-weight: 900;
+            color: #70e6ff;
+            text-shadow: 0 0 18px #00dfff, 2px 2px 0px #000;
+            line-height: 1;
+        }
+        #combo-label { font-size: 10px; color: #fff; letter-spacing: 2px; }
+
+        #shift-lock-btn {
+            position: absolute;
+            left: 145px;
+            bottom: 35px;
+            width: 50px;
+            height: 38px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #00dfff;
+            border-radius: 12px;
+            color: #00dfff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            font-weight: 900;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 223, 255, 0.3);
+            pointer-events: auto !important;
+        }
+        #shift-lock-btn.active {
+            background: #00dfff;
+            color: #000;
+            box-shadow: 0 0 18px #00dfff;
+        }
+
+        #joystick-container {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            width: 110px;
+            height: 110px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(0, 223, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+            backdrop-filter: blur(5px);
+            pointer-events: auto !important;
+        }
+        #joystick-knob {
+            width: 44px;
+            height: 44px;
+            background: radial-gradient(circle, #80e5ff 0%, #0077b6 100%);
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 15px #00dfff;
+        }
+
+        .btn-container {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 220px;
+            height: 220px;
+            pointer-events: none;
+        }
+        .action-btn {
+            position: absolute;
+            border-radius: 50%;
+            color: white;
+            font-weight: 900;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            touch-action: none;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255,255,255,0.85);
+            pointer-events: auto !important;
+            overflow: hidden;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .action-btn:active { transform: scale(0.9); }
+        .cooldown-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.82);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            color: #00dfff;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #attack-btn {
+            width: 76px; height: 76px; bottom: 10px; right: 10px;
+            background: radial-gradient(circle, #00dfff 0%, #004080 100%);
+            font-size: 15px; box-shadow: 0 0 22px #00dfff;
+        }
+        #dodge-btn {
+            width: 48px; height: 48px; bottom: 10px; right: 100px;
+            background: radial-gradient(circle, #ffcc00 0%, #886600 100%);
+            font-size: 10px;
+        }
+        #skill-btn {
+            width: 50px; height: 50px; bottom: 100px; right: 10px;
+            background: radial-gradient(circle, #70e6ff 0%, #0055a5 100%);
+            font-size: 11px;
+        }
+        #ult-btn {
+            width: 58px; height: 58px; bottom: 82px; right: 82px;
+            background: radial-gradient(circle, #ffffff 0%, #0099ff 100%);
+            font-size: 11px; color: #002244; box-shadow: 0 0 28px #ffffff;
+        }
+
+        body.yachiru-mode #attack-btn {
+            background: radial-gradient(circle, #ff66cc 0%, #880044 100%);
+            box-shadow: 0 0 22px #ff66cc;
+        }
+        body.yachiru-mode #skill-btn { background: radial-gradient(circle, #ff99dd 0%, #aa0055 100%); }
+        body.yachiru-mode #ult-btn {
+            background: radial-gradient(circle, #ffffff 0%, #ff3399 100%);
+            box-shadow: 0 0 28px #ff66cc;
+        }
+        body.yachiru-mode #joystick-knob {
+            background: radial-gradient(circle, #ff99cc 0%, #aa0055 100%);
+            box-shadow: 0 0 15px #ff66cc;
+        }
+
+        .dmg-text {
+            position: absolute;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 24px;
+            color: #ffea00;
+            text-shadow: 2px 2px 0px #000, 0 0 12px #ff3300;
+            pointer-events: none;
+            animation: dmgAnim 0.75s ease-out forwards;
+            z-index: 1000;
+        }
+        @keyframes dmgAnim {
+            0% { opacity: 1; transform: translate(-50%, 0) scale(0.6); }
+            30% { transform: translate(-50%, -35px) scale(1.35); }
+            100% { opacity: 0; transform: translate(-50%, -60px) scale(0.9); }
+        }
+
+        .modal {
+            position: absolute;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(2, 6, 23, 0.94);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 200;
+            color: #fff;
+            pointer-events: auto !important;
+            backdrop-filter: blur(10px);
+        }
+        .modal h1 {
+            font-size: 40px;
+            color: #38bdf8;
+            text-shadow: 0 0 25px #0284c7;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .upgrade-list { display: flex; gap: 18px; margin-top: 12px; }
+        .upgrade-card {
+            width: 150px;
+            padding: 22px 12px;
+            background: #1e293b;
+            border: 2px solid #38bdf8;
+            border-radius: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+        .upgrade-card:hover {
+            transform: translateY(-8px);
+            background: #334155;
+            box-shadow: 0 0 20px #00dfff;
+        }
+        .upgrade-card h3 { font-size: 16px; color: #facc15; margin-bottom: 8px; }
+        .upgrade-card p { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+
+        .btn-action {
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background: #2563eb;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 20px #3b82f6;
+            transition: transform 0.2s;
+        }
+        .btn-action:hover { transform: scale(1.08); }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+</head>
+<body class="toshiro-mode">
+    <div id="canvas-container"></div>
+    
+    <div id="ui-layer">
+        <div id="upload-pane">
+            <span id="status-text">⏳ 준비 중...</span>
+            <button id="btn-toshiro" class="mode-btn active-toshiro">❄️ 토시로</button>
+            <button id="btn-yachiru" class="mode-btn">🌸 야치루</button>
+            <button id="sound-btn" class="mode-btn" onclick="toggleSound()">🔊 사운드 ON</button>
+            
+            <button class="upload-btn" id="trigger-file-btn">.glb 교체</button>
+        </div>
+
+        <div id="hud-top">
+            <div class="hp-card" id="player-card">
+                <div class="unit-name player-name">
+                    <span id="char-icon-name">❄️ 토시로</span>
+                    <span>Lv.<span id="lvl-num">1</span> STAGE <span id="stage-num">1</span></span>
+                </div>
+                <div class="hp-bar-outer"><div id="player-hp" class="hp-bar-inner"></div></div>
+                <div class="hp-bar-outer"><div id="player-exp" class="hp-bar-inner"></div></div>
+            </div>
+
+            <div id="minimap-container">
+                <canvas id="minimap-canvas" width="110" height="110"></canvas>
+            </div>
+        </div>
+
+        <div id="combo-container">
+            <div id="combo-count">0</div>
+            <div id="combo-label">Hits Combo</div>
+        </div>
+
+        <div id="shift-lock-btn">LOCK</div>
+        <div id="joystick-container"><div id="joystick-knob"></div></div>
+
+        <div class="btn-container">
+            <div id="dodge-btn" class="action-btn">회피<div id="dodge-cd" class="cooldown-overlay"></div></div>
+            <div id="skill-btn" class="action-btn"><span id="skill-label">돌진</span><div id="skill-cd" class="cooldown-overlay"></div></div>
+            <div id="ult-btn" class="action-btn"><span id="ult-label">빙륜환</span><div id="ult-cd" class="cooldown-overlay"></div></div>
+            <div id="attack-btn" class="action-btn">공격</div>
+        </div>
+    </div>
+
+    <div id="levelup-modal" class="modal">
+        <h1>LEVEL UP!</h1>
+        <p style="color: #94a3b8;">영압이 상승했습니다. 강화할 능력을 선택하세요.</p>
+        <div class="upgrade-list">
+            <div class="upgrade-card" onclick="selectUpgrade('atk')">
+                <h3>⚔️ 영압 강화</h3>
+                <p>기본 공격력 +15</p>
+            </div>
+            <div class="upgrade-card" onclick="selectUpgrade('hp')">
+                <h3>❤️ 체력 완전회복</h3>
+                <p>최대 체력 +35 및 즉시 완치</p>
+            </div>
+            <div class="upgrade-card" onclick="selectUpgrade('speed')">
+                <h3>⚡ 순보/신보 극의</h3>
+                <p>이동 속도 15% 상승</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="gameover-modal" class="modal">
+        <h1 style="color: #ef4444;">GAME OVER</h1>
+        <div style="font-size: 20px;">최종 토벌 점수: <span id="final-score" style="color: #facc15; font-weight: bold;">0</span></div>
+        <button class="btn-action" onclick="restartGame()">다시 도전</button>
+    </div>
+
+    <script>
+        let soundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById("sound-btn").innerText = soundEnabled ? "🔊 사운드 ON" : "🔇 사운드 OFF";
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'hit') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.12);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                osc.start(now); osc.stop(now + 0.12);
+            } else if (type === 'dash') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.18);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+                osc.start(now); osc.stop(now + 0.18);
+            } else if (type === 'ult') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(90, now);
+                osc.frequency.exponentialRampToValueAtTime(650, now + 0.45);
+                gain.gain.setValueAtTime(0.45, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+                osc.start(now); osc.stop(now + 0.45);
+            } else if (type === 'heal') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(350, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.25);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now); osc.stop(now + 0.25);
+            } else if (type === 'warning') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            }
+        }
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x02050a);
+        scene.fog = new THREE.FogExp2(0x02050a, 0.016);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const ambientLight = new THREE.AmbientLight(0xd0f4ff, 1.3);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0x80d8ff, 2.2);
+        dirLight.position.set(30, 50, 30);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+
+        const floorGeo = new THREE.PlaneGeometry(200, 200);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x08101a, roughness: 0.4, metalness: 0.4 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        const grid = new THREE.GridHelper(200, 100, 0x00dfff, 0x112233);
+        grid.position.y = 0.01;
+        scene.add(grid);
+
+        const characterGroup = new THREE.Group();
+        scene.add(characterGroup);
+
+        let loadedCharacter = null;
+        let defaultBoxMesh = null;
+        let mixer = null;
+        let clock = new THREE.Clock();
+        let currentMode = 'toshiro';
+        let isShiftLock = false;
+
+        let playerHp = 100, maxHp = 100, exp = 0, level = 1, stage = 1, score = 0;
+        let baseAtk = 25, moveSpeed = 0.17;
+        let isInvincible = false, isPaused = false, isGameOver = false, isActing = false;
+
+        let modelMeshes = [];
+        const loader = new THREE.GLTFLoader();
+        const statusText = document.getElementById('status-text');
+
+        function createDefaultCharacter() {
+            while(characterGroup.children.length > 0) { characterGroup.remove(characterGroup.children[0]); }
+            const geo = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.2 });
+            defaultBoxMesh = new THREE.Mesh(geo, mat);
+            defaultBoxMesh.position.y = 1.25;
+            defaultBoxMesh.castShadow = true;
+            characterGroup.add(defaultBoxMesh);
+            statusText.innerText = "🎮 준비 완료! .glb 교체 가능";
+            isActing = false;
+            isPaused = false;
+        }
+
+        createDefaultCharacter();
+
+        function setCharacterMode(mode) {
+            currentMode = mode;
+            const btnT = document.getElementById('btn-toshiro');
+            const btnY = document.getElementById('btn-yachiru');
+            const iconName = document.getElementById('char-icon-name');
+            const skillLabel = document.getElementById('skill-label');
+            const ultLabel = document.getElementById('ult-label');
+            const card = document.getElementById('player-card');
+
+            if(mode === 'yachiru') {
+                document.body.className = 'yachiru-mode';
+                btnT.className = 'mode-btn'; btnY.className = 'mode-btn active-yachiru';
+                iconName.innerText = "🌸 야치루";
+                skillLabel.innerText = "야수돌진";
+                ultLabel.innerText = "삼보검수";
+                card.classList.add('yachiru-style');
+                if(defaultBoxMesh) defaultBoxMesh.material.color.setHex(0xff66cc);
+            } else {
+                document.body.className = 'toshiro-mode';
+                btnT.className = 'mode-btn active-toshiro'; btnY.className = 'mode-btn';
+                iconName.innerText = "❄️ 토시로";
+                skillLabel.innerText = "빙각돌진";
+                ultLabel.innerText = "빙륜환";
+                card.classList.remove('yachiru-style');
+                if(defaultBoxMesh) defaultBoxMesh.material.color.setHex(0x00dfff);
+            }
+        }
+
+        document.getElementById('btn-toshiro').addEventListener('click', () => setCharacterMode('toshiro'));
+        document.getElementById('btn-yachiru').addEventListener('click', () => setCharacterMode('yachiru'));
+
+        function setupCharacter(gltf) {
+            while(characterGroup.children.length > 0) { characterGroup.remove(characterGroup.children[0]); }
+            loadedCharacter = gltf.scene;
+            defaultBoxMesh = null;
+            modelMeshes = [];
+
+            const box = new THREE.Box3().setFromObject(loadedCharacter);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const center = box.getCenter(new THREE.Vector3());
+            
+            const scaleFactor = 3.2 / maxDim;
+            loadedCharacter.scale.set(scaleFactor, scaleFactor, scaleFactor);
+            loadedCharacter.position.x = -center.x * scaleFactor;
+            loadedCharacter.position.y = -box.min.y * scaleFactor;
+            loadedCharacter.position.z = -center.z * scaleFactor;
+
+            loadedCharacter.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                    modelMeshes.push(node);
+                }
+            });
+
+            if (gltf.animations && gltf.animations.length > 0) {
+                mixer = new THREE.AnimationMixer(loadedCharacter);
+                const action = mixer.clipAction(gltf.animations[0]);
+                action.play();
+            } else {
+                mixer = null;
+            }
+
+            characterGroup.add(loadedCharacter);
+            statusText.innerText = "✨ 모델 로드 완료!";
+            
+            isActing = false;
+            isPaused = false;
+            isGameOver = false;
+        }
+
+        // 📌 크롬 모바일 파일 앱 강제 개설 방식 (보안 차단 완전 회피)
+        const triggerBtn = document.getElementById('trigger-file-btn');
+
+        triggerBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // 가상 input 생성 후 바로 클릭 트리거
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.glb,.gltf';
+
+            fileInput.onchange = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                statusText.innerText = "⏳ 파일 로딩 중...";
+
+                const fileName = file.name.toLowerCase();
+                if(fileName.includes('야치루') || fileName.includes('yachiru')) {
+                    setCharacterMode('yachiru');
+                }
+
+                const url = URL.createObjectURL(file);
+                loader.load(
+                    url, 
+                    (gltf) => { 
+                        setupCharacter(gltf); 
+                        setTimeout(() => URL.revokeObjectURL(url), 1000); 
+                    },
+                    (xhr) => {
+                        if (xhr.lengthComputable) {
+                            const pct = Math.round((xhr.loaded / xhr.total) * 100);
+                            statusText.innerText = `⏳ 로딩 중... (${pct}%)`;
+                        }
+                    },
+                    (err) => {
+                        console.error("GLB 로드 오류:", err);
+                        statusText.innerText = "❌ .glb 파일 로드 실패";
+                    }
+                );
+            };
+
+            fileInput.click(); // 스마트폰 파일 앱 호출
+        });
+
+        loader.load('./character.glb', (g) => setupCharacter(g), undefined, () => {
+            statusText.innerText = "📂 .glb 파일 교체 가능";
+        });
+
+        let enemies = [];
+        let enemyBullets = [];
+        let particles = [];
+        let dropItems = [];
+        let bossAoes = [];
+
+        function createHealthBarCanvas() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128; canvas.height = 16;
+            return canvas;
+        }
+
+        function updateHealthBarTexture(enemy) {
+            const ctx = enemy.hpCanvas.getContext('2d');
+            ctx.clearRect(0, 0, 128, 16);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+            ctx.fillRect(0, 0, 128, 16);
+            ctx.fillStyle = enemy.isBoss ? '#f59e0b' : (enemy.isCaster ? '#a855f7' : '#ef4444');
+            const pct = Math.max(0, enemy.hp / enemy.maxHp);
+            ctx.fillRect(2, 2, (128 - 4) * pct, 16 - 4);
+            enemy.hpTexture.needsUpdate = true;
+        }
+
+        function clearAllEnemiesAndBullets() {
+            enemies.forEach(e => scene.remove(e.mesh));
+            enemyBullets.forEach(b => scene.remove(b.mesh));
+            bossAoes.forEach(a => scene.remove(a.mesh));
+            dropItems.forEach(i => scene.remove(i.mesh));
+            particles.forEach(p => scene.remove(p.mesh));
+            enemies = []; enemyBullets = []; bossAoes = []; dropItems = []; particles = [];
+        }
+
+        function spawnEnemies() {
+            const count = 3 + Math.floor(stage / 2);
+            for (let i = 0; i < count; i++) {
+                const isBoss = (stage % 5 === 0) && (i === 0);
+                const isCaster = !isBoss && (Math.random() > 0.55);
+                const size = isBoss ? 2.6 : 1.2;
+                
+                const mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(size, size * 1.5, size),
+                    new THREE.MeshStandardMaterial({
+                        color: isBoss ? 0xf59e0b : (isCaster ? 0xa855f7 : 0xef4444),
+                        roughness: 0.3, metalness: 0.5
+                    })
+                );
+                mesh.position.set(
+                    characterGroup.position.x + (Math.random() - 0.5) * 32,
+                    (size * 1.5) / 2,
+                    characterGroup.position.z + (Math.random() - 0.5) * 32
+                );
+                mesh.castShadow = true;
+                scene.add(mesh);
+
+                const canvas = createHealthBarCanvas();
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMat = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMat);
+                sprite.scale.set(2.4, 0.3, 1);
+                sprite.position.y = (size * 1.5) / 2 + 0.8;
+                mesh.add(sprite);
+
+                const maxHpVal = isBoss ? 450 + stage * 40 : (isCaster ? 60 + stage * 10 : 80 + stage * 12);
+                const enemy = {
+                    mesh, isBoss, isCaster,
+                    hp: maxHpVal, maxHp: maxHpVal,
+                    hpCanvas: canvas, hpTexture: texture,
+                    attackTimer: 0, bossPatternTimer: 0
+                };
+                updateHealthBarTexture(enemy);
+                enemies.push(enemy);
+            }
+        }
+        spawnEnemies();
+
+        function createBossAoe(x, z) {
+            playSound('warning');
+            const geo = new THREE.RingGeometry(0.1, 4.5, 32);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.x = -Math.PI / 2;
+            mesh.position.set(x, 0.05, z);
+            scene.add(mesh);
+
+            bossAoes.push({ mesh, timer: 0, maxTimer: 60, x, z });
+        }
+
+        let comboCount = 0, comboTimer = null, cameraShake = 0;
+
+        function spawnSkillParticles(pos, count = 25) {
+            const isYachiru = (currentMode === 'yachiru');
+            const color = isYachiru ? 0xff66cc : 0x80e5ff;
+            for(let i=0; i<count; i++) {
+                const geo = isYachiru ? new THREE.TetrahedronGeometry(0.25) : new THREE.OctahedronGeometry(0.25);
+                const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 });
+                const p = new THREE.Mesh(geo, mat);
+                p.position.copy(pos);
+                p.position.y += 1.0;
+                scene.add(p);
+
+                const vx = (Math.random() - 0.5) * 0.45;
+                const vy = Math.random() * 0.4 + 0.15;
+                const vz = (Math.random() - 0.5) * 0.45;
+
+                particles.push({ mesh: p, vx, vy, vz, opacity: 1 });
+            }
+        }
+
+        function triggerDamageText(pos, damage, isCrit = false) {
+            const p = pos.clone(); p.y += 2.8; p.project(camera);
+            const x = (p.x * .5 + .5) * window.innerWidth;
+            const y = (-(p.y * .5) + .5) * window.innerHeight;
+
+            const div = document.createElement('div');
+            div.className = 'dmg-text';
+            div.innerText = (isCrit ? "CRITICAL " : "") + "-" + Math.floor(damage);
+            div.style.left = `${x}px`; div.style.top = `${y}px`;
+            if(currentMode === 'yachiru') div.style.color = '#ff66cc';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 750);
+        }
+
+        function selectUpgrade(type) {
+            if (type === 'atk') baseAtk += 15;
+            if (type === 'hp') { maxHp += 35; playerHp = maxHp; }
+            if (type === 'speed') moveSpeed *= 1.15;
+
+            document.getElementById("levelup-modal").style.display = "none";
+            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
+            isPaused = false;
+        }
+
+        function restartGame() {
+            playerHp = maxHp; exp = 0; level = 1; stage = 1; score = 0;
+            isGameOver = false; isPaused = false; isActing = false;
+            characterGroup.position.set(0, 0, 0);
+
+            document.getElementById("lvl-num").innerText = level;
+            document.getElementById("stage-num").innerText = stage;
+            document.getElementById("player-hp").style.width = "100%";
+            document.getElementById("player-exp").style.width = "0%";
+            document.getElementById("gameover-modal").style.display = "none";
+
+            clearAllEnemiesAndBullets();
+            spawnEnemies();
+        }
+
+        function autoTargetEnemy() {
+            let nearest = null, minDist = 18;
+            enemies.forEach(e => {
+                const d = characterGroup.position.distanceTo(e.mesh.position);
+                if (d < minDist) { minDist = d; nearest = e; }
+            });
+            if(nearest) {
+                characterGroup.lookAt(nearest.mesh.position.x, characterGroup.position.y, nearest.mesh.position.z);
+            }
+        }
+
+        const cooldowns = { dodge: false, skill: false, ult: false };
+        function startCooldown(type, sec) {
+            cooldowns[type] = true;
+            const cdEl = document.getElementById(type + '-cd');
+            cdEl.style.opacity = '1';
+            let remain = sec; cdEl.innerText = remain;
+            const t = setInterval(() => {
+                remain--;
+                if(remain <= 0) { clearInterval(t); cooldowns[type] = false; cdEl.style.opacity = '0'; }
+                else { cdEl.innerText = remain; }
+            }, 1000);
+        }
+
+        const shiftLockBtn = document.getElementById('shift-lock-btn');
+        shiftLockBtn.addEventListener('click', () => {
+            isShiftLock = !isShiftLock;
+            shiftLockBtn.classList.toggle('active', isShiftLock);
+        });
+
+        let moveDirection = { x: 0, z: 0 };
+        const joystick = document.getElementById('joystick-container');
+        const knob = document.getElementById('joystick-knob');
+        let jsActive = false, startX = 0, startY = 0, maxRadius = 38;
+
+        const handleTouchStart = (e) => { jsActive = true; const t = e.touches ? e.touches[0] : e; startX = t.clientX; startY = t.clientY; };
+        const handleTouchMove = (e) => {
+            if(!jsActive) return; const t = e.touches ? e.touches[0] : e;
+            let dx = t.clientX - startX; let dy = t.clientY - startY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if(dist > maxRadius) { dx = (dx/dist)*maxRadius; dy = (dy/dist)*maxRadius; }
+            knob.style.transform = `translate(${dx}px, ${dy}px)`;
+            moveDirection.x = dx / maxRadius; moveDirection.z = dy / maxRadius;
+        };
+        const handleTouchEnd = () => { jsActive = false; knob.style.transform = 'translate(0px,0px)'; moveDirection.x = 0; moveDirection.z = 0; };
+
+        joystick.addEventListener('touchstart', handleTouchStart);
+        joystick.addEventListener('touchmove', handleTouchMove);
+        joystick.addEventListener('touchend', handleTouchEnd);
+        
+        joystick.addEventListener('mousedown', handleTouchStart);
+        window.addEventListener('mousemove', handleTouchMove);
+        window.addEventListener('mouseup', handleTouchEnd);
+
+        let comboStage = 0;
+
+        function dealDamageToEnemies(range = 4.0, multiplier = 1.0) {
+            let hit = false;
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const e = enemies[i];
+                if (characterGroup.position.distanceTo(e.mesh.position) < range) {
+                    const dmg = baseAtk * multiplier * (1 + comboCount * 0.05);
+                    e.hp -= dmg;
+                    hit = true;
+                    updateHealthBarTexture(e);
+                    spawnSkillParticles(e.mesh.position, 8);
+                    triggerDamageText(e.mesh.position, dmg, multiplier > 1.5);
+
+                    if (e.hp <= 0) {
+                        spawnSkillParticles(e.mesh.position, 20);
+                        if (Math.random() > 0.45) {
+                            const itemMesh = new THREE.Mesh(new THREE.SphereGeometry(0.35), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+                            itemMesh.position.copy(e.mesh.position); itemMesh.position.y = 0.5;
+                            scene.add(itemMesh); dropItems.push({ mesh: itemMesh });
+                        }
+                        scene.remove(e.mesh);
+                        enemies.splice(i, 1);
+                        score += e.isBoss ? 600 : 120;
+                        exp += e.isBoss ? 90 : 40;
+                    }
+                }
+            }
+
+            if (hit) {
+                playSound('hit');
+                comboCount++;
+                document.getElementById('combo-count').innerText = comboCount;
+                document.getElementById('combo-container').classList.add('active');
+                clearTimeout(comboTimer);
+                comboTimer = setTimeout(() => { comboCount = 0; document.getElementById('combo-container').classList.remove('active'); }, 2200);
+            }
+
+            if (enemies.length === 0) {
+                stage++;
+                document.getElementById("stage-num").innerText = stage;
+                spawnEnemies();
+            }
+
+            if (exp >= 100) {
+                level++; exp %= 100;
+                playSound('heal');
+                document.getElementById("lvl-num").innerText = level;
+                document.getElementById("levelup-modal").style.display = "flex";
+                isPaused = true;
+            }
+
+            document.getElementById("player-exp").style.width = exp + "%";
+            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
+        }
+
+        function executeAttack() {
+            if(isActing || isPaused || isGameOver) return;
+            isActing = true; autoTargetEnemy();
+
+            comboStage = (comboStage % 3) + 1;
+            const isYachiru = (currentMode === 'yachiru');
+            
+            const slashGeo = new THREE.RingGeometry(0.6, 2.6, 32, 1, 0, Math.PI * 0.85);
+            const slashMat = new THREE.MeshBasicMaterial({
+                color: isYachiru ? (comboStage === 3 ? 0xff0066 : 0xff99dd) : (comboStage === 3 ? 0xffea00 : 0x00ffff),
+                side: THREE.DoubleSide, transparent: true, opacity: 0.95
+            });
+            const slash = new THREE.Mesh(slashGeo, slashMat);
+            slash.position.set(characterGroup.position.x, 1.2, characterGroup.position.z);
+            slash.rotation.x = Math.PI / 2;
+            slash.rotation.z = -characterGroup.rotation.y - Math.PI / 2 + (comboStage * 0.4);
+            scene.add(slash);
+
+            dealDamageToEnemies(4.2, 1.0 + comboStage * 0.25);
+
+            let sc = 1;
+            const t = setInterval(() => {
+                sc += 0.22; slash.scale.set(sc, sc, sc); slash.material.opacity -= 0.14;
+                if(slash.material.opacity <= 0) { clearInterval(t); scene.remove(slash); isActing = false; }
+            }, 20);
+        }
+
+        const attackBtn = document.getElementById('attack-btn');
+        attackBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeAttack(); });
+        attackBtn.addEventListener('click', (e) => { e.preventDefault(); executeAttack(); });
+
+        const dodgeBtn = document.getElementById('dodge-btn');
+        const executeDodge = () => {
+            if(isActing || cooldowns.dodge || isPaused || isGameOver) return;
+            isActing = true; isInvincible = true; startCooldown('dodge', 2); playSound('dash');
+
+            const dirX = moveDirection.x !== 0 ? moveDirection.x : Math.sin(characterGroup.rotation.y);
+            const dirZ = moveDirection.z !== 0 ? moveDirection.z : Math.cos(characterGroup.rotation.y);
+
+            let count = 0;
+            const t = setInterval(() => {
+                characterGroup.position.x += dirX * 0.52;
+                characterGroup.position.z += dirZ * 0.52;
+                count++;
+                if(count > 8) { clearInterval(t); isInvincible = false; isActing = false; }
+            }, 20);
+        };
+        dodgeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeDodge(); });
+        dodgeBtn.addEventListener('click', (e) => { e.preventDefault(); executeDodge(); });
+
+        const skillBtn = document.getElementById('skill-btn');
+        const executeSkill = () => {
+            if(isActing || cooldowns.skill || isPaused || isGameOver) return;
+            isActing = true; autoTargetEnemy(); startCooldown('skill', 5); playSound('dash');
+
+            const dirX = Math.sin(characterGroup.rotation.y);
+            const dirZ = Math.cos(characterGroup.rotation.y);
+
+            let step = 0;
+            const t = setInterval(() => {
+                characterGroup.position.x += dirX * 0.6;
+                characterGroup.position.z += dirZ * 0.6;
+                dealDamageToEnemies(3.2, 1.9);
+                step++; if(step > 9) { clearInterval(t); isActing = false; }
+            }, 20);
+        };
+        skillBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeSkill(); });
+        skillBtn.addEventListener('click', (e) => { e.preventDefault(); executeSkill(); });
+
+        let isUltCameraActive = false;
+        const ultBtn = document.getElementById('ult-btn');
+        const executeUlt = () => {
+            if(isActing || cooldowns.ult || isPaused || isGameOver) return;
+            isActing = true; isUltCameraActive = true; autoTargetEnemy(); startCooldown('ult', 10); playSound('ult');
+
+            const isYachiru = (currentMode === 'yachiru');
+            const ultGeo = new THREE.OctahedronGeometry(4.8, 2);
+            const ultMat = new THREE.MeshStandardMaterial({
+                color: isYachiru ? 0xff33aa : 0xb3f0ff, roughness: 0.1, transparent: true, opacity: 0.85
+            });
+            const ultCore = new THREE.Mesh(ultGeo, ultMat);
+            ultCore.position.set(characterGroup.position.x, 3.8, characterGroup.position.z);
+            scene.add(ultCore);
+
+            spawnSkillParticles(characterGroup.position, 60);
+            dealDamageToEnemies(8.5, 3.8);
+
+            let dur = 0;
+            const t = setInterval(() => {
+                ultCore.rotation.y += 0.16; ultCore.material.opacity -= 0.025;
+                dur++;
+                if(dur > 35) {
+                    clearInterval(t); scene.remove(ultCore);
+                    isActing = false; isUltCameraActive = false;
+                }
+            }, 25);
+        };
+        ultBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeUlt(); });
+        ultBtn.addEventListener('click', (e) => { e.preventDefault(); executeUlt(); });
+
+        const mapCanvas = document.getElementById("minimap-canvas");
+        const mapCtx = mapCanvas.getContext("2d");
+
+        function renderMinimap() {
+            mapCtx.clearRect(0, 0, 110, 110);
+            const cx = 55, cy = 55;
+
+            mapCtx.fillStyle = "#38bdf8";
+            mapCtx.beginPath(); mapCtx.arc(cx, cy, 3.5, 0, Math.PI * 2); mapCtx.fill();
+
+            enemies.forEach(e => {
+                const rx = (e.mesh.position.x - characterGroup.position.x) * 1.8;
+                const rz = (e.mesh.position.z - characterGroup.position.z) * 1.8;
+
+                mapCtx.fillStyle = e.isBoss ? "#facc15" : (e.isCaster ? "#a855f7" : "#ef4444");
+                mapCtx.beginPath(); mapCtx.arc(cx + rx, cy + rz, e.isBoss ? 5 : 2.5, 0, Math.PI * 2); mapCtx.fill();
+            });
+        }
+
+        function updateJointAnimation(delta, isMoving) {
+            if (mixer) {
+                mixer.update(delta);
+            } else if (loadedCharacter) {
+                const time = Date.now() * 0.012;
+                if (isMoving) {
+                    loadedCharacter.position.y = Math.abs(Math.sin(time * 1.6)) * 0.28;
+                    loadedCharacter.rotation.z = Math.sin(time) * 0.09;
+                    modelMeshes.forEach((mesh, idx) => {
+                        mesh.rotation.x = Math.sin(time + idx) * 0.12;
+                    });
+                } else {
+                    loadedCharacter.position.y = Math.sin(time * 0.6) * 0.06;
+                    loadedCharacter.rotation.z = 0;
+                    modelMeshes.forEach((mesh) => { mesh.rotation.x = 0; });
+                }
+            }
+        }
+
+        camera.position.set(0, 4.0, 7.5);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            if (!isGameOver && !isPaused) {
+                const isMoving = (moveDirection.x !== 0 || moveDirection.z !== 0);
+
+                if (isMoving) {
+                    characterGroup.position.x += moveDirection.x * moveSpeed;
+                    characterGroup.position.z += moveDirection.z * moveSpeed;
+                    if (!isShiftLock) { characterGroup.rotation.y = Math.atan2(moveDirection.x, moveDirection.z); }
+                }
+
+                updateJointAnimation(delta, isMoving);
+
+                if (isShiftLock) {
+                    const targetRot = Math.atan2(camera.position.x - characterGroup.position.x, camera.position.z - characterGroup.position.z);
+                    characterGroup.rotation.y = THREE.MathUtils.lerp(characterGroup.rotation.y, targetRot + Math.PI, 0.2);
+                }
+
+                enemies.forEach(e => {
+                    const dist = characterGroup.position.distanceTo(e.mesh.position);
+                    const dir = new THREE.Vector3().subVectors(characterGroup.position, e.mesh.position).normalize();
+
+                    if (e.isBoss) {
+                        if (dist > 2.2) e.mesh.position.addScaledVector(dir, 0.03);
+                        e.bossPatternTimer++;
+                        if (e.bossPatternTimer > 180) {
+                            createBossAoe(characterGroup.position.x, characterGroup.position.z);
+                            e.bossPatternTimer = 0;
+                        }
+                    } else if (e.isCaster) {
+                        if (dist > 8.5) e.mesh.position.addScaledVector(dir, 0.032);
+                        e.attackTimer++;
+                        if (e.attackTimer > 110) {
+                            const bullet = new THREE.Mesh(new THREE.SphereGeometry(0.28), new THREE.MeshBasicMaterial({ color: 0xa855f7 }));
+                            bullet.position.copy(e.mesh.position); scene.add(bullet);
+                            enemyBullets.push({ mesh: bullet, dir, life: 120 });
+                            e.attackTimer = 0;
+                        }
+                    } else {
+                        if (dist > 1.3) {
+                            e.mesh.position.addScaledVector(dir, 0.038);
+                        } else if (!isInvincible) {
+                            playerHp = Math.max(0, playerHp - 0.25);
+                            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
+                            if (playerHp <= 0) {
+                                isGameOver = true;
+                                document.getElementById("final-score").innerText = score;
+                                document.getElementById("gameover-modal").style.display = "flex";
+                            }
+                        }
+                    }
+                });
+
+                for (let i = bossAoes.length - 1; i >= 0; i--) {
+                    const aoe = bossAoes[i];
+                    aoe.timer++;
+                    aoe.mesh.material.opacity = 0.3 + (aoe.timer / aoe.maxTimer) * 0.5;
+
+                    if (aoe.timer >= aoe.maxTimer) {
+                        playSound('ult');
+                        cameraShake = 0.35;
+                        const d = characterGroup.position.distanceTo(new THREE.Vector3(aoe.x, 0, aoe.z));
+                        if (d < 4.5 && !isInvincible) {
+                            playerHp = Math.max(0, playerHp - 25);
+                            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
+                        }
+                        scene.remove(aoe.mesh);
+                        bossAoes.splice(i, 1);
+                    }
+                }
+
+                for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                    const b = enemyBullets[i];
+                    b.mesh.position.addScaledVector(b.dir, 0.22);
+                    b.life--;
+
+                    if (b.mesh.position.distanceTo(characterGroup.position) < 1.1 && !isInvincible) {
+                        playerHp = Math.max(0, playerHp - 14);
+                        cameraShake = 0.22;
+                        document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
+                        scene.remove(b.mesh); enemyBullets.splice(i, 1);
+                        continue;
+                    }
+
+                    if (b.life <= 0) { scene.remove(b.mesh); enemyBullets.splice(i, 1); }
+                }
+
+                for (let i = dropItems.length - 1; i >= 0; i--) {
+                    const item = dropItems[i];
+                    item.mesh.rotation.y += 0.06;
+                    if (characterGroup.position.distanceTo(item.mesh.position) < 1.3) {
+                        playSound('heal');
+                        playerHp = Math.min(maxHp, playerHp + 35);
+                        document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
+                        scene.remove(item.mesh); dropItems.splice(i, 1);
+                    }
+                }
+
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.mesh.position.x += p.vx; p.mesh.position.y += p.vy; p.mesh.position.z += p.vz;
+                    p.opacity -= 0.04; p.mesh.material.opacity = p.opacity;
+                    if (p.opacity <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
+                }
+
+                renderMinimap();
+            }
+
+            let cx = characterGroup.position.x;
+            let cz = characterGroup.position.z + (isUltCameraActive ? 5.2 : 7.8);
+            let cy = characterGroup.position.y + (isUltCameraActive ? 2.9 : 4.2);
+
+            if (cameraShake > 0) {
+                cx += (Math.random() - 0.5) * cameraShake;
+                cy += (Math.random() - 0.5) * cameraShake;
+                cameraShake -= 0.02;
+            }
+
+            camera.position.x = THREE.MathUtils.lerp(camera.position.x, cx, 0.08);
+            camera.position.z = THREE.MathUtils.lerp(camera.position.z, cz, 0.08);
+            camera.position.y = THREE.MathUtils.lerp(camera.position.y, cy, 0.08);
+            camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1.0, characterGroup.position.z);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
