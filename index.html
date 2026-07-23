@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Grand Fantasy Action RPG - Full Edition</title>
+    <title>3D Grand Fantasy Action RPG - Fixed Version</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
     <style>
         /* ==========================================================================
            1. CORE RESET & VIEWPORT STYLES
@@ -22,7 +26,7 @@
             height: 100%;
             overflow: hidden;
             background-color: #02050a;
-            font-family: 'Segoe UI', Roboto, 'Apple SD Gothic Neo', sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             color: #ffffff;
         }
 
@@ -46,52 +50,53 @@
         }
 
         /* ==========================================================================
-           2. HEADS-UP DISPLAY (HUD) STYLES
+           2. HEADS-UP DISPLAY (HUD) STYLES (레이아웃 겹침 해결)
            ========================================================================== */
         #top-bar {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
+            top: 10px;
+            left: 10px;
+            right: 10px;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            gap: 10px;
         }
 
         .status-panel {
             background: rgba(8, 15, 26, 0.92);
             border: 1.5px solid #00dfff;
-            border-radius: 14px;
-            padding: 14px 18px;
+            border-radius: 12px;
+            padding: 10px 14px;
             color: #ffffff;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             pointer-events: auto;
-            box-shadow: 0 0 20px rgba(0, 223, 255, 0.25);
-            min-width: 280px;
-            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 223, 255, 0.25);
+            flex: 1;
+            max-width: 240px;
+            backdrop-filter: blur(8px);
         }
 
         .bar-container {
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .bar-label {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: 10px;
             color: #a0c0d0;
             margin-bottom: 2px;
         }
 
         .bar-bg {
             width: 100%;
-            height: 10px;
+            height: 8px;
             background: rgba(255, 255, 255, 0.12);
-            border-radius: 6px;
+            border-radius: 4px;
             overflow: hidden;
             position: relative;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
         }
 
         .hp-fill {
@@ -99,7 +104,6 @@
             height: 100%;
             background: linear-gradient(90deg, #00ff88, #00dfff);
             transition: width 0.2s ease-out;
-            box-shadow: 0 0 10px #00ff88;
         }
 
         .exp-fill {
@@ -107,38 +111,31 @@
             height: 100%;
             background: linear-gradient(90deg, #ff00ff, #9900ff);
             transition: width 0.2s ease-out;
-            box-shadow: 0 0 10px #ff00ff;
         }
 
         .hud-buttons {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             align-items: flex-end;
         }
 
         .hud-btn {
-            background: rgba(5, 12, 22, 0.85);
+            background: rgba(5, 12, 22, 0.9);
             border: 1.5px solid #00dfff;
             color: #ffffff;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
             pointer-events: auto;
-            transition: all 0.2s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .hud-btn:hover {
-            background: #00dfff;
-            color: #02050a;
-            box-shadow: 0 0 15px #00dfff;
+            white-space: nowrap;
         }
 
         .hud-btn:active {
-            transform: scale(0.92);
+            transform: scale(0.95);
         }
 
         .file-upload-wrapper {
@@ -162,65 +159,62 @@
            ========================================================================== */
         #quest-box {
             position: absolute;
-            top: 155px;
-            left: 15px;
+            top: 135px;
+            left: 10px;
             background: rgba(8, 15, 26, 0.85);
             border-left: 4px solid #ffd700;
-            padding: 10px 14px;
-            border-radius: 0 10px 10px 0;
-            font-size: 12px;
-            max-width: 250px;
+            padding: 8px 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 11px;
+            max-width: 220px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(5px);
         }
 
         #notice-banner {
             position: absolute;
-            top: 120px;
+            top: 100px;
             width: 100%;
             text-align: center;
             color: #00dfff;
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 900;
-            text-shadow: 0 0 20px #00dfff, 0 0 30px #0077b6;
+            text-shadow: 0 0 20px #00dfff;
             opacity: 0;
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
             transform: translateY(-10px);
             pointer-events: none;
-            letter-spacing: 2px;
         }
 
         #boss-hp-container {
             position: absolute;
-            top: 25px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 50%;
-            max-width: 500px;
+            width: 60%;
+            max-width: 400px;
             background: rgba(10, 0, 5, 0.9);
             border: 2px solid #ff0055;
-            border-radius: 12px;
-            padding: 10px 16px;
+            border-radius: 10px;
+            padding: 8px 12px;
             display: none;
             flex-direction: column;
             gap: 4px;
-            box-shadow: 0 0 25px rgba(255, 0, 85, 0.5);
             z-index: 20;
         }
 
         #boss-name {
             color: #ff0055;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 900;
             text-align: center;
-            letter-spacing: 1px;
         }
 
         .boss-bar-bg {
             width: 100%;
-            height: 14px;
+            height: 10px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 7px;
+            border-radius: 5px;
             overflow: hidden;
         }
 
@@ -232,77 +226,52 @@
         }
 
         /* ==========================================================================
-           4. MINIMAP & GAME MODAL OVERLAYS
+           4. GAME MODAL OVERLAYS
            ========================================================================== */
-        #minimap-container {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 110px;
-            height: 110px;
-            background: rgba(2, 5, 10, 0.85);
-            border: 2px solid #00dfff;
-            border-radius: 50%;
-            overflow: hidden;
-            pointer-events: auto;
-            box-shadow: 0 0 15px rgba(0, 223, 255, 0.4);
-        }
-
-        #minimap-canvas {
-            width: 100%;
-            height: 100%;
-        }
-
         .game-modal {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 320px;
+            width: 290px;
             background: rgba(8, 15, 26, 0.96);
             border: 2px solid #00dfff;
-            border-radius: 16px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 16px;
             color: #ffffff;
             display: none;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             pointer-events: auto;
             z-index: 50;
-            box-shadow: 0 0 35px rgba(0, 223, 255, 0.4);
-            backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px rgba(0, 223, 255, 0.4);
+            backdrop-filter: blur(10px);
         }
 
         .game-modal h2 {
-            font-size: 18px;
+            font-size: 16px;
             color: #00dfff;
             text-align: center;
             border-bottom: 1px solid rgba(0, 223, 255, 0.3);
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
 
         .modal-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .modal-btn {
             background: #0077b6;
             border: 1px solid #00dfff;
             color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
+            padding: 5px 10px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
-            transition: all 0.2s;
-        }
-
-        .modal-btn:hover {
-            background: #00dfff;
-            color: #000;
         }
 
         /* ==========================================================================
@@ -310,10 +279,10 @@
            ========================================================================== */
         #joystick-container {
             position: absolute;
-            bottom: 35px;
-            left: 35px;
-            width: 120px;
-            height: 120px;
+            bottom: 30px;
+            left: 25px;
+            width: 110px;
+            height: 110px;
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(0, 223, 255, 0.4);
             border-radius: 50%;
@@ -321,23 +290,22 @@
             justify-content: center;
             align-items: center;
             pointer-events: auto;
-            box-shadow: 0 0 15px rgba(0, 223, 255, 0.15);
         }
 
         #joystick-knob {
-            width: 50px;
-            height: 50px;
+            width: 45px;
+            height: 45px;
             background: radial-gradient(circle, #00dfff, #0077b6);
             border-radius: 50%;
-            box-shadow: 0 0 15px #00dfff;
+            box-shadow: 0 0 10px #00dfff;
         }
 
         .btn-container {
             position: absolute;
-            bottom: 25px;
-            right: 25px;
-            width: 240px;
-            height: 240px;
+            bottom: 20px;
+            right: 20px;
+            width: 220px;
+            height: 220px;
             pointer-events: none;
         }
 
@@ -352,10 +320,9 @@
             cursor: pointer;
             border: 2px solid rgba(255, 255, 255, 0.85);
             pointer-events: auto;
-            background: rgba(5, 12, 22, 0.8);
-            box-shadow: 0 0 15px rgba(0, 223, 255, 0.3);
+            background: rgba(5, 12, 22, 0.85);
+            box-shadow: 0 0 12px rgba(0, 223, 255, 0.3);
             overflow: hidden;
-            transition: transform 0.1s;
         }
 
         .action-btn:active {
@@ -368,56 +335,37 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.82);
+            background: rgba(0, 0, 0, 0.8);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 14px;
+            font-size: 13px;
             color: #00dfff;
             font-weight: bold;
             opacity: 0;
             pointer-events: none;
         }
 
-        #attack-btn {
-            width: 85px;
-            height: 85px;
-            bottom: 10px;
-            right: 10px;
-            background: radial-gradient(circle, #0077b6, #002244);
-            font-size: 17px;
-            box-shadow: 0 0 20px #00dfff;
-        }
-
-        #dodge-btn { width: 52px; height: 52px; bottom: 10px; right: 110px; font-size: 12px; }
-        #skill-btn { width: 52px; height: 52px; bottom: 110px; right: 10px; font-size: 12px; }
-        #ult-btn {
-            width: 68px;
-            height: 68px;
-            bottom: 95px;
-            right: 95px;
-            font-size: 12px;
-            background: radial-gradient(circle, #7000ff, #220044);
-            border-color: #ff00ff;
-            box-shadow: 0 0 20px #ff00ff;
-        }
+        #attack-btn { width: 80px; height: 80px; bottom: 10px; right: 10px; font-size: 16px; background: radial-gradient(circle, #0077b6, #002244); }
+        #dodge-btn { width: 48px; height: 48px; bottom: 10px; right: 100px; font-size: 11px; }
+        #skill-btn { width: 48px; height: 48px; bottom: 100px; right: 10px; font-size: 11px; }
+        #ult-btn { width: 62px; height: 62px; bottom: 85px; right: 85px; font-size: 11px; background: radial-gradient(circle, #7000ff, #220044); border-color: #ff00ff; }
 
         #potion-btn {
             position: absolute;
-            bottom: 40px;
-            left: 175px;
-            width: 50px;
-            height: 50px;
+            bottom: 35px;
+            left: 150px;
+            width: 46px;
+            height: 46px;
             background: rgba(0, 255, 136, 0.15);
             border: 2px solid #00ff88;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             pointer-events: auto;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
         }
 
         #potion-count {
@@ -427,14 +375,13 @@
             background: #ff0055;
             color: white;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 11px;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            box-shadow: 0 0 8px #ff0055;
         }
 
         #dmg-layer {
@@ -449,9 +396,9 @@
         .dmg-text {
             position: absolute;
             font-weight: 900;
-            font-size: 20px;
+            font-size: 18px;
             color: #ffeb3b;
-            text-shadow: 0 0 10px #000, 0 0 5px #ff5500;
+            text-shadow: 0 0 8px #000;
             transition: transform 0.6s ease-out, opacity 0.6s ease-out;
             pointer-events: none;
         }
@@ -462,7 +409,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(2, 5, 10, 0.92);
+            background: rgba(2, 5, 10, 0.95);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -472,32 +419,8 @@
             backdrop-filter: blur(15px);
         }
 
-        #game-over h1 {
-            color: #ff0055;
-            font-size: 48px;
-            margin-bottom: 15px;
-            text-shadow: 0 0 30px #ff0055;
-            letter-spacing: 3px;
-        }
-
-        #restart-btn {
-            padding: 16px 36px;
-            background: linear-gradient(90deg, #00dfff, #0077b6);
-            border: none;
-            border-radius: 12px;
-            color: #000;
-            font-weight: 900;
-            font-size: 18px;
-            cursor: pointer;
-            margin-top: 30px;
-            box-shadow: 0 0 25px #00dfff;
-            transition: all 0.2s;
-        }
-
-        #restart-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 35px #00dfff;
-        }
+        #game-over h1 { color: #ff0055; font-size: 40px; margin-bottom: 10px; }
+        #restart-btn { padding: 14px 30px; background: linear-gradient(90deg, #00dfff, #0077b6); border: none; border-radius: 10px; color: #000; font-weight: 900; font-size: 16px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -507,7 +430,7 @@
         <div id="top-bar">
             <div class="status-panel">
                 <div>🛡️ 성기사 <span id="level-text" style="color:#00dfff;">Lv.1</span></div>
-                <div style="font-size:11px; margin-top:4px;">💰 골드: <span id="gold-text" style="color:#ffd700;">0</span> | 스테이지 <span id="stage-text" style="color:#00ff88;">1</span></div>
+                <div style="font-size:10px; margin-top:3px;">💰 골드: <span id="gold-text" style="color:#ffd700;">0</span> | 스테이지 <span id="stage-text" style="color:#00ff88;">1</span></div>
 
                 <div class="bar-container">
                     <div class="bar-label"><span>HP</span><span id="hp-text">100/100</span></div>
@@ -529,8 +452,6 @@
                 </div>
             </div>
         </div>
-
-        <div id="minimap-container"><canvas id="minimap-canvas"></canvas></div>
 
         <div id="boss-hp-container">
             <div id="boss-name">☠️ 심연의 서리 군주</div>
@@ -557,17 +478,17 @@
                 <span>이동 속도 (+6%)</span>
                 <button class="modal-btn" id="up-spd">150 G</button>
             </div>
-            <button class="hud-btn" id="close-shop" style="margin-top:10px; width:100%;">닫기</button>
+            <button class="hud-btn" id="close-shop" style="margin-top:8px; width:100%;">닫기</button>
         </div>
 
         <div id="inv-modal" class="game-modal">
             <h2>🎒 인벤토리</h2>
-            <div id="inv-list" style="display:flex; flex-direction:column; gap:8px; font-size:12px;">
-                <div>🗡️ 서리 칼날 검 (공격력 +10) [장착 중]</div>
-                <div>🛡️ 성스러운 갑옷 (방어력 +5) [장착 중]</div>
+            <div id="inv-list" style="display:flex; flex-direction:column; gap:6px; font-size:11px;">
+                <div>🗡️ 서리 칼날 검 (공격력 +10) [장착]</div>
+                <div>🛡️ 성스러운 갑옷 (방어력 +5) [장착]</div>
                 <div>🧪 체력 회복 포션 x<span id="potion-inv-count">3</span></div>
             </div>
-            <button class="hud-btn" id="close-inv" style="margin-top:10px; width:100%;">닫기</button>
+            <button class="hud-btn" id="close-inv" style="margin-top:8px; width:100%;">닫기</button>
         </div>
 
         <div id="joystick-container">
@@ -584,23 +505,11 @@
 
     <div id="game-over">
         <h1>GAME OVER</h1>
-        <p id="final-score" style="font-size: 20px; color: #a0c0d0;">도달 스테이지: STAGE 1</p>
+        <p id="final-score" style="font-size: 18px; color: #a0c0d0;">도달 스테이지: STAGE 1</p>
         <button id="restart-btn" onclick="location.reload()">다시 도전하기</button>
     </div>
 
     <script>
-        // Dynamically load dependencies if needed
-        function loadScript(src) {
-            return new Promise((resolve, reject) => {
-                const s = document.createElement('script');
-                s.src = src;
-                s.onload = resolve;
-                s.onerror = reject;
-                document.head.appendChild(s);
-            });
-        }
-
-        // Web Audio API Synthesizer (Zero External Audio File Dependency)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playSound(type) {
@@ -610,76 +519,25 @@
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-
                 const now = audioCtx.currentTime;
 
-                switch (type) {
-                    case 'attack':
-                        osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(280, now);
-                        osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
-                        gain.gain.setValueAtTime(0.15, now);
-                        gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
-                        osc.start(now);
-                        osc.stop(now + 0.1);
-                        break;
-                    case 'skill':
-                        osc.type = 'square';
-                        osc.frequency.setValueAtTime(400, now);
-                        osc.frequency.exponentialRampToValueAtTime(150, now + 0.25);
-                        gain.gain.setValueAtTime(0.2, now);
-                        gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                        osc.start(now);
-                        osc.stop(now + 0.25);
-                        break;
-                    case 'ult':
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(150, now);
-                        osc.frequency.exponentialRampToValueAtTime(600, now + 0.5);
-                        gain.gain.setValueAtTime(0.3, now);
-                        gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
-                        osc.start(now);
-                        osc.stop(now + 0.5);
-                        break;
-                    case 'hit':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(120, now);
-                        osc.frequency.exponentialRampToValueAtTime(30, now + 0.12);
-                        gain.gain.setValueAtTime(0.25, now);
-                        gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-                        osc.start(now);
-                        osc.stop(now + 0.12);
-                        break;
-                    case 'levelup':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(523.25, now);
-                        osc.frequency.setValueAtTime(659.25, now + 0.1);
-                        osc.frequency.setValueAtTime(783.99, now + 0.2);
-                        gain.gain.setValueAtTime(0.2, now);
-                        gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
-                        osc.start(now);
-                        osc.stop(now + 0.35);
-                        break;
-                    case 'potion':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(300, now);
-                        osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
-                        gain.gain.setValueAtTime(0.15, now);
-                        gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-                        osc.start(now);
-                        osc.stop(now + 0.2);
-                        break;
+                if (type === 'attack') {
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(280, now); osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                } else if (type === 'skill') {
+                    osc.type = 'square'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.25);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
+                } else if (type === 'hit') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(120, now); osc.frequency.exponentialRampToValueAtTime(30, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
                 }
-            } catch (e) {
-                console.warn("Audio Context Exception:", e);
-            }
+            } catch (e) {}
         }
 
-        async function startRpgEngine() {
-            // Load Three.js core and GLTF loader dynamically if not present
-            if (typeof THREE === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
-            if (typeof THREE.GLTFLoader === 'undefined') await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
-
+        function startRpgEngine() {
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x02050a);
@@ -690,78 +548,51 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
-            // Light setup
+            // Lighting Setup
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
 
             const dirLight = new THREE.DirectionalLight(0xa0e0ff, 1.5);
             dirLight.position.set(20, 40, 20);
             dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048;
-            dirLight.shadow.mapSize.height = 2048;
-            dirLight.shadow.camera.near = 0.5;
-            dirLight.shadow.camera.far = 150;
-            dirLight.shadow.camera.left = -30;
-            dirLight.shadow.camera.right = 30;
-            dirLight.shadow.camera.top = 30;
-            dirLight.shadow.camera.bottom = -30;
             scene.add(dirLight);
 
-            const pointLight = new THREE.PointLight(0x00dfff, 2, 25);
-            scene.add(pointLight);
-
-            // Ground & Grid
+            // Ground & Grid Setup
             const gridHelper = new THREE.GridHelper(150, 75, 0x00dfff, 0x0a2035);
             gridHelper.position.y = -0.01;
             scene.add(gridHelper);
 
             const groundGeo = new THREE.PlaneGeometry(200, 200);
-            const groundMat = new THREE.MeshStandardMaterial({ color: 0x030812, roughness: 0.8, metalness: 0.2 });
+            const groundMat = new THREE.MeshStandardMaterial({ color: 0x030812, roughness: 0.8 });
             const groundMesh = new THREE.Mesh(groundGeo, groundMat);
             groundMesh.rotation.x = -Math.PI / 2;
             groundMesh.receiveShadow = true;
             scene.add(groundMesh);
 
-            // Game State Variables
-            let stage = 1;
-            let gold = 0;
-            let level = 1;
-            let exp = 0;
-            let maxExp = 100;
-
-            let playerHP = 100;
-            let maxHP = 100;
-            let playerAtk = 20;
-            let moveSpeed = 0.15;
-            let potions = 3;
-
-            let questTarget = 5;
-            let questProgress = 0;
-            let isGameOver = false;
-            let stageCleared = false;
-            let cameraShake = 0;
+            // Gameplay State
+            let stage = 1, gold = 0, level = 1, exp = 0, maxExp = 100;
+            let playerHP = 100, maxHP = 100, playerAtk = 20, moveSpeed = 0.15, potions = 3;
+            let questTarget = 5, questProgress = 0, isGameOver = false, stageCleared = false, cameraShake = 0;
 
             const characterGroup = new THREE.Group();
             scene.add(characterGroup);
 
-            let currentMesh = null;
-            let mixer = null;
+            let currentMesh = null, mixer = null;
             const clock = new THREE.Clock();
 
-            // Default Player Geometric Model
+            // Default Player Geometric Avatar
             function createDefaultAvatar() {
                 const group = new THREE.Group();
                 const bodyGeo = new THREE.CapsuleGeometry(0.55, 1.2, 8, 16);
-                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.1, metalness: 0.8 });
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.2, metalness: 0.5 });
                 const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
                 bodyMesh.position.y = 1.15;
                 bodyMesh.castShadow = true;
                 group.add(bodyMesh);
 
-                const eyeGeo = new THREE.BoxGeometry(0.6, 0.15, 0.3);
+                const eyeGeo = new THREE.BoxGeometry(0.5, 0.15, 0.2);
                 const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
                 const eye = new THREE.Mesh(eyeGeo, eyeMat);
                 eye.position.set(0, 1.45, 0.35);
@@ -773,7 +604,6 @@
             currentMesh = createDefaultAvatar();
             characterGroup.add(currentMesh);
 
-            // Update HUD UI Elements
             function updateUI() {
                 document.getElementById('hp-text').innerText = `${Math.ceil(playerHP)}/${maxHP}`;
                 document.getElementById('hp-fill').style.width = `${Math.max(0, (playerHP / maxHP) * 100)}%`;
@@ -790,36 +620,35 @@
                 document.getElementById('quest-text').innerText = `몬스터 처치 (${questProgress}/${questTarget})`;
             }
 
-            // File Upload for Custom 3D Model
-            const gltfLoader = new THREE.GLTFLoader();
-            document.getElementById('file-input').onchange = function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
+            // Custom GLB Loader Integration
+            if (window.THREE && THREE.GLTFLoader) {
+                const gltfLoader = new THREE.GLTFLoader();
+                document.getElementById('file-input').onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
 
-                const url = URL.createObjectURL(file);
-                gltfLoader.load(url, function(gltf) {
-                    if (currentMesh) characterGroup.remove(currentMesh);
-                    currentMesh = gltf.scene;
+                    const url = URL.createObjectURL(file);
+                    gltfLoader.load(url, function(gltf) {
+                        if (currentMesh) characterGroup.remove(currentMesh);
+                        currentMesh = gltf.scene;
 
-                    const box = new THREE.Box3().setFromObject(currentMesh);
-                    const size = box.getSize(new THREE.Vector3());
-                    const scale = 2.6 / (Math.max(size.x, size.y, size.z) || 1);
+                        const box = new THREE.Box3().setFromObject(currentMesh);
+                        const size = box.getSize(new THREE.Vector3());
+                        const scale = 2.5 / (Math.max(size.x, size.y, size.z) || 1);
 
-                    currentMesh.scale.set(scale, scale, scale);
-                    currentMesh.position.set(0, 0, 0);
-                    characterGroup.add(currentMesh);
+                        currentMesh.scale.set(scale, scale, scale);
+                        characterGroup.add(currentMesh);
 
-                    if (gltf.animations && gltf.animations.length > 0) {
-                        mixer = new THREE.AnimationMixer(currentMesh);
-                        mixer.clipAction(gltf.animations[0]).play();
-                    }
-                    showNotice('✨ 커스텀 3D 캐릭터 모델 적용 완료!');
-                });
-            };
+                        if (gltf.animations && gltf.animations.length > 0) {
+                            mixer = new THREE.AnimationMixer(currentMesh);
+                            mixer.clipAction(gltf.animations[0]).play();
+                        }
+                        showNotice('✨ .GLB 모델 변경 완료!');
+                    });
+                };
+            }
 
-            const enemies = [];
-            const projectiles = [];
-            const particles = [];
+            const enemies = [], projectiles = [], particles = [];
             let portalMesh = null;
 
             function showNotice(msg) {
@@ -830,11 +659,10 @@
                 setTimeout(() => {
                     banner.style.opacity = '0';
                     banner.style.transform = 'translateY(-10px)';
-                }, 2200);
+                }, 2000);
             }
 
-            // Floating Damage Indicator Text
-            function spawnDmgText(worldPos, damage, isCritical = false) {
+            function spawnDmgText(worldPos, damage) {
                 const vector = worldPos.clone().project(camera);
                 const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
@@ -842,174 +670,111 @@
                 const el = document.createElement('div');
                 el.className = 'dmg-text';
                 el.innerText = Math.round(damage);
-                if (isCritical) {
-                    el.style.color = '#ff0055';
-                    el.style.fontSize = '26px';
-                    el.innerText += '!';
-                }
                 el.style.left = `${x}px`;
                 el.style.top = `${y}px`;
 
                 document.getElementById('dmg-layer').appendChild(el);
-
-                setTimeout(() => {
-                    el.style.transform = 'translateY(-40px)';
-                    el.style.opacity = '0';
-                }, 40);
-                setTimeout(() => el.remove(), 600);
+                setTimeout(() => { el.style.transform = 'translateY(-30px)'; el.style.opacity = '0'; }, 30);
+                setTimeout(() => el.remove(), 500);
             }
 
-            // Particle Effect System
-            function createParticleExplosion(pos, color, count = 12) {
+            function createParticles(pos, color, count = 10) {
                 for (let i = 0; i < count; i++) {
-                    const pGeo = new THREE.SphereGeometry(0.14, 4, 4);
+                    const pGeo = new THREE.SphereGeometry(0.12, 4, 4);
                     const pMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 });
-                    const particle = new THREE.Mesh(pGeo, pMat);
-                    particle.position.copy(pos);
-                    particle.userData = {
-                        vel: new THREE.Vector3((Math.random() - 0.5) * 0.25, Math.random() * 0.25, (Math.random() - 0.5) * 0.25),
-                        life: 1.0
-                    };
-                    scene.add(particle);
-                    particles.push(particle);
+                    const p = new THREE.Mesh(pGeo, pMat);
+                    p.position.copy(pos);
+                    p.userData = { vel: new THREE.Vector3((Math.random() - 0.5) * 0.2, Math.random() * 0.2, (Math.random() - 0.5) * 0.2), life: 1.0 };
+                    scene.add(p);
+                    particles.push(p);
                 }
             }
 
-            // Portal System for Stage Progression
             function spawnPortal() {
-                const pGeo = new THREE.TorusGeometry(1.6, 0.3, 16, 32);
+                const pGeo = new THREE.TorusGeometry(1.5, 0.25, 16, 32);
                 const pMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
                 portalMesh = new THREE.Mesh(pGeo, pMat);
-                portalMesh.position.set(characterGroup.position.x + 8, 1.4, characterGroup.position.z + 8);
+                portalMesh.position.set(characterGroup.position.x + 6, 1.2, characterGroup.position.z + 6);
                 portalMesh.rotation.x = Math.PI / 2;
                 scene.add(portalMesh);
-                showNotice('✨ 차원 포탈 오픈! 포탈로 이동하세요.');
+                showNotice('✨ 차원 포탈 오픈!');
             }
 
-            // Monster Spawner & AI Factory
             function initStageMonsters() {
                 stageCleared = false;
                 if (portalMesh) { scene.remove(portalMesh); portalMesh = null; }
-
                 enemies.forEach(e => scene.remove(e));
                 enemies.length = 0;
 
                 questProgress = 0;
-                questTarget = 4 + stage * 2;
-
+                questTarget = 3 + stage * 2;
                 const hasBoss = (stage % 3 === 0);
                 const count = hasBoss ? questTarget - 1 : questTarget;
 
-                for (let i = 0; i < count; i++) {
-                    const isRanged = Math.random() < 0.35;
-                    spawnEnemy(isRanged ? 'ranged' : 'normal');
-                }
-
+                for (let i = 0; i < count; i++) spawnEnemy(Math.random() < 0.3 ? 'ranged' : 'normal');
                 if (hasBoss) {
                     spawnEnemy('boss');
                     document.getElementById('boss-hp-container').style.display = 'flex';
                 } else {
                     document.getElementById('boss-hp-container').style.display = 'none';
                 }
-
-                showNotice(`STAGE ${stage} - 진입 완료`);
+                showNotice(`STAGE ${stage} 시작`);
                 updateUI();
             }
 
             function spawnEnemy(type) {
                 const enemyGroup = new THREE.Group();
-                let scale = 1.0, color = 0xff3366, hp = 40 + stage * 15;
+                let scale = 1.0, color = 0xff3366, hp = 30 + stage * 15;
 
-                if (type === 'ranged') { color = 0xffaa00; hp = 30 + stage * 10; }
-                if (type === 'boss') { scale = 2.8; color = 0xff0055; hp = 250 + stage * 80; }
+                if (type === 'ranged') { color = 0xffaa00; hp = 25 + stage * 10; }
+                if (type === 'boss') { scale = 2.5; color = 0xff0055; hp = 200 + stage * 70; }
 
-                const eGeo = new THREE.BoxGeometry(0.85 * scale, 1.5 * scale, 0.85 * scale);
-                const eMat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 });
+                const eGeo = new THREE.BoxGeometry(0.8 * scale, 1.4 * scale, 0.8 * scale);
+                const eMat = new THREE.MeshStandardMaterial({ color: color });
                 const mesh = new THREE.Mesh(eGeo, eMat);
-                mesh.position.y = (1.5 * scale) / 2;
+                mesh.position.y = (1.4 * scale) / 2;
                 mesh.castShadow = true;
                 enemyGroup.add(mesh);
 
-                const hpCanvas = document.createElement('canvas');
-                hpCanvas.width = 64; hpCanvas.height = 8;
-                const hpCtx = hpCanvas.getContext('2d');
-                hpCtx.fillStyle = '#ff0000'; hpCtx.fillRect(0, 0, 64, 8);
-
-                const texture = new THREE.CanvasTexture(hpCanvas);
-                const hpBarMesh = new THREE.Mesh(
-                    new THREE.PlaneGeometry(1.4 * scale, 0.18),
-                    new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
-                );
-                hpBarMesh.position.y = 1.8 * scale;
-                enemyGroup.add(hpBarMesh);
-
                 const angle = Math.random() * Math.PI * 2;
-                const dist = 12 + Math.random() * 12;
+                const dist = 10 + Math.random() * 10;
                 enemyGroup.position.x = characterGroup.position.x + Math.cos(angle) * dist;
                 enemyGroup.position.z = characterGroup.position.z + Math.sin(angle) * dist;
 
-                enemyGroup.userData = {
-                    type: type, hp: hp, maxHp: hp, scale: scale,
-                    hpCtx: hpCtx, texture: texture, lastShoot: 0
-                };
-
+                enemyGroup.userData = { type: type, hp: hp, maxHp: hp, scale: scale, lastShoot: 0 };
                 scene.add(enemyGroup);
                 enemies.push(enemyGroup);
             }
 
-            // EXP & Level System
-            function addExp(amount) {
-                exp += amount;
-                if (exp >= maxExp) {
-                    exp -= maxExp;
-                    level++;
-                    maxExp = Math.floor(maxExp * 1.45);
-                    playerAtk += 6;
-                    playerHP = maxHP = maxHP + 25;
-                    showNotice(`LEVEL UP! (Lv.${level})`);
-                    playSound('levelup');
-                }
-                updateUI();
-            }
-
-            // Damage Calculation & Knockback
-            function applyDamageToEnemies(range, multiplier, pushPower = 1.2) {
+            function applyDamageToEnemies(range, multiplier) {
                 enemies.forEach((enemy, idx) => {
                     const dist = characterGroup.position.distanceTo(enemy.position);
                     if (dist <= range) {
-                        const isCrit = Math.random() < 0.28;
-                        const dmg = playerAtk * multiplier * (isCrit ? 1.85 : 1.0);
+                        const dmg = playerAtk * multiplier;
                         enemy.userData.hp -= dmg;
-
-                        createParticleExplosion(enemy.position, 0x00dfff, 10);
-                        spawnDmgText(enemy.position, dmg, isCrit);
+                        createParticles(enemy.position, 0x00dfff, 8);
+                        spawnDmgText(enemy.position, dmg);
                         playSound('hit');
 
-                        const knockbackDir = enemy.position.clone().sub(characterGroup.position).normalize();
-                        enemy.position.add(knockbackDir.multiplyScalar(pushPower));
-
-                        const ratio = Math.max(0, enemy.userData.hp / enemy.userData.maxHp);
-                        const ctx = enemy.userData.hpCtx;
-                        ctx.fillStyle = '#111111'; ctx.fillRect(0, 0, 64, 8);
-                        ctx.fillStyle = enemy.userData.type === 'boss' ? '#ff0055' : '#00ff88';
-                        ctx.fillRect(0, 0, 64 * ratio, 8);
-                        enemy.userData.texture.needsUpdate = true;
-
                         if (enemy.userData.type === 'boss') {
+                            const ratio = Math.max(0, enemy.userData.hp / enemy.userData.maxHp);
                             document.getElementById('boss-hp-fill').style.width = `${ratio * 100}%`;
                         }
 
                         if (enemy.userData.hp <= 0) {
                             scene.remove(enemy);
                             enemies.splice(idx, 1);
-                            gold += enemy.userData.type === 'boss' ? 300 : 40;
+                            gold += enemy.userData.type === 'boss' ? 200 : 30;
                             questProgress++;
-                            addExp(enemy.userData.type === 'boss' ? 200 : 40);
+                            exp += enemy.userData.type === 'boss' ? 150 : 30;
 
-                            if (enemy.userData.type === 'boss') {
-                                document.getElementById('boss-hp-container').style.display = 'none';
+                            if (exp >= maxExp) {
+                                exp -= maxExp; level++; maxExp = Math.floor(maxExp * 1.4);
+                                playerAtk += 5; maxHP += 20; playerHP = maxHP;
+                                showNotice(`레벨 업! (Lv.${level})`);
                             }
 
+                            if (enemy.userData.type === 'boss') document.getElementById('boss-hp-container').style.display = 'none';
                             if (questProgress >= questTarget && !stageCleared) {
                                 stageCleared = true;
                                 spawnPortal();
@@ -1020,88 +785,42 @@
                 });
             }
 
-            // Modal Controls
+            // Modal Interactions
             document.getElementById('shop-btn').onclick = () => { document.getElementById('shop-modal').style.display = 'flex'; };
             document.getElementById('close-shop').onclick = () => { document.getElementById('shop-modal').style.display = 'none'; };
             document.getElementById('inv-btn').onclick = () => { document.getElementById('inv-modal').style.display = 'flex'; };
             document.getElementById('close-inv').onclick = () => { document.getElementById('inv-modal').style.display = 'none'; };
 
-            document.getElementById('up-atk').onclick = () => {
-                if (gold >= 100) { gold -= 100; playerAtk += 6; updateUI(); playSound('levelup'); }
-            };
-            document.getElementById('up-hp').onclick = () => {
-                if (gold >= 100) { gold -= 100; maxHP += 25; playerHP += 25; updateUI(); playSound('levelup'); }
-            };
-            document.getElementById('up-spd').onclick = () => {
-                if (gold >= 150) { gold -= 150; moveSpeed += 0.015; updateUI(); playSound('levelup'); }
-            };
+            document.getElementById('up-atk').onclick = () => { if (gold >= 100) { gold -= 100; playerAtk += 5; updateUI(); } };
+            document.getElementById('up-hp').onclick = () => { if (gold >= 100) { gold -= 100; maxHP += 20; playerHP += 20; updateUI(); } };
+            document.getElementById('up-spd').onclick = () => { if (gold >= 150) { gold -= 150; moveSpeed += 0.015; updateUI(); } };
 
             document.getElementById('potion-btn').onclick = () => {
                 if (potions > 0 && playerHP < maxHP) {
-                    potions--;
-                    playerHP = Math.min(maxHP, playerHP + 50);
-                    createParticleExplosion(characterGroup.position, 0x00ff88, 16);
-                    playSound('potion');
+                    potions--; playerHP = Math.min(maxHP, playerHP + 40);
+                    createParticles(characterGroup.position, 0x00ff88, 12);
                     updateUI();
                 }
             };
 
-            // Cooldown Handler
-            const cooldowns = { dodge: false, skill: false, ult: false };
-            function triggerCooldown(type, sec) {
-                cooldowns[type] = true;
-                const overlay = document.getElementById(`cd-${type}`);
-                overlay.style.opacity = '1';
-                let remaining = sec;
-                overlay.innerText = remaining;
-
-                const timer = setInterval(() => {
-                    remaining--;
-                    if (remaining <= 0) {
-                        clearInterval(timer);
-                        cooldowns[type] = false;
-                        overlay.style.opacity = '0';
-                    } else {
-                        overlay.innerText = remaining;
-                    }
-                }, 1000);
-            }
-
-            // Skill Button Handlers
-            document.getElementById('attack-btn').onclick = () => {
-                playSound('attack');
-                applyDamageToEnemies(3.0, 1.0, 0.9);
-            };
-
+            // Buttons
+            document.getElementById('attack-btn').onclick = () => { playSound('attack'); applyDamageToEnemies(3.0, 1.0); };
             document.getElementById('dodge-btn').onclick = () => {
-                if (cooldowns.dodge) return;
-                triggerCooldown('dodge', 2);
                 playSound('skill');
                 const forward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), characterGroup.rotation.y);
-                characterGroup.position.add(forward.multiplyScalar(4.5));
-                createParticleExplosion(characterGroup.position, 0xffffff, 12);
+                characterGroup.position.add(forward.multiplyScalar(4.0));
             };
-
             document.getElementById('skill-btn').onclick = () => {
-                if (cooldowns.skill) return;
-                triggerCooldown('skill', 5);
                 playSound('skill');
                 const forward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), characterGroup.rotation.y);
-                characterGroup.position.add(forward.multiplyScalar(6.0));
-                applyDamageToEnemies(4.5, 2.4, 2.5);
-                createParticleExplosion(characterGroup.position, 0x00dfff, 24);
+                characterGroup.position.add(forward.multiplyScalar(5.0));
+                applyDamageToEnemies(4.0, 2.0);
             };
-
             document.getElementById('ult-btn').onclick = () => {
-                if (cooldowns.ult) return;
-                triggerCooldown('ult', 10);
-                playSound('ult');
-                cameraShake = 25;
-                applyDamageToEnemies(9.0, 5.0, 4.0);
-                createParticleExplosion(characterGroup.position, 0xff00ff, 40);
+                playSound('skill'); cameraShake = 15; applyDamageToEnemies(8.0, 4.0);
             };
 
-            // Touch Joystick Input Controller
+            // Joystick Input
             let moveDir = { x: 0, z: 0 };
             const joystick = document.getElementById('joystick-container');
             const knob = document.getElementById('joystick-knob');
@@ -1117,11 +836,8 @@
             function handleTouchMove(e) {
                 if (!isDragging) return;
                 const t = e.touches ? e.touches[0] : e;
-                let dx = t.clientX - startX;
-                let dy = t.clientY - startY;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const maxR = 42;
-
+                let dx = t.clientX - startX, dy = t.clientY - startY;
+                const dist = Math.sqrt(dx * dx + dy * dy), maxR = 35;
                 if (dist > maxR) { dx = (dx / dist) * maxR; dy = (dy / dist) * maxR; }
                 knob.style.transform = `translate(${dx}px, ${dy}px)`;
                 moveDir.x = dx / maxR; moveDir.z = dy / maxR;
@@ -1136,59 +852,9 @@
             joystick.ontouchstart = handleTouchStart; window.ontouchmove = handleTouchMove; window.ontouchend = handleTouchEnd;
             joystick.onmousedown = handleTouchStart; window.onmousemove = handleTouchMove; window.onmouseup = handleTouchEnd;
 
-            // Keyboard Shortcuts Controls
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') moveDir.z = -1;
-                if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') moveDir.z = 1;
-                if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') moveDir.x = -1;
-                if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') moveDir.x = 1;
-                if (e.key === ' ') document.getElementById('attack-btn').click();
-                if (e.key === '1') document.getElementById('dodge-btn').click();
-                if (e.key === '2') document.getElementById('skill-btn').click();
-                if (e.key === '3') document.getElementById('ult-btn').click();
-                if (e.key === 'q' || e.key === 'Q') document.getElementById('potion-btn').click();
-            });
-
-            window.addEventListener('keyup', (e) => {
-                if (['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'].includes(e.key)) moveDir.z = 0;
-                if (['a', 'A', 'd', 'D', 'ArrowLeft', 'ArrowRight'].includes(e.key)) moveDir.x = 0;
-            });
-
-            // Minimap Renderer
-            const minimapCanvas = document.getElementById('minimap-canvas');
-            const mmCtx = minimapCanvas.getContext('2d');
-            minimapCanvas.width = 110; minimapCanvas.height = 110;
-
-            function updateMinimap() {
-                mmCtx.clearRect(0, 0, 110, 110);
-                const cx = 55, cy = 55;
-
-                // Player Icon
-                mmCtx.fillStyle = '#00dfff';
-                mmCtx.beginPath(); mmCtx.arc(cx, cy, 4.5, 0, Math.PI * 2); mmCtx.fill();
-
-                // Monster Icons
-                enemies.forEach(enemy => {
-                    const dx = (enemy.position.x - characterGroup.position.x) * 1.6;
-                    const dz = (enemy.position.z - characterGroup.position.z) * 1.6;
-                    mmCtx.fillStyle = enemy.userData.type === 'boss' ? '#ff00ff' : '#ff3366';
-                    mmCtx.beginPath();
-                    mmCtx.arc(cx + dx, cy + dz, enemy.userData.type === 'boss' ? 6 : 3, 0, Math.PI * 2);
-                    mmCtx.fill();
-                });
-
-                // Portal Icon
-                if (portalMesh) {
-                    const dx = (portalMesh.position.x - characterGroup.position.x) * 1.6;
-                    const dz = (portalMesh.position.z - characterGroup.position.z) * 1.6;
-                    mmCtx.fillStyle = '#ffd700';
-                    mmCtx.beginPath(); mmCtx.arc(cx + dx, cy + dz, 5, 0, Math.PI * 2); mmCtx.fill();
-                }
-            }
-
             initStageMonsters();
 
-            // Main Game Engine Loop
+            // Render Loop
             function renderLoop() {
                 if (isGameOver) return;
                 requestAnimationFrame(renderLoop);
@@ -1196,66 +862,43 @@
                 const delta = clock.getDelta();
                 if (mixer) mixer.update(delta);
 
-                // Player Position Translation
                 if (moveDir.x !== 0 || moveDir.z !== 0) {
                     characterGroup.position.x += moveDir.x * moveSpeed;
                     characterGroup.position.z += moveDir.z * moveSpeed;
                     characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
                 }
 
-                // Portal Interaction Check
                 if (portalMesh && characterGroup.position.distanceTo(portalMesh.position) < 1.8) {
                     stage++;
                     initStageMonsters();
                 }
 
-                // Particle Lifetime Loop
                 particles.forEach((p, idx) => {
                     p.position.add(p.userData.vel);
-                    p.userData.life -= 0.035;
+                    p.userData.life -= 0.04;
                     p.material.opacity = p.userData.life;
-                    if (p.userData.life <= 0) {
-                        scene.remove(p);
-                        particles.splice(idx, 1);
-                    }
+                    if (p.userData.life <= 0) { scene.remove(p); particles.splice(idx, 1); }
                 });
 
-                // Enemy AI Movement & Attack Patterns
                 const now = Date.now();
                 enemies.forEach((enemy) => {
                     const dist = characterGroup.position.distanceTo(enemy.position);
                     const dir = characterGroup.position.clone().sub(enemy.position).normalize();
 
                     if (enemy.userData.type === 'ranged') {
-                        if (dist > 7.0) {
-                            enemy.position.x += dir.x * 0.04;
-                            enemy.position.z += dir.z * 0.04;
-                        }
-                        if (now - enemy.userData.lastShoot > 2000) {
-                            enemy.userData.lastShoot = now;
-                            const projectile = new THREE.Mesh(
-                                new THREE.SphereGeometry(0.22, 8, 8),
-                                new THREE.MeshBasicMaterial({ color: 0xffaa00 })
-                            );
-                            projectile.position.copy(enemy.position);
-                            projectile.position.y = 0.9;
-                            projectile.userData = { dir: dir };
-                            scene.add(projectile);
-                            projectiles.push(projectile);
+                        if (dist > 6.0) {
+                            enemy.position.x += dir.x * 0.035; enemy.position.z += dir.z * 0.035;
                         }
                     } else {
-                        const speed = enemy.userData.type === 'boss' ? 0.035 : 0.052;
-                        enemy.position.x += dir.x * speed;
-                        enemy.position.z += dir.z * speed;
+                        const speed = enemy.userData.type === 'boss' ? 0.03 : 0.045;
+                        enemy.position.x += dir.x * speed; enemy.position.z += dir.z * speed;
                     }
 
                     enemy.lookAt(characterGroup.position);
 
-                    // Melee Damage Hitbox Collision
-                    if (dist < (enemy.userData.type === 'boss' ? 2.1 : 1.1)) {
-                        playerHP -= enemy.userData.type === 'boss' ? 0.95 : 0.35;
+                    if (dist < (enemy.userData.type === 'boss' ? 2.0 : 1.0)) {
+                        playerHP -= enemy.userData.type === 'boss' ? 0.8 : 0.3;
                         updateUI();
-
                         if (playerHP <= 0 && !isGameOver) {
                             isGameOver = true;
                             document.getElementById('final-score').innerText = `도달 스테이지: STAGE ${stage}`;
@@ -1264,35 +907,18 @@
                     }
                 });
 
-                // Ranged Projectiles Physics & Collisions
-                projectiles.forEach((p, idx) => {
-                    p.position.add(p.userData.dir.clone().multiplyScalar(0.22));
-                    if (characterGroup.position.distanceTo(p.position) < 0.9) {
-                        playerHP -= 10;
-                        updateUI();
-                        createParticleExplosion(p.position, 0xffaa00, 8);
-                        scene.remove(p);
-                        projectiles.splice(idx, 1);
-                    } else if (p.position.distanceTo(characterGroup.position) > 35) {
-                        scene.remove(p);
-                        projectiles.splice(idx, 1);
-                    }
-                });
-
-                // Dynamic Camera Control & Screen Shake Effect
+                // Camera Logic
                 let shakeOffset = new THREE.Vector3(0, 0, 0);
                 if (cameraShake > 0) {
-                    shakeOffset.set((Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4);
+                    shakeOffset.set((Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3, (Math.random() - 0.5) * 0.3);
                     cameraShake--;
                 }
 
-                pointLight.position.copy(characterGroup.position).add(new THREE.Vector3(0, 3, 0));
                 camera.position.x = characterGroup.position.x + shakeOffset.x;
-                camera.position.z = characterGroup.position.z + 10.0 + shakeOffset.z;
-                camera.position.y = 12.0 + shakeOffset.y;
-                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+                camera.position.z = characterGroup.position.z + 9.0 + shakeOffset.z;
+                camera.position.y = 11.0 + shakeOffset.y;
+                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 0.8, characterGroup.position.z);
 
-                updateMinimap();
                 renderer.render(scene, camera);
             }
 
