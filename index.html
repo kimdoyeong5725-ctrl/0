@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Mobile Action RPG - Ice Awakening</title>
+    <title>3D Bleach Story RPG</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #1a2a3a; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #0b1325; font-family: 'Segoe UI', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
         /* TOP HUD */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .panel-box { background: rgba(10, 25, 45, 0.85); border: 1.5px solid #87ceeb; border-radius: 8px; padding: 10px; width: 200px; pointer-events: auto; box-shadow: 0 0 15px rgba(135, 206, 235, 0.5); }
+        .panel-box { background: rgba(10, 25, 45, 0.9); border: 1.5px solid #87ceeb; border-radius: 8px; padding: 10px; width: 220px; pointer-events: auto; box-shadow: 0 0 15px rgba(135, 206, 235, 0.5); }
         .gold-text { color: #ffd700; }
         .bar-container { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
         .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, #00b894); transition: width 0.15s; }
         .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #00dfff, #74b9ff); transition: width 0.15s; }
-        .quest-box { margin-top: 8px; background: rgba(0, 223, 255, 0.15); border-left: 3px solid #87ceeb; padding: 5px; font-size: 11px; }
+        .quest-box { margin-top: 8px; background: rgba(0, 223, 255, 0.15); border-left: 3px solid #00dfff; padding: 6px; font-size: 11px; font-weight: bold; }
 
         .top-right-btns { display: flex; flex-direction: column; gap: 6px; }
         .btn-hud { background: rgba(10, 25, 45, 0.9); border: 1.5px solid #87ceeb; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #87ceeb; }
@@ -51,7 +51,7 @@
         .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.08); padding: 6px; border-radius: 4px; }
         .stat-btn { background: #0077b6; border: 1px solid #87ceeb; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
 
-        #toast-msg { position: absolute; top: 28%; width: 100%; text-align: center; color: #a0e6ff; font-size: 22px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 15px #00dfff; }
+        #toast-msg { position: absolute; top: 25%; width: 100%; text-align: center; color: #a0e6ff; font-size: 22px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 15px #00dfff; }
 
         #height-slider-box { display: flex; flex-direction: column; gap: 6px; align-items: center; margin-top: 5px; }
         #height-slider-box input { width: 100%; cursor: pointer; }
@@ -66,38 +66,38 @@
         <div id="top-hud">
             <div class="panel-box">
                 <div style="display:flex; justify-content:space-between;">
-                    <span>❄️ 빙설 기사 <b id="ui-level" style="color:#87ceeb;">Lv.1</b></span>
+                    <span>⚔️ 사신 <b id="ui-level" style="color:#87ceeb;">Lv.1</b></span>
                     <span class="gold-text">💰 <b id="ui-gold">0</b></span>
                 </div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
                 <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="quest-box">📜 목표: <span id="ui-quest">몬스터 토벌</span></div>
+                <div class="quest-box">📖 <span id="ui-stage">1장: 현세 호로 퇴치 (0/3)</span></div>
             </div>
             
             <div class="top-right-btns">
                 <button class="btn-hud" id="btn-open-stat">⚔️ 스탯</button>
-                <button class="btn-hud" id="btn-open-inv">🎒 인벤토리</button>
+                <button class="btn-hud" id="btn-open-inv">🎒 참백도</button>
                 <button class="btn-hud" id="btn-open-shop">🏪 상점</button>
                 <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 모델 적용</button>
                 <button class="btn-hud" id="btn-open-height" style="border-color:#a0e6ff; color:#a0e6ff;">📏 높이 조절</button>
             </div>
         </div>
 
-        <div id="toast-msg">빙설의 세계로 입장합니다!</div>
+        <div id="toast-msg">블리치 스토리 시작!</div>
 
         <div id="joystick-area"><div id="joystick-handle"></div></div>
 
         <div class="action-area">
-            <div id="btn-dodge" class="btn-action">회피</div>
+            <div id="btn-dodge" class="btn-action">순보</div>
             <div id="btn-skill" class="btn-action">얼음송이</div>
-            <div id="btn-ult" class="btn-action">눈꽃각성</div>
+            <div id="btn-ult" class="btn-action">만해각성</div>
             <div id="btn-attack" class="btn-action">공격</div>
         </div>
 
         <div id="modal-stat" class="modal-overlay">
-            <div class="modal-header">❄️ 캐릭터 스탯</div>
+            <div class="modal-header">❄️ 사신 능력치</div>
             <div class="modal-body">
-                <div class="stat-row"><span>공격력</span><b id="stat-atk">25</b></div>
+                <div class="stat-row"><span>영력(공격력)</span><b id="stat-atk">25</b></div>
                 <div class="stat-row"><span>방어력</span><b id="stat-def">5</b></div>
             </div>
             <button class="btn-hud" id="btn-close-stat">닫기</button>
@@ -106,16 +106,16 @@
         <div id="modal-inv" class="modal-overlay">
             <div class="modal-header">🎒 인벤토리</div>
             <div class="modal-body">
-                <div class="stat-row"><span>🗡️ 얼음 결정 검</span><span style="color:#00ff88;">+15 ATK</span></div>
+                <div class="stat-row"><span>🗡️ 빙륜환 (氷輪丸)</span><span style="color:#00ff88;">+15 영력</span></div>
             </div>
             <button class="btn-hud" id="btn-close-inv">닫기</button>
         </div>
 
         <div id="modal-shop" class="modal-overlay">
-            <div class="modal-header">🏪 강화 상점</div>
+            <div class="modal-header">🏪 영압 강화</div>
             <div class="modal-body">
                 <div class="stat-row">
-                    <div>공격력 +5<br><small class="gold-text">100 Gold</small></div>
+                    <div>영력 +5<br><small class="gold-text">100 Gold</small></div>
                     <button class="stat-btn" id="buy-atk">강화</button>
                 </div>
             </div>
@@ -123,10 +123,10 @@
         </div>
 
         <div id="modal-height" class="modal-overlay">
-            <div class="modal-header">📏 캐릭터 높이(Y축) 조절</div>
+            <div class="modal-header">📏 캐릭터 높이 조절</div>
             <div class="modal-body">
                 <div id="height-slider-box">
-                    <span>높이 조절: <b id="height-val" style="color:#87ceeb;">0.0</b></span>
+                    <span>높이: <b id="height-val" style="color:#87ceeb;">0.0</b></span>
                     <input type="range" id="height-slider" min="-3" max="5" step="0.1" value="0">
                 </div>
             </div>
@@ -136,14 +136,22 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, isAwakened: false };
+            const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, isAwakened: false, stage: 1, killCount: 0 };
+
+            const stagesInfo = [
+                { id: 1, name: "1장: 현세 호로 퇴치", target: 3, enemyName: "호로", color: 0xffffff },
+                { id: 2, name: "2장: 메노스 그랑데 출현", target: 2, enemyName: "메노스", color: 0x111111 },
+                { id: 3, name: "3장: 웨코문드 에스파다 결전", target: 3, enemyName: "에스파다", color: 0xe0e0e0 },
+                { id: 4, name: "4장: 결전! 아이젠 소스케", target: 1, enemyName: "아이젠", color: 0x8e44ad },
+                { id: 5, name: "5장: 반덴라이히 퀸시 침공", target: 4, enemyName: "퀸시", color: 0x00dfff },
+                { id: 6, name: "최종장: 모든 위협 평정 완료!", target: 999, enemyName: "잔당", color: 0xffffff }
+            ];
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
 
-            // ❄️ 산뜻하고 차가운 하늘색 배경
-            scene.background = new THREE.Color(0x64b5f6);
-            scene.fog = new THREE.FogExp2(0x64b5f6, 0.01);
+            scene.background = new THREE.Color(0x22313f);
+            scene.fog = new THREE.FogExp2(0x22313f, 0.012);
 
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -152,26 +160,20 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // ☀️ 환한 차가운 빛
-            scene.add(new THREE.AmbientLight(0xe0f7fa, 2.2));
+            scene.add(new THREE.AmbientLight(0xe0f7fa, 2.0));
 
             const mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
             mainLight.position.set(20, 45, 20);
             mainLight.castShadow = true;
             scene.add(mainLight);
 
-            const subLight = new THREE.DirectionalLight(0x00dfff, 1.2);
-            subLight.position.set(-20, 20, -20);
-            scene.add(subLight);
-
-            // 눈 판 바닥 & 하늘색 그리드
-            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0xb2ebf2);
+            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x34495e);
             grid.position.y = 0.01;
             scene.add(grid);
 
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(100, 100),
-                new THREE.MeshStandardMaterial({ color: 0x29b6f6, roughness: 0.2, metalness: 0.1 })
+                new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.3 })
             );
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
@@ -186,26 +188,17 @@
 
             let defaultMesh = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16),
-                new THREE.MeshStandardMaterial({ color: 0x87ceeb, emissive: 0x00dfff, emissiveIntensity: 0.4 })
+                new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x005588 })
             );
             defaultMesh.position.y = 0.8;
             defaultMesh.castShadow = true;
             characterContainer.add(defaultMesh);
 
-            // 🪽 3D 얼음 날개 제작 함수
+            // 🪽 얼음 날개 (만해 각성용)
             let iceWingsGroup = new THREE.Group();
             function createIceWings() {
                 iceWingsGroup.clear();
-                const wingMat = new THREE.MeshStandardMaterial({ 
-                    color: 0xe0f7fa, 
-                    emissive: 0x00dfff, 
-                    emissiveIntensity: 0.8,
-                    transparent: true, 
-                    opacity: 0.85,
-                    roughness: 0.1
-                });
-
-                // 왼날개 & 오른날개 깃털 세그먼트
+                const wingMat = new THREE.MeshStandardMaterial({ color: 0xe0f7fa, emissive: 0x00dfff, emissiveIntensity: 0.8, transparent: true, opacity: 0.85 });
                 for(let side of [-1, 1]) {
                     for(let i=0; i<4; i++) {
                         const feather = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.8 - i*0.2, 4), wingMat);
@@ -237,21 +230,16 @@
                 if (!file) return;
 
                 showToast("3D 모델 로딩 중...");
-
                 const url = URL.createObjectURL(file);
                 const loader = new THREE.GLTFLoader();
 
                 loader.load(url, (gltf) => {
-                    while(characterContainer.children.length > 0) {
-                        characterContainer.remove(characterContainer.children[0]);
-                    }
-
+                    while(characterContainer.children.length > 0) characterContainer.remove(characterContainer.children[0]);
                     const loadedModel = gltf.scene;
 
                     const box = new THREE.Box3().setFromObject(loadedModel);
                     const size = box.getSize(new THREE.Vector3());
-                    const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 2.0 / (maxDim || 1);
+                    const scale = 2.0 / (Math.max(size.x, size.y, size.z) || 1);
                     loadedModel.scale.set(scale, scale, scale);
 
                     const newBox = new THREE.Box3().setFromObject(loadedModel);
@@ -260,29 +248,96 @@
                     heightSlider.value = autoY;
                     heightVal.innerText = autoY.toFixed(1);
 
-                    loadedModel.traverse((child) => {
-                        if (child.isMesh) child.castShadow = true;
-                    });
-
+                    loadedModel.traverse((child) => { if (child.isMesh) child.castShadow = true; });
                     characterContainer.add(loadedModel);
                     if (state.isAwakened) createIceWings();
-                    showToast("🎉 적용 완료!");
-                }, undefined, (err) => {
-                    showToast("⚠️ GLB 로딩 실패!");
+                    showToast("🎉 사신 모델 적용 완료!");
                 });
             });
 
-            // ❄️ 얼음 파티클 & 개체 관리
+            // 👹 블리치 세력별 도형 몬스터 생성기
+            const monsters = [];
+            
+            function createEnemyShape(stageId) {
+                const enemyGroup = new THREE.Group();
+                let mesh, size = 1.2;
+
+                if (stageId === 1) { // 1. 호로 (하얀 상자 + 검은 구멍)
+                    mesh = new THREE.Mesh(
+                        new THREE.BoxGeometry(1.2, 1.4, 1.2),
+                        new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.2 })
+                    );
+                    const hole = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.35, 8, 8),
+                        new THREE.MeshBasicMaterial({ color: 0x000000 })
+                    );
+                    hole.position.set(0, 0.2, 0.5);
+                    enemyGroup.add(mesh, hole);
+                    enemyGroup.position.y = 0.7;
+
+                } else if (stageId === 2) { // 2. 메노스 그랑데 (거대한 검은 기둥)
+                    mesh = new THREE.Mesh(
+                        new THREE.CylinderGeometry(1.5, 2.2, 8.0, 12),
+                        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5 })
+                    );
+                    const redEyes = new THREE.Mesh(
+                        new THREE.BoxGeometry(1.2, 0.2, 0.2),
+                        new THREE.MeshBasicMaterial({ color: 0xff0000 })
+                    );
+                    redEyes.position.set(0, 3.0, 1.5);
+                    enemyGroup.add(mesh, redEyes);
+                    enemyGroup.position.y = 4.0;
+                    size = 2.5;
+
+                } else if (stageId === 3) { // 3. 에스파다 (날렵한 은백색 원뿔)
+                    mesh = new THREE.Mesh(
+                        new THREE.ConeGeometry(0.8, 2.2, 6),
+                        new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.5, roughness: 0.2 })
+                    );
+                    mesh.rotation.x = Math.PI;
+                    enemyGroup.add(mesh);
+                    enemyGroup.position.y = 1.1;
+
+                } else if (stageId === 4) { // 4. 아이젠 소스케 (보라색 팔면체 최종 보스)
+                    mesh = new THREE.Mesh(
+                        new THREE.OctahedronGeometry(2.0, 0),
+                        new THREE.MeshStandardMaterial({ color: 0x8e44ad, emissive: 0x341f97, emissiveIntensity: 0.8 })
+                    );
+                    enemyGroup.add(mesh);
+                    enemyGroup.position.y = 2.2;
+                    size = 2.0;
+
+                } else { // 5. 퀸시 (하늘색 다이아몬드/십자가 형태)
+                    mesh = new THREE.Mesh(
+                        new THREE.OctahedronGeometry(1.2, 0),
+                        new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x00a8ff, emissiveIntensity: 0.6 })
+                    );
+                    mesh.scale.set(0.6, 1.8, 0.6);
+                    enemyGroup.add(mesh);
+                    enemyGroup.position.y = 1.2;
+                }
+
+                enemyGroup.userData = { hitSize: size };
+                return enemyGroup;
+            }
+
+            function spawnMonster() {
+                if (monsters.length < (state.stage === 4 ? 1 : 3)) {
+                    const m = createEnemyShape(state.stage);
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = state.stage === 2 ? 12 : 9;
+                    m.position.set(playerGroup.position.x + Math.cos(angle) * dist, m.position.y, playerGroup.position.z + Math.sin(angle) * dist);
+                    scene.add(m);
+                    monsters.push(m);
+                }
+            }
+
+            // ❄️ 스킬 및 파티클 시스템
             const particles = [];
             const iceProjectiles = [];
-            const temporaryObjects = [];
 
-            // 하늘색 얼음 입자 생성
             function createIceParticle(pos, size = 0.5, speed = 0.4) {
-                const colors = [0x87ceeb, 0x00dfff, 0xe0f7fa, 0xffffff];
-                const randColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                const mat = new THREE.MeshBasicMaterial({ color: randColor, transparent: true, opacity: 1.0 });
+                const mat = new THREE.MeshBasicMaterial({ color: 0x87ceeb, transparent: true, opacity: 1.0 });
                 const p = new THREE.Mesh(new THREE.IcosahedronGeometry(size, 0), mat);
                 p.position.copy(pos);
                 p.position.x += (Math.random() - 0.5) * 2.0;
@@ -290,140 +345,39 @@
                 p.position.z += (Math.random() - 0.5) * 2.0;
 
                 p.userData = {
-                    velocity: new THREE.Vector3(
-                        (Math.random() - 0.5) * speed,
-                        Math.random() * speed * 1.2,
-                        (Math.random() - 0.5) * speed
-                    ),
-                    life: 1.0,
-                    rotSpeed: (Math.random() - 0.5) * 0.2
+                    velocity: new THREE.Vector3((Math.random() - 0.5) * speed, Math.random() * speed * 1.2, (Math.random() - 0.5) * speed),
+                    life: 1.0
                 };
                 scene.add(p);
                 particles.push(p);
             }
 
-            // ❄️ 얼음송이 (프로젝트타일 구체) 발사
             function launchIceOrb() {
                 const orbGroup = new THREE.Group();
-                
-                // 중심 얼음 결정 구체
-                const coreGeo = new THREE.IcosahedronGeometry(0.7, 1);
-                const coreMat = new THREE.MeshStandardMaterial({ color: 0xe0f7fa, emissive: 0x00dfff, emissiveIntensity: 0.9, roughness: 0.1 });
-                const core = new THREE.Mesh(coreGeo, coreMat);
+                const core = new THREE.Mesh(
+                    new THREE.IcosahedronGeometry(0.7, 1),
+                    new THREE.MeshStandardMaterial({ color: 0xe0f7fa, emissive: 0x00dfff, emissiveIntensity: 0.9 })
+                );
                 orbGroup.add(core);
-
-                // 주변 보조 얼음 조각들
-                for(let i=0; i<6; i++) {
-                    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.8, 4), coreMat);
-                    spike.rotation.x = Math.random() * Math.PI;
-                    spike.rotation.z = Math.random() * Math.PI;
-                    orbGroup.add(spike);
-                }
-
                 orbGroup.position.copy(playerGroup.position);
                 orbGroup.position.y += 1.0;
 
                 const angle = playerGroup.rotation.y;
-                const dir = new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle)).normalize();
-
-                orbGroup.userData = {
-                    dir: dir,
-                    speed: 0.45,
-                    life: 100
-                };
-
+                orbGroup.userData = { dir: new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle)).normalize(), speed: 0.45, life: 100 };
                 scene.add(orbGroup);
                 iceProjectiles.push(orbGroup);
             }
 
-            // 🏔️ 눈꽃산(눈덮인 고봉) 연출 생성
             function createSnowMountain(pos) {
                 const mtnGroup = new THREE.Group();
                 mtnGroup.position.copy(pos);
 
-                // 메인 눈꽃산 몸체 (Cone)
-                const mountainGeo = new THREE.ConeGeometry(5.0, 7.0, 8);
-                const mountainMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.3, metalness: 0.2 });
-                const mountain = new THREE.Mesh(mountainGeo, mountainMat);
-                mountain.position.y = 3.5;
-                mtnGroup.add(mountain);
-
-                // 산 꼭대기 눈(Cap)
-                const snowCapGeo = new THREE.ConeGeometry(2.2, 3.0, 8);
-                const snowCapMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const snowCap = new THREE.Mesh(snowCapGeo, snowCapMat);
-                snowCap.position.y = 5.5;
-                mtnGroup.add(snowCap);
-
-                // 주변 얼음 가시 기둥들
-                for(let i=0; i<8; i++) {
-                    const ang = (i / 8) * Math.PI * 2;
-                    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.8, 4.0, 5), new THREE.MeshBasicMaterial({ color: 0xe0f7fa }));
-                    spike.position.set(Math.cos(ang) * 4.2, 2.0, Math.sin(ang) * 4.2);
-                    spike.rotation.x = (Math.random() - 0.5) * 0.5;
-                    mtnGroup.add(spike);
-                }
+                const mtn = new THREE.Mesh(new THREE.ConeGeometry(5.0, 7.0, 8), new THREE.MeshStandardMaterial({ color: 0x87ceeb }));
+                mtn.position.y = 3.5;
+                mtnGroup.add(mtn);
 
                 scene.add(mtnGroup);
-
-                // 애니메이션 (솟아오르다 사라짐)
-                mtnGroup.scale.set(0.1, 0.1, 0.1);
-                let sc = 0.1;
-                const raiseAnim = setInterval(() => {
-                    sc += 0.1;
-                    mtnGroup.scale.set(sc, sc, sc);
-                    if(sc >= 1.0) clearInterval(raiseAnim);
-                }, 20);
-
-                setTimeout(() => {
-                    let opacity = 1.0;
-                    const fadeAnim = setInterval(() => {
-                        mtnGroup.position.y -= 0.15;
-                        if(mtnGroup.position.y <= -8.0) {
-                            clearInterval(fadeAnim);
-                            scene.remove(mtnGroup);
-                        }
-                    }, 30);
-                }, 2500);
-            }
-
-            // 🗡️ 하늘색 검기(Slash)
-            function createIceSlash(pos, angle) {
-                const slashGeo = new THREE.RingGeometry(2.5, 4.0, 32, 1, 0, Math.PI * 0.85);
-                const slashMat = new THREE.MeshBasicMaterial({ color: 0x87ceeb, side: THREE.DoubleSide, transparent: true, opacity: 1.0 });
-                const slash = new THREE.Mesh(slashGeo, slashMat);
-                slash.rotation.x = -Math.PI / 2;
-                slash.rotation.z = -angle + Math.PI / 2;
-                slash.position.copy(pos);
-                slash.position.y = 0.8;
-                scene.add(slash);
-
-                let op = 1.0;
-                const anim = setInterval(() => {
-                    op -= 0.12;
-                    slash.scale.addScalar(0.2);
-                    slashMat.opacity = op;
-                    if(op <= 0) {
-                        clearInterval(anim);
-                        scene.remove(slash);
-                    }
-                }, 30);
-            }
-
-            // 몬스터 생성
-            const monsters = [];
-            function spawnMonster() {
-                if (monsters.length < 3) {
-                    const m = new THREE.Mesh(
-                        new THREE.BoxGeometry(1.2, 1.2, 1.2),
-                        new THREE.MeshStandardMaterial({ color: 0x1e3799, emissive: 0x0c2461, roughness: 0.3 })
-                    );
-                    const angle = Math.random() * Math.PI * 2;
-                    m.position.set(playerGroup.position.x + Math.cos(angle) * 9, 0.6, playerGroup.position.z + Math.sin(angle) * 9);
-                    m.castShadow = true;
-                    scene.add(m);
-                    monsters.push(m);
-                }
+                setTimeout(() => scene.remove(mtnGroup), 2000);
             }
 
             function showToast(msg) {
@@ -433,12 +387,25 @@
                 setTimeout(() => toast.style.opacity = 0, 1800);
             }
 
+            function checkStageProgress() {
+                const curStage = stagesInfo.find(s => s.id === state.stage);
+                if (state.killCount >= curStage.target) {
+                    state.stage++;
+                    state.killCount = 0;
+                    const nextStage = stagesInfo.find(s => s.id === state.stage);
+                    showToast(`🎉 ${nextStage.name} 진입!`);
+                }
+                updateUI();
+            }
+
             function updateUI() {
+                const curStage = stagesInfo.find(s => s.id === state.stage);
                 document.getElementById('ui-gold').innerText = state.gold;
                 document.getElementById('ui-level').innerText = `Lv.${state.level}`;
                 document.getElementById('ui-hp-fill').style.width = `${(state.hp / state.maxHp) * 100}%`;
                 document.getElementById('ui-mp-fill').style.width = `${(state.mp / state.maxMp) * 100}%`;
                 document.getElementById('stat-atk').innerText = state.atk;
+                document.getElementById('ui-stage').innerText = `${curStage.name} (${state.killCount}/${curStage.target})`;
             }
 
             // 조이스틱
@@ -466,93 +433,61 @@
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onEnd);
 
-            // ⚔️ 스킬 컨트롤
-            // 1. 일반 공격 (하늘색 검기)
+            // ⚔️ 액션 버튼
             document.getElementById('btn-attack').onclick = () => {
-                createIceSlash(playerGroup.position, playerGroup.rotation.y);
                 for(let p=0; p<6; p++) createIceParticle(playerGroup.position, 0.3, 0.3);
-
-                let hit = false;
                 for(let i = monsters.length - 1; i >= 0; i--) {
-                    if (playerGroup.position.distanceTo(monsters[i].position) < 3.5) {
+                    const hitRange = monsters[i].userData.hitSize + 1.5;
+                    if (playerGroup.position.distanceTo(monsters[i].position) < hitRange) {
                         for(let p=0; p<15; p++) createIceParticle(monsters[i].position, 0.5, 0.6);
                         scene.remove(monsters[i]);
                         monsters.splice(i, 1);
-                        state.gold += 20;
-                        hit = true;
+                        state.gold += 30;
+                        state.killCount++;
+                        checkStageProgress();
+                        break;
                     }
                 }
-                if (hit) { updateUI(); showToast("⚔️ 빙설 타격! +20 Gold"); }
             };
 
-            // 2. 스킬 [얼음송이 발사] (기존 돌진 대체)
             document.getElementById('btn-skill').onclick = () => {
                 if (state.mp >= 10) {
                     state.mp -= 10;
-                    updateUI();
-                    
                     launchIceOrb();
-                    for(let p=0; p<10; p++) createIceParticle(playerGroup.position, 0.4, 0.3);
-
-                    showToast("❄️ 얼음송이 투척!");
-                } else {
-                    showToast("마나가 부족합니다!");
+                    updateUI();
                 }
             };
 
-            // 3. 궁극기 [눈꽃산의 각성] (눈꽃산 생성 + 얼음 날개 + 각성 오라)
             document.getElementById('btn-ult').onclick = () => {
                 if (state.mp >= 30) {
                     state.mp -= 30;
-                    updateUI();
                     state.isAwakened = true;
-
-                    // 1) 거대 눈꽃산 솟아오름
                     createSnowMountain(playerGroup.position);
-
-                    // 2) 3D 얼음 날개 장착
                     createIceWings();
+                    for(let p=0; p<40; p++) createIceParticle(playerGroup.position, 0.6, 0.8);
 
-                    // 3) 눈부신 하늘색 순간 빛
-                    const flashLight = new THREE.PointLight(0x00dfff, 20, 40);
-                    flashLight.position.copy(playerGroup.position);
-                    flashLight.position.y = 4;
-                    scene.add(flashLight);
-                    setTimeout(() => scene.remove(flashLight), 400);
-
-                    // 4) 얼음 결정 폭풍
-                    for(let p=0; p<60; p++) {
-                        createIceParticle(playerGroup.position, 0.6, 0.8);
-                    }
-
-                    // 주변 몬스터 대량 처치
-                    let count = 0;
                     for(let i = monsters.length - 1; i >= 0; i--) {
                         if (playerGroup.position.distanceTo(monsters[i].position) < 10.0) {
                             scene.remove(monsters[i]);
                             monsters.splice(i, 1);
-                            state.gold += 25;
-                            count++;
+                            state.gold += 35;
+                            state.killCount++;
                         }
                     }
-                    showToast(`🪽 눈꽃산의 각성! 빙설의 날개 개방 (${count}마리 처치)`);
-                } else {
-                    showToast("마나가 부족합니다!");
+                    checkStageProgress();
+                    showToast("❄️ 만해 [빙륜환] 각성!");
                 }
             };
 
-            // 4. 얼음 회피
             document.getElementById('btn-dodge').onclick = () => {
-                for(let p=0; p<12; p++) createIceParticle(playerGroup.position, 0.3, 0.2);
-                
-                const backX = -Math.sin(playerGroup.rotation.y) * 3.2;
-                const backZ = -Math.cos(playerGroup.rotation.y) * 3.2;
+                const backX = -Math.sin(playerGroup.rotation.y) * 3.5;
+                const backZ = -Math.cos(playerGroup.rotation.y) * 3.5;
                 playerGroup.position.x += backX;
                 playerGroup.position.z += backZ;
-                showToast("💨 서리 미끄러짐 회피!");
+                showToast("⚡ 순보(瞬步)!");
             };
 
-            // 모달 관리
+            // 모달
             const toggleModal = (id, show) => document.getElementById(id).style.display = show ? 'flex' : 'none';
             document.getElementById('btn-open-stat').onclick = () => toggleModal('modal-stat', true);
             document.getElementById('btn-close-stat').onclick = () => toggleModal('modal-stat', false);
@@ -567,42 +502,29 @@
                 if (state.gold >= 100) { state.gold -= 100; state.atk += 5; updateUI(); }
             };
 
-            // GAME LOOP
+            // LOOP
             function animate() {
                 requestAnimationFrame(animate);
 
-                // 이동 및 방향
                 if (moveVector.x !== 0 || moveVector.z !== 0) {
                     playerGroup.position.x += moveVector.x * 0.13;
                     playerGroup.position.z += moveVector.z * 0.13;
                     playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                 }
 
-                // 각성 상태 오라 파티클 지속 생성
-                if (state.isAwakened && Math.random() < 0.4) {
-                    createIceParticle(playerGroup.position, 0.25, 0.15);
-                }
-
-                // 얼음송이 투사체 이동 및 충돌
+                // 얼음송이 날아가기
                 for (let i = iceProjectiles.length - 1; i >= 0; i--) {
                     const orb = iceProjectiles[i];
                     orb.position.addScaledVector(orb.userData.dir, orb.userData.speed);
-                    orb.rotation.y += 0.1;
-                    orb.rotation.x += 0.1;
                     orb.userData.life -= 1;
 
-                    // 궤적 파티클
-                    if (Math.random() < 0.5) createIceParticle(orb.position, 0.3, 0.1);
-
-                    // 몬스터 충돌 감지
                     for (let mIdx = monsters.length - 1; mIdx >= 0; mIdx--) {
-                        if (orb.position.distanceTo(monsters[mIdx].position) < 1.8) {
-                            for(let p=0; p<15; p++) createIceParticle(monsters[mIdx].position, 0.5, 0.5);
+                        if (orb.position.distanceTo(monsters[mIdx].position) < monsters[mIdx].userData.hitSize + 0.8) {
                             scene.remove(monsters[mIdx]);
                             monsters.splice(mIdx, 1);
-                            state.gold += 20;
-                            updateUI();
-                            showToast("💥 얼음송이 적중! 처치!");
+                            state.gold += 30;
+                            state.killCount++;
+                            checkStageProgress();
                             
                             scene.remove(orb);
                             iceProjectiles.splice(i, 1);
@@ -616,25 +538,16 @@
                     }
                 }
 
-                // 파티클 소멸
+                // 파티클
                 for (let i = particles.length - 1; i >= 0; i--) {
                     const p = particles[i];
                     p.position.add(p.userData.velocity);
-                    p.userData.life -= 0.035;
+                    p.userData.life -= 0.04;
                     p.material.opacity = p.userData.life;
-                    p.rotation.y += p.userData.rotSpeed;
-
-                    if (p.userData.life <= 0) {
-                        scene.remove(p);
-                        particles.splice(i, 1);
-                    }
+                    if (p.userData.life <= 0) { scene.remove(p); particles.splice(i, 1); }
                 }
 
-                // 마나 회복
-                if (state.mp < state.maxMp) {
-                    state.mp += 0.12;
-                    updateUI();
-                }
+                if (state.mp < state.maxMp) { state.mp += 0.12; updateUI(); }
 
                 spawnMonster();
                 monsters.forEach(m => m.lookAt(playerGroup.position));
