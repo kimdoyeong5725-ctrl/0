@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bleach 3D Ultra Master RPG - Fixed UI</title>
+    <title>Bleach 3D Ultra Master RPG</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
 
@@ -567,7 +567,7 @@
             isPaused = false;
         }
 
-        // 먼저 기본 캡슐 캐릭터 생성하여 렌더링 보장
+        // 기본 캐릭터 즉시 생성
         createDefaultCharacter();
 
         function setCharacterMode(mode) {
@@ -640,22 +640,7 @@
             isGameOver = false;
         }
 
-        /* 📌 안전한 외부 GLB 로드 (CORS 오류 시 기본 캐릭터 유지) */
-        const googleDriveUrl = "https://lh3.googleusercontent.com/d/1qFGuRZUKCtM5oN2xQ2ieaZ9bIyrkk2Ze";
-        try {
-            loader.load(
-                googleDriveUrl,
-                (gltf) => { setupCharacter(gltf); },
-                undefined,
-                (err) => { 
-                    console.warn("드라이브 링크 로드 제한됨 -> 기본 캡슐 캐릭터로 자동 대처합니다.");
-                }
-            );
-        } catch(e) {
-            console.warn("네트워크 블록됨");
-        }
-
-        /* 📌 파일 선택 시 작동하는 이벤트 */
+        /* 📌 파일 선택 시 .glb 파일 교체 */
         const fileInput = document.getElementById('file-input');
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
