@@ -3,288 +3,535 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D RPG Game - Full Version</title>
+    <title>3D Mega Action RPG</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: sans-serif; color: #fff; }
-        
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #02050a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff; }
+
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
-        /* 상단 UI 패널 */
-        #top-bar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .status-panel { background: rgba(8, 15, 26, 0.85); border: 1.5px solid #00dfff; border-radius: 10px; padding: 10px; font-size: 11px; width: 180px; pointer-events: auto; }
-        .bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
-        .hp-fill { width: 100%; height: 100%; background: #00ff88; transition: width 0.2s; }
-        .exp-fill { width: 0%; height: 100%; background: #ff00ff; transition: width 0.2s; }
+        /* HUD TOP */
+        #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .panel-box { background: rgba(8, 16, 28, 0.88); border: 1.5px solid #00dfff; border-radius: 8px; padding: 10px; width: 220px; pointer-events: auto; box-shadow: 0 0 12px rgba(0,223,255,0.2); }
+        
+        .bar-container { width: 100%; height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; margin-top: 4px; position: relative; }
+        .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, #00b894); transition: width 0.15s ease-out; }
+        .bar-fill-exp { width: 0%; height: 100%; background: linear-gradient(90deg, #e056fd, #be2edd); transition: width 0.15s ease-out; }
+        .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #0984e3, #74b9ff); transition: width 0.15s ease-out; }
 
-        .quest-box { margin-top: 6px; background: rgba(0, 223, 255, 0.1); border-left: 3px solid #ffd700; padding: 4px 6px; font-size: 10px; }
+        .quest-box { margin-top: 8px; background: rgba(0, 223, 255, 0.08); border-left: 3px solid #f1c40f; padding: 5px; font-size: 11px; }
 
-        .btn-group { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
-        .hud-btn { background: rgba(5, 12, 22, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; pointer-events: auto; cursor: pointer; }
+        .top-right-btns { display: flex; flex-direction: column; gap: 6px; }
+        .btn-hud { background: rgba(5, 12, 22, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #00dfff; }
+        .btn-hud:active { transform: scale(0.95); }
 
-        /* 컨트롤 조이스틱 & 액션 버튼 */
-        #joystick-container { position: absolute; bottom: 30px; left: 25px; width: 95px; height: 95px; background: rgba(255,255,255,0.1); border: 2px solid #00dfff; border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
-        #joystick-knob { width: 38px; height: 38px; background: #00dfff; border-radius: 50%; box-shadow: 0 0 10px #00dfff; }
+        /* BOSS HP BAR */
+        #boss-hp-container { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); width: 60%; max-width: 350px; display: none; flex-direction: column; align-items: center; }
+        #boss-name { font-size: 12px; color: #ff0055; font-weight: bold; text-shadow: 0 0 5px #ff0055; margin-bottom: 2px; }
+        .boss-bar-bg { width: 100%; height: 12px; background: rgba(0,0,0,0.8); border: 1px solid #ff0055; border-radius: 6px; overflow: hidden; }
+        .boss-bar-fill { width: 100%; height: 100%; background: #ff0055; transition: width 0.1s; }
 
-        .btn-container { position: absolute; bottom: 20px; right: 20px; width: 190px; height: 190px; pointer-events: none; }
-        .action-btn { position: absolute; border-radius: 50%; color: white; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; background: rgba(5, 12, 22, 0.85); border: 1.5px solid #00dfff; cursor: pointer; box-shadow: 0 0 8px rgba(0,223,255,0.3); }
-        #attack-btn { width: 70px; height: 70px; bottom: 0; right: 0; font-size: 14px; background: #0077b6; }
-        #dodge-btn { width: 45px; height: 45px; bottom: 0; right: 85px; font-size: 10px; }
-        #skill-btn { width: 45px; height: 45px; bottom: 85px; right: 0; font-size: 10px; }
-        #ult-btn { width: 52px; height: 52px; bottom: 70px; right: 70px; font-size: 10px; border-color: #ff00ff; background: #7000ff; }
+        /* JOYSTICK & ACTION BUTTONS */
+        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(255,255,255,0.05); border: 2px solid rgba(0,223,255,0.3); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
+        #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #00dfff, #0077b6); border-radius: 50%; box-shadow: 0 0 12px #00dfff; }
 
-        /* 팝업 모달 */
-        .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; background: rgba(8, 15, 26, 0.95); border: 2px solid #00dfff; border-radius: 10px; padding: 12px; display: none; flex-direction: column; gap: 8px; pointer-events: auto; z-index: 50; }
-        .modal h3 { color: #00dfff; font-size: 13px; text-align: center; border-bottom: 1px solid rgba(0, 223, 255, 0.3); padding-bottom: 4px; }
-        .modal-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
-        .modal-row button { background: #0077b6; border: 1px solid #00dfff; color: white; padding: 3px 6px; border-radius: 4px; font-size: 9px; }
+        .action-area { position: absolute; bottom: 20px; right: 20px; width: 220px; height: 220px; pointer-events: none; }
+        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(5, 12, 22, 0.85); border: 1.5px solid #00dfff; box-shadow: 0 0 8px rgba(0,223,255,0.3); font-size: 11px; }
+        .btn-action:active { transform: scale(0.9); }
+        
+        #btn-attack { width: 80px; height: 80px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #0077b6, #023e8a); }
+        #btn-dodge { width: 50px; height: 50px; bottom: 0; right: 100px; }
+        #btn-skill { width: 50px; height: 50px; bottom: 100px; right: 0; }
+        #btn-ult { width: 60px; height: 60px; bottom: 85px; right: 85px; border-color: #ff00ff; background: radial-gradient(circle, #7000ff, #4a00e0); box-shadow: 0 0 12px #ff00ff; }
+
+        /* MODAL WINDOWS */
+        .modal-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 290px; background: rgba(8, 16, 28, 0.96); border: 2px solid #00dfff; border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; pointer-events: auto; z-index: 100; box-shadow: 0 0 20px rgba(0,223,255,0.4); }
+        .modal-header { font-size: 14px; font-weight: bold; color: #00dfff; text-align: center; border-bottom: 1px solid rgba(0,223,255,0.3); padding-bottom: 6px; }
+        .modal-body { font-size: 11px; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 4px; }
+        .stat-btn { background: #0077b6; border: 1px solid #00dfff; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+
+        /* NOTIFICATION */
+        #toast-msg { position: absolute; top: 30%; width: 100%; text-align: center; color: #00dfff; font-size: 20px; font-weight: bold; text-shadow: 0 0 10px #00dfff; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; }
     </style>
 </head>
 <body>
     <div id="canvas-container"></div>
 
     <div id="ui-layer">
-        <div id="top-bar">
-            <div class="status-panel">
-                <div>🛡️ 빛의 기사 <span id="level-text" style="color:#00dfff;">Lv.1</span></div>
-                <div style="font-size:10px; margin-top:2px;">💰 골드: <span id="gold-text" style="color:#ffd700;">0</span> | STAGE <span id="stage-text">1</span></div>
-                <div class="bar-bg"><div id="hp-fill" class="hp-fill"></div></div>
-                <div class="bar-bg"><div id="exp-fill" class="exp-fill"></div></div>
-                <div class="quest-box">📜 퀘스트: 몬스터 <span id="quest-count">0</span>/5 마리 처치</div>
+        <div id="top-hud">
+            <div class="panel-box">
+                <div style="display:flex; justify-content:space-between;">
+                    <span>🛡️ 빛의 기사 <b id="ui-level" style="color:#00dfff;">Lv.1</b></span>
+                    <span style="color:#ffd700;">💰 <b id="ui-gold">0</b></span>
+                </div>
+                <div style="font-size:10px; color:#aaa; margin-top:2px;">STAGE <b id="ui-stage" style="color:#fff;">1</b></div>
+                <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
+                <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
+                <div class="bar-container"><div id="ui-exp-fill" class="bar-fill-exp"></div></div>
+                <div class="quest-box">📜 목표: <span id="ui-quest">몬스터 5마리 처치</span></div>
             </div>
-            <div class="btn-group">
-                <button class="hud-btn" id="open-shop">⚔️ 스탯 강화</button>
-                <button class="hud-btn" id="open-inv">🎒 인벤토리</button>
-                <button class="hud-btn" id="glb-btn">🧊 .GLB 모델 적용</button>
+            <div class="top-right-btns">
+                <button class="btn-hud" id="btn-open-stat">⚔️ 캐릭터 스탯</button>
+                <button class="btn-hud" id="btn-open-inv">🎒 인벤토리</button>
+                <button class="btn-hud" id="btn-open-shop">🏪 상점</button>
             </div>
         </div>
 
-        <div id="joystick-container"><div id="joystick-knob"></div></div>
-
-        <div class="btn-container">
-            <div id="dodge-btn" class="action-btn">회피</div>
-            <div id="skill-btn" class="action-btn">돌진</div>
-            <div id="ult-btn" class="action-btn">궁극기</div>
-            <div id="attack-btn" class="action-btn">공격</div>
+        <div id="boss-hp-container">
+            <div id="boss-name">🔥 나락의 악마 (BOSS)</div>
+            <div class="boss-bar-bg"><div id="boss-hp-fill" class="boss-bar-fill"></div></div>
         </div>
 
-        <div id="shop-modal" class="modal">
-            <h3>⚔️ 스탯 강화</h3>
-            <div class="modal-row"><span>공격력 (+5)</span><button id="up-atk">100 G</button></div>
-            <div class="modal-row"><span>최대 체력 (+20)</span><button id="up-hp">100 G</button></div>
-            <button class="hud-btn" id="close-shop" style="margin-top:4px;">닫기</button>
+        <div id="toast-msg">STAGE 1 CLEAR!</div>
+
+        <div id="joystick-area"><div id="joystick-handle"></div></div>
+
+        <div class="action-area">
+            <div id="btn-dodge" class="btn-action">회피</div>
+            <div id="btn-skill" class="btn-action">돌진</div>
+            <div id="btn-ult" class="btn-action">궁극기</div>
+            <div id="btn-attack" class="btn-action">공격</div>
         </div>
 
-        <div id="inv-modal" class="modal">
-            <h3>🎒 인벤토리</h3>
-            <div style="font-size:10px; line-height: 1.6;">
-                <div>🗡️ 빛의 검 (공격력 +10)</div>
-                <div>🛡️ 수호자의 갑옷 (HP +50)</div>
-                <div>🧪 얼음의 정수 (궁극기 쿨타임 감소)</div>
+        <div id="modal-stat" class="modal-overlay">
+            <div class="modal-header">⚔️ 캐릭터 스탯</div>
+            <div class="modal-body">
+                <div class="stat-row"><span>공격력</span><b id="stat-atk">25</b></div>
+                <div class="stat-row"><span>방어력</span><b id="stat-def">5</b></div>
+                <div class="stat-row"><span>치명타율</span><b id="stat-crit">10%</b></div>
+                <div class="stat-row"><span>이동 속도</span><b id="stat-spd">1.0x</b></div>
             </div>
-            <button class="hud-btn" id="close-inv" style="margin-top:4px;">닫기</button>
+            <button class="btn-hud" id="btn-close-stat">닫기</button>
+        </div>
+
+        <div id="modal-inv" class="modal-overlay">
+            <div class="modal-header">🎒 인벤토리</div>
+            <div class="modal-body" id="inv-list">
+                <div class="stat-row"><span>🗡️ 성스러운 검 (착용 중)</span><span style="color:#00ff88;">+15 ATK</span></div>
+                <div class="stat-row"><span>🛡️ 기사의 갑옷 (착용 중)</span><span style="color:#00ff88;">+50 HP</span></div>
+            </div>
+            <button class="btn-hud" id="btn-close-inv">닫기</button>
+        </div>
+
+        <div id="modal-shop" class="modal-overlay">
+            <div class="modal-header">🏪 강화 상점</div>
+            <div class="modal-body">
+                <div class="stat-row">
+                    <div>공격력 강화 (+5)<br><small style="color:#ffd700;">100 Gold</small></div>
+                    <button class="stat-btn" id="buy-atk">강화</button>
+                </div>
+                <div class="stat-row">
+                    <div>체력 강화 (+30)<br><small style="color:#ffd700;">100 Gold</small></div>
+                    <button class="stat-btn" id="buy-hp">강화</button>
+                </div>
+            </div>
+            <button class="btn-hud" id="btn-close-shop">닫기</button>
         </div>
     </div>
 
     <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            // 게임 데이터
-            var gold = 0, level = 1, exp = 0, maxExp = 100;
-            var playerHP = 100, maxHP = 100, playerAtk = 25;
-            var questKills = 0, stage = 1;
+        // WEB AUDIO SOUND SYNTHESIZER
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
 
-            // 1. Scene setup
-            var container = document.getElementById('canvas-container');
-            var scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0f1d);
-            scene.fog = new THREE.FogExp2(0x0a0f1d, 0.02);
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
-            // 2. Camera setup
-            var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 8, 10);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
 
-            // 3. Renderer setup
-            var renderer = new THREE.WebGLRenderer({ antialias: true });
+            const now = audioCtx.currentTime;
+
+            if (type === 'attack') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'hit') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'ult') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+        }
+
+        // GAME INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            // GAME STATE DATA
+            const state = {
+                gold: 0,
+                level: 1,
+                exp: 0,
+                maxExp: 100,
+                hp: 100,
+                maxHp: 100,
+                mp: 50,
+                maxMp: 50,
+                atk: 25,
+                def: 5,
+                crit: 10,
+                speed: 1.0,
+                stage: 1,
+                questKills: 0,
+                targetKills: 5,
+                bossActive: false
+            };
+
+            // 1. SCENE & ENGINE SETUP
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x040814);
+            scene.fog = new THREE.FogExp2(0x040814, 0.025);
+
+            const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
-            // 4. Lights & Floor
-            var light = new THREE.DirectionalLight(0x00dfff, 1.2);
-            light.position.set(5, 10, 5);
-            scene.add(light);
-            scene.add(new THREE.AmbientLight(0x505050));
+            // 2. LIGHTING SYSTEM
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
 
-            var grid = new THREE.GridHelper(60, 30, 0x00dfff, 0x223344);
+            const dirLight = new THREE.DirectionalLight(0x00dfff, 1.2);
+            dirLight.position.set(15, 25, 15);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
+            scene.add(dirLight);
+
+            // 3. ENVIRONMENT (GRID & GROUND)
+            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
+            grid.position.y = 0.01;
             scene.add(grid);
 
-            // 5. Player Object (기본 원기둥/큐브 형태)
-            var playerGroup = new THREE.Group();
-            var bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 16);
-            var bodyMat = new THREE.MeshStandardMaterial({ color: 0x00dfff });
-            var playerMesh = new THREE.Mesh(bodyGeo, bodyMat);
-            playerMesh.position.y = 0.75;
-            playerGroup.add(playerMesh);
+            const floorGeo = new THREE.PlaneGeometry(100, 100);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x07111e, roughness: 0.8, metalness: 0.2 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // 4. PLAYER CHARACTER
+            const playerGroup = new THREE.Group();
+            
+            // Body Mesh
+            const pBodyGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16);
+            const pBodyMat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.3 });
+            const pBody = new THREE.Mesh(pBodyGeo, pBodyMat);
+            pBody.position.y = 0.8;
+            pBody.castShadow = true;
+            playerGroup.add(pBody);
+
+            // Weapon Mesh
+            const swordGeo = new THREE.BoxGeometry(0.1, 1.2, 0.2);
+            const swordMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.1 });
+            const sword = new THREE.Mesh(swordGeo, swordMat);
+            sword.position.set(0.6, 0.8, 0.4);
+            sword.rotation.x = Math.PI / 4;
+            playerGroup.add(sword);
+
             scene.add(playerGroup);
 
-            // 6. Monsters
-            var enemies = [];
-            function createEnemy() {
-                var eGeo = new THREE.BoxGeometry(1, 1.2, 1);
-                var eMat = new THREE.MeshStandardMaterial({ color: 0xff0055 });
-                var enemy = new THREE.Mesh(eGeo, eMat);
-
-                var angle = Math.random() * Math.PI * 2;
-                var dist = 6 + Math.random() * 6;
-                enemy.position.set(playerGroup.position.x + Math.cos(angle) * dist, 0.6, playerGroup.position.z + Math.sin(angle) * dist);
-
-                scene.add(enemy);
-                enemies.push(enemy);
-            }
-            for (var i = 0; i < 4; i++) createEnemy();
-
-            // UI 업데이트 함수
-            function updateUI() {
-                document.getElementById('gold-text').innerText = gold;
-                document.getElementById('level-text').innerText = 'Lv.' + level;
-                document.getElementById('stage-text').innerText = stage;
-                document.getElementById('quest-count').innerText = questKills;
-                document.getElementById('hp-fill').style.width = Math.max(0, (playerHP / maxHP) * 100) + '%';
-                document.getElementById('exp-fill').style.width = Math.min(100, (exp / maxExp) * 100) + '%';
-            }
-
-            // 경험치 및 퀘스트 처리
-            function addExp(amount) {
-                exp += amount;
-                if (exp >= maxExp) {
-                    exp -= maxExp;
-                    level++;
-                    maxExp += 50;
-                    playerAtk += 5;
-                    maxHP += 20;
-                    playerHP = maxHP;
-                    alert('🎉 레벨 업! Lv.' + level + ' 달성!');
+            // 5. PARTICLES & EFFECTS SYSTEM
+            const particles = [];
+            function createHitEffect(pos, color = 0x00dfff) {
+                for (let i = 0; i < 8; i++) {
+                    const pGeo = new THREE.SphereGeometry(0.1, 8, 8);
+                    const pMat = new THREE.MeshBasicMaterial({ color: color });
+                    const p = new THREE.Mesh(pGeo, pMat);
+                    p.position.copy(pos);
+                    p.velocity = new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.3,
+                        Math.random() * 0.3,
+                        (Math.random() - 0.5) * 0.3
+                    );
+                    p.life = 1.0;
+                    scene.add(p);
+                    particles.push(p);
                 }
-                updateUI();
             }
 
-            // 조이스틱 이동 컨트롤
-            var moveDir = { x: 0, z: 0 };
-            var joystick = document.getElementById('joystick-container');
-            var knob = document.getElementById('joystick-knob');
-            var isDragging = false, startX = 0, startY = 0;
-
-            function handleStart(e) {
-                isDragging = true;
-                var t = e.touches ? e.touches[0] : e;
-                startX = t.clientX; startY = t.clientY;
-            }
-            function handleMove(e) {
-                if (!isDragging) return;
-                var t = e.touches ? e.touches[0] : e;
-                var dx = t.clientX - startX, dy = t.clientY - startY;
-                var dist = Math.sqrt(dx * dx + dy * dy), maxR = 25;
-                if (dist > maxR) { dx = (dx / dist) * maxR; dy = (dy / dist) * maxR; }
-                knob.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
-                moveDir.x = dx / maxR; moveDir.z = dy / maxR;
-            }
-            function handleEnd() {
-                isDragging = false;
-                knob.style.transform = 'translate(0, 0)';
-                moveDir.x = 0; moveDir.z = 0;
-            }
-
-            joystick.ontouchstart = handleStart; window.ontouchmove = handleMove; window.ontouchend = handleEnd;
-            joystick.onmousedown = handleStart; window.onmousemove = handleMove; window.onmouseup = handleEnd;
-
-            // 스킬 및 공격
-            document.getElementById('attack-btn').onclick = function() {
-                for (var i = enemies.length - 1; i >= 0; i--) {
-                    var enemy = enemies[i];
-                    if (playerGroup.position.distanceTo(enemy.position) < 3.2) {
-                        scene.remove(enemy);
-                        enemies.splice(i, 1);
-                        gold += 30;
-                        questKills++;
-                        addExp(35);
-
-                        if (questKills >= 5) {
-                            stage++;
-                            questKills = 0;
-                            alert('⚔️ STAGE ' + stage + ' 클리어 보상: +100 Gold!');
-                            gold += 100;
-                        }
-                        updateUI();
-                        setTimeout(createEnemy, 1500);
-                        break;
+            function updateParticles() {
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.position.add(p.velocity);
+                    p.life -= 0.05;
+                    p.scale.multiplyScalar(0.92);
+                    if (p.life <= 0) {
+                        scene.remove(p);
+                        particles.splice(i, 1);
                     }
                 }
-            };
+            }
 
-            document.getElementById('dodge-btn').onclick = function() {
-                playerGroup.position.x += moveDir.x * 3.0;
-                playerGroup.position.z += moveDir.z * 3.0;
-            };
+            // 6. MONSTERS & BOSS ENGINE
+            const monsters = [];
 
-            document.getElementById('skill-btn').onclick = function() {
-                playerGroup.position.x += moveDir.x * 5.0;
-                playerGroup.position.z += moveDir.z * 5.0;
-            };
+            class Monster {
+                constructor(isBoss = false) {
+                    this.isBoss = isBoss;
+                    this.hp = isBoss ? 500 : 50;
+                    this.maxHp = this.hp;
+                    this.atk = isBoss ? 20 : 8;
 
-            document.getElementById('ult-btn').onclick = function() {
-                for (var i = enemies.length - 1; i >= 0; i--) {
-                    scene.remove(enemies[i]);
-                    gold += 20;
-                    addExp(20);
+                    const size = isBoss ? 2.5 : 1.0;
+                    const geo = new THREE.BoxGeometry(size, size, size);
+                    const mat = new THREE.MeshStandardMaterial({ color: isBoss ? 0xff0055 : 0xeb4d4b });
+                    this.mesh = new THREE.Mesh(geo, mat);
+                    this.mesh.castShadow = true;
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = isBoss ? 12 : 8 + Math.random() * 6;
+                    this.mesh.position.set(
+                        playerGroup.position.x + Math.cos(angle) * dist,
+                        size / 2,
+                        playerGroup.position.z + Math.sin(angle) * dist
+                    );
+
+                    scene.add(this.mesh);
                 }
-                enemies = [];
-                alert('💥 궁극기 발동! 광역 적 전멸!');
+
+                update() {
+                    const dir = playerGroup.position.clone().sub(this.mesh.position).normalize();
+                    const speed = this.isBoss ? 0.02 : 0.035;
+                    this.mesh.position.x += dir.x * speed;
+                    this.mesh.position.z += dir.z * speed;
+                    this.mesh.lookAt(playerGroup.position);
+
+                    // Attack Player Logic
+                    if (this.mesh.position.distanceTo(playerGroup.position) < (this.isBoss ? 2.2 : 1.2)) {
+                        state.hp -= this.atk * 0.05;
+                        if (state.hp < 0) state.hp = 0;
+                        updateUI();
+                    }
+                }
+
+                destroy() {
+                    scene.remove(this.mesh);
+                }
+            }
+
+            function spawnMonsters() {
+                if (state.stage % 5 === 0 && !state.bossActive) {
+                    state.bossActive = true;
+                    monsters.push(new Monster(true));
+                    document.getElementById('boss-hp-container').style.display = 'flex';
+                    showToast(`⚠️ BOSS APPEARED!`);
+                } else if (!state.bossActive) {
+                    while (monsters.length < 4) {
+                        monsters.push(new Monster(false));
+                    }
+                }
+            }
+
+            // 7. UI & TOAST NOTIFICATION ENGINE
+            function showToast(msg) {
+                const toast = document.getElementById('toast-msg');
+                toast.innerText = msg;
+                toast.style.opacity = 1;
+                setTimeout(() => toast.style.opacity = 0, 1800);
+            }
+
+            function updateUI() {
+                document.getElementById('ui-level').innerText = `Lv.${state.level}`;
+                document.getElementById('ui-gold').innerText = state.gold;
+                document.getElementById('ui-stage').innerText = state.stage;
+                document.getElementById('ui-hp-fill').style.width = `${(state.hp / state.maxHp) * 100}%`;
+                document.getElementById('ui-mp-fill').style.width = `${(state.mp / state.maxMp) * 100}%`;
+                document.getElementById('ui-exp-fill').style.width = `${(state.exp / state.maxExp) * 100}%`;
+                
+                document.getElementById('stat-atk').innerText = state.atk;
+                document.getElementById('stat-def').innerText = state.def;
+
+                if (state.bossActive && monsters[0] && monsters[0].isBoss) {
+                    const boss = monsters[0];
+                    document.getElementById('boss-hp-fill').style.width = `${(boss.hp / boss.maxHp) * 100}%`;
+                } else {
+                    document.getElementById('boss-hp-container').style.display = 'none';
+                }
+            }
+
+            function addExp(amount) {
+                state.exp += amount;
+                if (state.exp >= state.maxExp) {
+                    state.exp -= state.maxExp;
+                    state.level++;
+                    state.maxExp += 40;
+                    state.atk += 6;
+                    state.maxHp += 25;
+                    state.hp = state.maxHp;
+                    showToast(`🎉 LEVEL UP! Lv.${state.level}`);
+                }
                 updateUI();
-                for (var j = 0; j < 4; j++) setTimeout(createEnemy, 2000);
+            }
+
+            // 8. CONTROLS (JOYSTICK)
+            let moveVector = { x: 0, z: 0 };
+            const joyArea = document.getElementById('joystick-area');
+            const joyHandle = document.getElementById('joystick-handle');
+            let isDragging = false, startX = 0, startY = 0;
+
+            function onTouchStart(e) {
+                isDragging = true;
+                const t = e.touches ? e.touches[0] : e;
+                startX = t.clientX; startY = t.clientY;
+            }
+
+            function onTouchMove(e) {
+                if (!isDragging) return;
+                const t = e.touches ? e.touches[0] : e;
+                let dx = t.clientX - startX, dy = t.clientY - startY;
+                const dist = Math.sqrt(dx * dx + dy * dy), maxR = 30;
+                if (dist > maxR) { dx = (dx / dist) * maxR; dy = (dy / dist) * maxR; }
+                joyHandle.style.transform = `translate(${dx}px, ${dy}px)`;
+                moveVector.x = dx / maxR; moveVector.z = dy / maxR;
+            }
+
+            function onTouchEnd() {
+                isDragging = false;
+                joyHandle.style.transform = `translate(0,0)`;
+                moveVector.x = 0; moveVector.z = 0;
+            }
+
+            joyArea.addEventListener('touchstart', onTouchStart);
+            window.addEventListener('touchmove', onTouchMove);
+            window.addEventListener('touchend', onTouchEnd);
+            joyArea.addEventListener('mousedown', onTouchStart);
+            window.addEventListener('mousemove', onTouchMove);
+            window.addEventListener('mouseup', onTouchEnd);
+
+            // 9. ACTION BUTTONS & COMBAT
+            document.getElementById('btn-attack').onclick = () => {
+                playSound('attack');
+                sword.rotation.x = -Math.PI / 2;
+                setTimeout(() => sword.rotation.x = Math.PI / 4, 150);
+
+                monsters.forEach((m, idx) => {
+                    if (playerGroup.position.distanceTo(m.mesh.position) < (m.isBoss ? 3.5 : 2.5)) {
+                        m.hp -= state.atk;
+                        createHitEffect(m.mesh.position, 0xff0055);
+                        playSound('hit');
+
+                        if (m.hp <= 0) {
+                            m.destroy();
+                            monsters.splice(idx, 1);
+                            state.gold += m.isBoss ? 200 : 25;
+                            addExp(m.isBoss ? 150 : 30);
+
+                            if (m.isBoss) {
+                                state.bossActive = false;
+                                state.stage++;
+                                showToast(`🏆 STAGE CLEAR!`);
+                            } else {
+                                state.questKills++;
+                                if (state.questKills >= state.targetKills) {
+                                    state.stage++;
+                                    state.questKills = 0;
+                                    showToast(`STAGE ${state.stage} 진입!`);
+                                }
+                            }
+                            updateUI();
+                        }
+                    }
+                });
             };
 
-            // 모달 관리
-            document.getElementById('open-shop').onclick = function() { document.getElementById('shop-modal').style.display = 'flex'; };
-            document.getElementById('close-shop').onclick = function() { document.getElementById('shop-modal').style.display = 'none'; };
-            document.getElementById('open-inv').onclick = function() { document.getElementById('inv-modal').style.display = 'flex'; };
-            document.getElementById('close-inv').onclick = function() { document.getElementById('inv-modal').style.display = 'none'; };
-
-            document.getElementById('up-atk').onclick = function() {
-                if (gold >= 100) { gold -= 100; playerAtk += 5; alert('공격력이 증가했습니다!'); updateUI(); }
-                else alert('골드가 부족합니다!');
-            };
-            document.getElementById('up-hp').onclick = function() {
-                if (gold >= 100) { gold -= 100; maxHP += 20; playerHP += 20; alert('최대 체력이 증가했습니다!'); updateUI(); }
-                else alert('골드가 부족합니다!');
+            document.getElementById('btn-dodge').onclick = () => {
+                playerGroup.position.x += moveVector.x * 3.5;
+                playerGroup.position.z += moveVector.z * 3.5;
+                createHitEffect(playerGroup.position, 0xffffff);
             };
 
-            document.getElementById('glb-btn').onclick = function() {
-                alert('.GLB 커스텀 캐릭터 모델을 불러올 준비가 되었습니다.');
+            document.getElementById('btn-skill').onclick = () => {
+                if (state.mp >= 15) {
+                    state.mp -= 15;
+                    playerGroup.position.x += moveVector.x * 6.0;
+                    playerGroup.position.z += moveVector.z * 6.0;
+                    playSound('ult');
+                    createHitEffect(playerGroup.position, 0x00dfff);
+                    updateUI();
+                }
             };
 
-            // 프레임 애니메이션 루프
+            document.getElementById('btn-ult').onclick = () => {
+                if (state.mp >= 40) {
+                    state.mp -= 40;
+                    playSound('ult');
+                    monsters.forEach(m => {
+                        m.hp -= state.atk * 2.5;
+                        createHitEffect(m.mesh.position, 0xff00ff);
+                    });
+                    showToast(`💥 ULTIMATE SKILL!`);
+                    updateUI();
+                }
+            };
+
+            // MODAL CONTROLS
+            const toggleModal = (id, show) => document.getElementById(id).style.display = show ? 'flex' : 'none';
+            document.getElementById('btn-open-stat').onclick = () => toggleModal('modal-stat', true);
+            document.getElementById('btn-close-stat').onclick = () => toggleModal('modal-stat', false);
+            document.getElementById('btn-open-inv').onclick = () => toggleModal('modal-inv', true);
+            document.getElementById('btn-close-inv').onclick = () => toggleModal('modal-inv', false);
+            document.getElementById('btn-open-shop').onclick = () => toggleModal('modal-shop', true);
+            document.getElementById('btn-close-shop').onclick = () => toggleModal('modal-shop', false);
+
+            document.getElementById('buy-atk').onclick = () => {
+                if (state.gold >= 100) { state.gold -= 100; state.atk += 5; updateUI(); }
+            };
+            document.getElementById('buy-hp').onclick = () => {
+                if (state.gold >= 100) { state.gold -= 100; state.maxHp += 30; state.hp += 30; updateUI(); }
+            };
+
+            // 10. MAIN GAME LOOP
+            spawnMonsters();
+            updateUI();
+
             function animate() {
                 requestAnimationFrame(animate);
 
-                if (moveDir.x !== 0 || moveDir.z !== 0) {
-                    playerGroup.position.x += moveDir.x * 0.11;
-                    playerGroup.position.z += moveDir.z * 0.11;
-                    playerGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                // Player Movement
+                if (moveVector.x !== 0 || moveVector.z !== 0) {
+                    playerGroup.position.x += moveVector.x * 0.12 * state.speed;
+                    playerGroup.position.z += moveVector.z * 0.12 * state.speed;
+                    playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                 }
 
-                // AI 추적
-                for (var i = 0; i < enemies.length; i++) {
-                    var enemy = enemies[i];
-                    var dir = playerGroup.position.clone().sub(enemy.position).normalize();
-                    enemy.position.x += dir.x * 0.025;
-                    enemy.position.z += dir.z * 0.025;
+                // MP Auto Regen
+                if (state.mp < state.maxMp) {
+                    state.mp += 0.05;
+                    updateUI();
                 }
 
-                // 카메라는 플레이어를 따라감
-                camera.position.set(playerGroup.position.x, playerGroup.position.y + 8, playerGroup.position.z + 8);
+                // Monsters Update
+                spawnMonsters();
+                monsters.forEach(m => m.update());
+                updateParticles();
+
+                // Camera Follow
+                camera.position.set(playerGroup.position.x, playerGroup.position.y + 10, playerGroup.position.z + 9);
                 camera.lookAt(playerGroup.position);
 
                 renderer.render(scene, camera);
@@ -292,7 +539,7 @@
 
             animate();
 
-            window.addEventListener('resize', function() {
+            window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
