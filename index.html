@@ -22,12 +22,12 @@
             height: 100vh;
         }
 
-        #gameCanvas {
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
             position: absolute;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
             z-index: 1;
         }
 
@@ -41,6 +41,7 @@
             pointer-events: none;
         }
 
+        /* 상단 UI */
         #top-bar {
             position: absolute;
             top: 12px;
@@ -58,7 +59,7 @@
             border-radius: 8px;
             padding: 8px 12px;
             color: #fff;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             pointer-events: auto;
             box-shadow: 0 0 10px rgba(0, 223, 255, 0.3);
@@ -82,6 +83,22 @@
             box-shadow: 0 0 8px rgba(0, 223, 255, 0.3);
         }
 
+        .upload-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        #file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* 조이스틱 */
         #joystick-container {
             position: absolute;
             bottom: 25px;
@@ -105,6 +122,7 @@
             box-shadow: 0 0 12px #00dfff;
         }
 
+        /* 스킬 버튼 */
         .btn-container {
             position: absolute;
             bottom: 15px;
@@ -134,15 +152,21 @@
         #skill-btn { width: 45px; height: 45px; bottom: 90px; right: 5px; font-size: 10px; }
         #ult-btn { width: 55px; height: 55px; bottom: 75px; right: 75px; font-size: 10px; background: #0055a5; }
     </style>
+    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <div id="canvas-container"></div>
     
     <div id="ui-layer">
         <div id="top-bar">
             <div class="status-box">❄️ 토시로 Lv.1</div>
             <div class="btn-group">
-                <button class="top-btn" id="reset-btn">카메라 리셋</button>
+                <button class="top-btn" id="cam-btn">카메라 리셋</button>
+                <div class="upload-wrapper">
+                    <button class="top-btn">.glb 교체</button>
+                    <input type="file" id="file-input" accept=".glb,.gltf">
+                </div>
             </div>
         </div>
 
@@ -159,148 +183,155 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        let player = { x: 0, z: 0, angle: 0, speed: 3 };
-
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            player.x = 0;
-            player.z = 0;
-        });
-
-        // 조이스틱 조작
-        let moveDir = { x: 0, z: 0 };
-        const joystick = document.getElementById('joystick-container');
-        const knob = document.getElementById('joystick-knob');
-        let active = false, startX = 0, startY = 0;
-
-        function handleStart(e) {
-            active = true;
-            const t = e.touches ? e.touches[0] : e;
-            startX = t.clientX; startY = t.clientY;
-        }
-
-        function handleMove(e) {
-            if (!active) return;
-            const t = e.touches ? e.touches[0] : e;
-            let dx = t.clientX - startX;
-            let dy = t.clientY - startY;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            const maxR = 35;
-
-            if (dist > maxR) { dx = (dx/dist)*maxR; dy = (dy/dist)*maxR; }
-            knob.style.transform = `translate(${dx}px, ${dy}px)`;
+        window.onload = function() {
+            const container = document.getElementById('canvas-container');
             
-            moveDir.x = dx / maxR;
-            moveDir.z = dy / maxR;
-        }
+            // 1. Scene / Camera / Renderer
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x02050a);
 
-        function handleEnd() {
-            active = false;
-            knob.style.transform = 'translate(0px, 0px)';
-            moveDir.x = 0; moveDir.z = 0;
-        }
+            const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
 
-        joystick.addEventListener('touchstart', handleStart);
-        window.addEventListener('touchmove', handleMove);
-        window.addEventListener('touchend', handleEnd);
-        joystick.addEventListener('mousedown', handleStart);
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', handleEnd);
+            // 2. 조명 & 3D 격자
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+            scene.add(ambientLight);
 
-        // 3D 투영 좌표 계산
-        function project(x, z) {
-            const relX = x - player.x;
-            const relZ = z - player.z + 250;
-            const scale = 300 / (relZ || 1);
-            
-            return {
-                x: canvas.width / 2 + relX * scale,
-                y: canvas.height / 2 + 80 + relZ * scale * 0.15,
-                scale: Math.max(0.1, scale)
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(10, 20, 10);
+            scene.add(dirLight);
+
+            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
+            scene.add(grid);
+
+            // 3. 캐릭터
+            const characterGroup = new THREE.Group();
+            scene.add(characterGroup);
+
+            let currentMesh = null;
+            let mixer = null;
+            const clock = new THREE.Clock();
+
+            // 기본 3D 캐릭터 (임시)
+            const geo = new THREE.CylinderGeometry(0.4, 0.4, 1.5, 16);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.2 });
+            currentMesh = new THREE.Mesh(geo, mat);
+            currentMesh.position.y = 0.75;
+            characterGroup.add(currentMesh);
+
+            // 카메라 초기 위치
+            function resetCamera() {
+                camera.position.set(0, 4, 8);
+                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+            }
+            resetCamera();
+
+            document.getElementById('cam-btn').onclick = resetCamera;
+
+            // 4. .glb 파일 교체기
+            if (typeof THREE.GLTFLoader !== 'undefined') {
+                const loader = new THREE.GLTFLoader();
+                document.getElementById('file-input').onchange = function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    const url = URL.createObjectURL(file);
+                    loader.load(url, function(gltf) {
+                        if (currentMesh) characterGroup.remove(currentMesh);
+
+                        currentMesh = gltf.scene;
+
+                        // 스케일 자동 조절
+                        const box = new THREE.Box3().setFromObject(currentMesh);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 2.5 / (maxDim || 1);
+
+                        currentMesh.scale.set(scale, scale, scale);
+                        currentMesh.position.set(0, 0, 0);
+
+                        characterGroup.add(currentMesh);
+
+                        if (gltf.animations && gltf.animations.length > 0) {
+                            mixer = new THREE.AnimationMixer(currentMesh);
+                            mixer.clipAction(gltf.animations[0]).play();
+                        }
+                    });
+                };
+            }
+
+            // 5. 조이스틱
+            let moveDir = { x: 0, z: 0 };
+            const joystick = document.getElementById('joystick-container');
+            const knob = document.getElementById('joystick-knob');
+            let active = false, startX = 0, startY = 0;
+
+            function handleStart(e) {
+                active = true;
+                const t = e.touches ? e.touches[0] : e;
+                startX = t.clientX; startY = t.clientY;
+            }
+
+            function handleMove(e) {
+                if (!active) return;
+                const t = e.touches ? e.touches[0] : e;
+                let dx = t.clientX - startX;
+                let dy = t.clientY - startY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const maxR = 35;
+
+                if (dist > maxR) { dx = (dx/dist)*maxR; dy = (dy/dist)*maxR; }
+                knob.style.transform = `translate(${dx}px, ${dy}px)`;
+
+                moveDir.x = dx / maxR;
+                moveDir.z = dy / maxR;
+            }
+
+            function handleEnd() {
+                active = false;
+                knob.style.transform = 'translate(0px, 0px)';
+                moveDir.x = 0; moveDir.z = 0;
+            }
+
+            joystick.ontouchstart = handleStart;
+            window.ontouchmove = handleMove;
+            window.ontouchend = handleEnd;
+            joystick.onmousedown = handleStart;
+            window.onmousemove = handleMove;
+            window.onmouseup = handleEnd;
+
+            // 6. 렌더링 루프
+            function animate() {
+                requestAnimationFrame(animate);
+                const delta = clock.getDelta();
+
+                if (mixer) mixer.update(delta);
+
+                if (moveDir.x !== 0 || moveDir.z !== 0) {
+                    characterGroup.position.x += moveDir.x * 0.1;
+                    characterGroup.position.z += moveDir.z * 0.1;
+                    characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                }
+
+                // 카메라 추적
+                camera.position.x = characterGroup.position.x;
+                camera.position.z = characterGroup.position.z + 8;
+                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+
+                renderer.render(scene, camera);
+            }
+
+            window.onresize = function() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
             };
-        }
 
-        // 게임 메인 루프
-        function loop() {
-            if (moveDir.x !== 0 || moveDir.z !== 0) {
-                player.x += moveDir.x * player.speed;
-                player.z -= moveDir.z * player.speed;
-                player.angle = Math.atan2(moveDir.x, -moveDir.z);
-            }
-
-            // 배경
-            ctx.fillStyle = '#02050a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 3D 바닥 격자
-            ctx.strokeStyle = 'rgba(0, 223, 255, 0.25)';
-            ctx.lineWidth = 1;
-
-            const gridStep = 40;
-            const range = 600;
-
-            const startX = Math.floor((player.x - range) / gridStep) * gridStep;
-            const endX = Math.floor((player.x + range) / gridStep) * gridStep;
-            const startZ = Math.floor((player.z - range) / gridStep) * gridStep;
-            const endZ = Math.floor((player.z + range) / gridStep) * gridStep;
-
-            for (let x = startX; x <= endX; x += gridStep) {
-                const p1 = project(x, startZ);
-                const p2 = project(x, endZ);
-                ctx.beginPath();
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.stroke();
-            }
-
-            for (let z = startZ; z <= endZ; z += gridStep) {
-                const p1 = project(startX, z);
-                const p2 = project(endX, z);
-                ctx.beginPath();
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.stroke();
-            }
-
-            // 캐릭터
-            const pPos = project(player.x, player.z);
-
-            // 그림자
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.beginPath();
-            ctx.ellipse(pPos.x, pPos.y + 10, 15 * pPos.scale, 8 * pPos.scale, 0, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 구체 본체
-            ctx.fillStyle = '#00dfff';
-            ctx.shadowColor = '#00dfff';
-            ctx.shadowBlur = 15;
-            ctx.beginPath();
-            ctx.arc(pPos.x, pPos.y - 12 * pPos.scale, 14 * pPos.scale, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // 정면 방향 눈금
-            const headX = pPos.x + Math.sin(player.angle) * 12 * pPos.scale;
-            const headY = pPos.y - 12 * pPos.scale - Math.cos(player.angle) * 12 * pPos.scale;
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(headX, headY, 4 * pPos.scale, 0, Math.PI * 2);
-            ctx.fill();
-
-            requestAnimationFrame(loop);
-        }
-
-        loop();
+            animate();
+        };
     </script>
 </body>
 </html>
