@@ -43,7 +43,7 @@
             pointer-events: none;
         }
 
-        /* 📌 상단 레이아웃 완전히 고침 (가로 정렬 & 터치 활성화) */
+        /* 상단 레이아웃 */
         #top-bar {
             position: absolute;
             top: 10px;
@@ -97,7 +97,7 @@
         #player-hp { background: linear-gradient(90deg, #0077b6, #00dfff); }
         #player-exp { background: linear-gradient(90deg, #ca8a04, #facc15); }
 
-        /* 컨트롤 패널 (버튼 가로 정렬) */
+        /* 컨트롤 패널 */
         #upload-pane {
             background: rgba(3, 10, 20, 0.92);
             padding: 6px 12px;
@@ -105,7 +105,7 @@
             border: 1.5px solid #00dfff;
             color: #fff;
             display: flex;
-            flex-direction: row; /* 가로 방향 정렬 고정 */
+            flex-direction: row;
             flex-wrap: nowrap;
             align-items: center;
             gap: 6px;
@@ -116,13 +116,13 @@
             pointer-events: auto !important;
         }
 
-        #file-input { display: none; }
+        #file-input { display: none !important; }
 
         .upload-btn {
             background: linear-gradient(135deg, #00dfff 0%, #0055a5 100%);
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
@@ -622,35 +622,44 @@
             isGameOver = false;
         }
 
+        /* 📌 보완된 GLB 파일 업로드 로직 */
         const fileInput = document.getElementById('file-input');
         const triggerBtn = document.getElementById('trigger-file-btn');
 
-        triggerBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            fileInput.click();
-        });
+        if (triggerBtn && fileInput) {
+            const openFileDialog = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInput.click();
+            };
 
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+            triggerBtn.addEventListener('click', openFileDialog);
+            triggerBtn.addEventListener('touchstart', openFileDialog);
 
-            const fileName = file.name.toLowerCase();
-            if(fileName.includes('야치루') || fileName.includes('yachiru')) {
-                setCharacterMode('yachiru');
-            }
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
 
-            const url = URL.createObjectURL(file);
-            loader.load(
-                url, 
-                (gltf) => { 
-                    setupCharacter(gltf);
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                },
-                undefined,
-                (err) => { console.error("GLB 로드 실패:", err); }
-            );
-        });
+                const fileName = file.name.toLowerCase();
+                if(fileName.includes('야치루') || fileName.includes('yachiru')) {
+                    setCharacterMode('yachiru');
+                }
+
+                const url = URL.createObjectURL(file);
+                loader.load(
+                    url, 
+                    (gltf) => { 
+                        setupCharacter(gltf);
+                        setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    },
+                    undefined,
+                    (err) => { 
+                        console.error("GLB 로드 실패:", err);
+                        alert("파일을 로드하는 중 오류가 발생했습니다.");
+                    }
+                );
+            });
+        }
 
         let enemies = [];
         let enemyBullets = [];
