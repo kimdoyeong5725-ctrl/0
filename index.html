@@ -27,7 +27,6 @@
         .btn-hud { background: rgba(5, 12, 22, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #00dfff; }
         .btn-hud:active { transform: scale(0.95); }
 
-        /* 🔥 GLB 교체 버튼 전용 강조 스타일 */
         .btn-glb-highlight {
             border-color: #00ff88 !important;
             color: #00ff88 !important;
@@ -128,7 +127,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { gold: 0, level: 1, exp: 0, maxExp: 100, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, def: 5, stage: 1 };
 
-            // 1. SCENE SETUP
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
             scene.background = new THREE.Color(0x040814);
@@ -141,14 +139,12 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // LIGHTS
             scene.add(new THREE.AmbientLight(0xffffff, 0.7));
             const dirLight = new THREE.DirectionalLight(0x00dfff, 1.2);
             dirLight.position.set(15, 25, 15);
             dirLight.castShadow = true;
             scene.add(dirLight);
 
-            // FLOOR & GRID
             const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
             grid.position.y = 0.01;
             scene.add(grid);
@@ -161,20 +157,19 @@
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // PLAYER GROUP
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
 
-            // 기본 3D 캐릭터 메쉬
+            // 기본 3D 캐릭터 (기본 높이 적용)
             let defaultMesh = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16),
                 new THREE.MeshStandardMaterial({ color: 0x00dfff })
             );
-            defaultMesh.position.y = 0.8;
+            defaultMesh.position.y = 0.8; // 기본 캡슐 높이 보정
             defaultMesh.castShadow = true;
             playerGroup.add(defaultMesh);
 
-            // 📦 GLB 모델 교체 기능
+            // 📦 GLB 모델 교체 + 🔥 발바닥 자동 정렬 로직 추가!
             const glbInput = document.getElementById('glb-file-input');
             const btnGlb = document.getElementById('btn-upload-glb');
 
@@ -190,26 +185,29 @@
                 const loader = new THREE.GLTFLoader();
 
                 loader.load(url, (gltf) => {
-                    // 기존 메쉬 삭제
                     while(playerGroup.children.length > 0) {
                         playerGroup.remove(playerGroup.children[0]);
                     }
 
                     const loadedModel = gltf.scene;
 
-                    // 크기 자동 맞춤
-                    const box = new THREE.Box3().setFromObject(loadedModel);
-                    const size = box.getSize(new THREE.Vector3());
+                    // 1. 모델 크기 계산
+                    let box = new THREE.Box3().setFromObject(loadedModel);
+                    let size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 1.8 / (maxDim || 1);
+                    const scale = 2.0 / (maxDim || 1); // 높이 약 2m로 조정
                     loadedModel.scale.set(scale, scale, scale);
+
+                    // 2. 🔥 발바닥 바닥 정렬 (Y축 보정)
+                    box = new THREE.Box3().setFromObject(loadedModel);
+                    loadedModel.position.y = -box.min.y; // 바닥면(min.y)을 0 지점으로 올림
 
                     loadedModel.traverse((child) => {
                         if (child.isMesh) child.castShadow = true;
                     });
 
                     playerGroup.add(loadedModel);
-                    showToast("🎉 .GLB 모델 적용 완료!");
+                    showToast("🎉 .GLB 모델 위치 보정 완료!");
                 }, undefined, (err) => {
                     console.error(err);
                     showToast("⚠️ GLB 로딩 실패!");
@@ -271,7 +269,6 @@
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onEnd);
 
-            // 공격 및 모달
             document.getElementById('btn-attack').onclick = () => {
                 monsters.forEach((m, idx) => {
                     if (playerGroup.position.distanceTo(m.position) < 2.5) {
@@ -296,7 +293,6 @@
                 if (state.gold >= 100) { state.gold -= 100; state.atk += 5; updateUI(); }
             };
 
-            // GAME LOOP
             function animate() {
                 requestAnimationFrame(animate);
 
