@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Bleach Story RPG</title>
+    <title>3D Bleach Action RPG - Ice Arena</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #0b1325; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #050b14; font-family: 'Segoe UI', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
@@ -83,7 +83,7 @@
             </div>
         </div>
 
-        <div id="toast-msg">블리치 스토리 시작!</div>
+        <div id="toast-msg">빙설의 전장으로 입장합니다!</div>
 
         <div id="joystick-area"><div id="joystick-handle"></div></div>
 
@@ -138,20 +138,19 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, isAwakened: false, stage: 1, killCount: 0 };
 
-            // 📖 블리치 실제 원작 스토리 단계
             const stagesInfo = [
                 { id: 1, name: "1장: 소울사이어티 구출편 (vs 뱌쿠야)", target: 3, enemyType: "hollow" },
                 { id: 2, name: "2장: 아란칼 / 웨코문드 편 (vs 에스파다)", target: 3, enemyType: "espada" },
                 { id: 3, name: "3장: 카라쿠라 마을 결전 (vs 아이젠)", target: 1, enemyType: "aizen" },
                 { id: 4, name: "4장: 천년혈전 편 (vs 유하바하 & 퀸시)", target: 4, enemyType: "quincy" },
-                { id: 5, name: "최종장: 세계의 평화 수호 완료!", target: 999, enemyType: "hollow" }
+                { id: 5, name: "최종장: 전장 평정 완료!", target: 999, enemyType: "hollow" }
             ];
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
 
-            scene.background = new THREE.Color(0x1a2536);
-            scene.fog = new THREE.FogExp2(0x1a2536, 0.012);
+            scene.background = new THREE.Color(0x0a1526);
+            scene.fog = new THREE.FogExp2(0x0a1526, 0.015);
 
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -160,24 +159,62 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            scene.add(new THREE.AmbientLight(0xe0f7fa, 2.0));
+            scene.add(new THREE.AmbientLight(0xd0f0ff, 1.8));
 
-            const mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
+            const mainLight = new THREE.DirectionalLight(0xffffff, 2.2);
             mainLight.position.set(20, 45, 20);
             mainLight.castShadow = true;
             scene.add(mainLight);
 
-            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x34495e);
-            grid.position.y = 0.01;
-            scene.add(grid);
+            // 🏛️ 1. 갖춰진 던전 전장 맵 구축 (벽, 기둥, 타일)
+            const mapGroup = new THREE.Group();
+            scene.add(mapGroup);
 
-            const floor = new THREE.Mesh(
-                new THREE.PlaneGeometry(100, 100),
-                new THREE.MeshStandardMaterial({ color: 0x243342, roughness: 0.3 })
+            // 바닥 (격자 타일 재질)
+            const floorMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(60, 60),
+                new THREE.MeshStandardMaterial({ color: 0x1e2d3d, roughness: 0.4, metalness: 0.1 })
             );
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+            floorMesh.rotation.x = -Math.PI / 2;
+            floorMesh.receiveShadow = true;
+            mapGroup.add(floorMesh);
+
+            const grid = new THREE.GridHelper(60, 30, 0x00dfff, 0x2c3e50);
+            grid.position.y = 0.02;
+            mapGroup.add(grid);
+
+            // 던전 외곽 벽 (사방 막힘)
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x152232, roughness: 0.6 });
+            const wallGeo = new THREE.BoxGeometry(60, 8, 2);
+
+            const wallN = new THREE.Mesh(wallGeo, wallMat); wallN.position.set(0, 4, -30); mapGroup.add(wallN);
+            const wallS = new THREE.Mesh(wallGeo, wallMat); wallS.position.set(0, 4, 30); mapGroup.add(wallS);
+            
+            const wallGeoSide = new THREE.BoxGeometry(2, 8, 60);
+            const wallE = new THREE.Mesh(wallGeoSide, wallMat); wallE.position.set(30, 4, 0); mapGroup.add(wallE);
+            const wallW = new THREE.Mesh(wallGeoSide, wallMat); wallW.position.set(-30, 4, 0); mapGroup.add(wallW);
+
+            // 고대 얼음 기둥 및 구조물 배치
+            const pillarGeo = new THREE.CylinderGeometry(1.2, 1.5, 9, 8);
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.3, metalness: 0.2 });
+            const crystalMat = new THREE.MeshBasicMaterial({ color: 0x00dfff });
+
+            const pillarPositions = [
+                {x: -16, z: -16}, {x: 16, z: -16},
+                {x: -16, z: 16}, {x: 16, z: 16}
+            ];
+
+            pillarPositions.forEach(pos => {
+                const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+                pillar.position.set(pos.x, 4.5, pos.z);
+                pillar.castShadow = true;
+                mapGroup.add(pillar);
+
+                // 기둥 위 얼음 결정 장식
+                const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(1.0, 0), crystalMat);
+                crystal.position.set(pos.x, 9.5, pos.z);
+                mapGroup.add(crystal);
+            });
 
             // PLAYER GROUP
             const playerGroup = new THREE.Group();
@@ -186,15 +223,42 @@
             const characterContainer = new THREE.Group();
             playerGroup.add(characterContainer);
 
-            let defaultMesh = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16),
-                new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x005588 })
-            );
-            defaultMesh.position.y = 0.8;
-            defaultMesh.castShadow = true;
-            characterContainer.add(defaultMesh);
+            // 🤖 2. 이전 로봇 스타일 SD 캐릭터 생성 (업로드 사진 스타일)
+            function buildDefaultCharacter() {
+                const charGroup = new THREE.Group();
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.3, metalness: 0.2 });
+                const jointMat = new THREE.MeshBasicMaterial({ color: 0x00dfff });
 
-            // 🪽 얼음 날개 (만해 각성용)
+                // 머리
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.7), bodyMat);
+                head.position.y = 1.35;
+                charGroup.add(head);
+
+                // 몸통
+                const torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 0.5), bodyMat);
+                torso.position.y = 0.75;
+                charGroup.add(torso);
+
+                // 양 팔
+                const armL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), jointMat);
+                armL.position.set(-0.45, 0.75, 0);
+                const armR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), jointMat);
+                armR.position.set(0.45, 0.75, 0);
+                charGroup.add(armL, armR);
+
+                // 양 다리
+                const legL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.45, 0.22), jointMat);
+                legL.position.set(-0.2, 0.225, 0);
+                const legR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.45, 0.22), jointMat);
+                legR.position.set(0.2, 0.225, 0);
+                charGroup.add(legL, legR);
+
+                return charGroup;
+            }
+
+            characterContainer.add(buildDefaultCharacter());
+
+            // 🪽 얼음 날개 (만해 각성)
             let iceWingsGroup = new THREE.Group();
             function createIceWings() {
                 iceWingsGroup.clear();
@@ -262,42 +326,27 @@
                 const enemyGroup = new THREE.Group();
                 let mesh, size = 1.2;
 
-                if (type === "hollow") { // 1. 호로 (하얀 상자 + 구멍)
-                    mesh = new THREE.Mesh(
-                        new THREE.BoxGeometry(1.2, 1.4, 1.2),
-                        new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.2 })
-                    );
-                    const hole = new THREE.Mesh(
-                        new THREE.SphereGeometry(0.35, 8, 8),
-                        new THREE.MeshBasicMaterial({ color: 0x000000 })
-                    );
+                if (type === "hollow") {
+                    mesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.4, 1.2), new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.2 }));
+                    const hole = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
                     hole.position.set(0, 0.2, 0.5);
                     enemyGroup.add(mesh, hole);
                     enemyGroup.position.y = 0.7;
 
-                } else if (type === "espada") { // 2. 에스파다 (날렵한 백색/은색 원뿔)
-                    mesh = new THREE.Mesh(
-                        new THREE.ConeGeometry(0.8, 2.4, 6),
-                        new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.6, roughness: 0.2 })
-                    );
+                } else if (type === "espada") {
+                    mesh = new THREE.Mesh(new THREE.ConeGeometry(0.8, 2.4, 6), new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.6, roughness: 0.2 }));
                     mesh.rotation.x = Math.PI;
                     enemyGroup.add(mesh);
                     enemyGroup.position.y = 1.2;
 
-                } else if (type === "aizen") { // 3. 보스 아이젠 소스케 (흑자색 팔면체)
-                    mesh = new THREE.Mesh(
-                        new THREE.OctahedronGeometry(2.2, 0),
-                        new THREE.MeshStandardMaterial({ color: 0x8e44ad, emissive: 0x341f97, emissiveIntensity: 0.9 })
-                    );
+                } else if (type === "aizen") {
+                    mesh = new THREE.Mesh(new THREE.OctahedronGeometry(2.2, 0), new THREE.MeshStandardMaterial({ color: 0x8e44ad, emissive: 0x341f97, emissiveIntensity: 0.9 }));
                     enemyGroup.add(mesh);
                     enemyGroup.position.y = 2.4;
                     size = 2.2;
 
-                } else if (type === "quincy") { // 4. 퀸시 / 유하바하 (하늘색 다이아몬드 십자가)
-                    mesh = new THREE.Mesh(
-                        new THREE.OctahedronGeometry(1.4, 0),
-                        new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x00a8ff, emissiveIntensity: 0.7 })
-                    );
+                } else if (type === "quincy") {
+                    mesh = new THREE.Mesh(new THREE.OctahedronGeometry(1.4, 0), new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x00a8ff, emissiveIntensity: 0.7 }));
                     mesh.scale.set(0.6, 2.0, 0.6);
                     enemyGroup.add(mesh);
                     enemyGroup.position.y = 1.4;
@@ -313,6 +362,11 @@
                     const m = createEnemyShape(curStage.enemyType);
                     const angle = Math.random() * Math.PI * 2;
                     m.position.set(playerGroup.position.x + Math.cos(angle) * 9, m.position.y, playerGroup.position.z + Math.sin(angle) * 9);
+                    
+                    // 맵 경계 제한
+                    m.position.x = Math.max(-25, Math.min(25, m.position.x));
+                    m.position.z = Math.max(-25, Math.min(25, m.position.z));
+
                     scene.add(m);
                     monsters.push(m);
                 }
@@ -468,8 +522,8 @@
             document.getElementById('btn-dodge').onclick = () => {
                 const backX = -Math.sin(playerGroup.rotation.y) * 3.5;
                 const backZ = -Math.cos(playerGroup.rotation.y) * 3.5;
-                playerGroup.position.x += backX;
-                playerGroup.position.z += backZ;
+                playerGroup.position.x = Math.max(-28, Math.min(28, playerGroup.position.x + backX));
+                playerGroup.position.z = Math.max(-28, Math.min(28, playerGroup.position.z + backZ));
                 showToast("⚡ 순보(瞬步)!");
             };
 
@@ -495,6 +549,11 @@
                 if (moveVector.x !== 0 || moveVector.z !== 0) {
                     playerGroup.position.x += moveVector.x * 0.13;
                     playerGroup.position.z += moveVector.z * 0.13;
+
+                    // 맵 성벽 충돌 방지 (바깥으로 안 나가도록 제한)
+                    playerGroup.position.x = Math.max(-28, Math.min(28, playerGroup.position.x));
+                    playerGroup.position.z = Math.max(-28, Math.min(28, playerGroup.position.z));
+
                     playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                 }
 
@@ -538,7 +597,7 @@
                 spawnMonster();
                 monsters.forEach(m => m.lookAt(playerGroup.position));
 
-                camera.position.set(playerGroup.position.x, playerGroup.position.y + 10, playerGroup.position.z + 9);
+                camera.position.set(playerGroup.position.x, playerGroup.position.y + 11, playerGroup.position.z + 10);
                 camera.lookAt(playerGroup.position);
 
                 renderer.render(scene, camera);
