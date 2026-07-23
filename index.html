@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Mobile RPG</title>
+    <title>3D Mobile Action RPG</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #040814; font-family: sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #040814; font-family: 'Segoe UI', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
         /* TOP HUD */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .panel-box { background: rgba(8, 16, 28, 0.88); border: 1.5px solid #00dfff; border-radius: 8px; padding: 10px; width: 220px; pointer-events: auto; box-shadow: 0 0 12px rgba(0,223,255,0.2); }
+        .panel-box { background: rgba(8, 16, 28, 0.88); border: 1.5px solid #00dfff; border-radius: 8px; padding: 10px; width: 220px; pointer-events: auto; box-shadow: 0 0 12px rgba(0, 223, 255, 0.2); }
         .gold-text { color: #ffd700; }
-        .bar-container { width: 100%; height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .bar-container { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; overflow: hidden; margin-top: 4px; }
         .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, #00b894); transition: width 0.15s; }
         .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #0984e3, #74b9ff); transition: width 0.15s; }
         .bar-fill-exp { width: 0%; height: 100%; background: linear-gradient(90deg, #e056fd, #be2edd); transition: width 0.15s; }
@@ -27,15 +27,20 @@
         .btn-hud { background: rgba(5, 12, 22, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #00dfff; }
         .btn-hud:active { transform: scale(0.95); }
 
-        /* GLB 업로드 버튼 전용 스타일 */
-        .btn-glb { border-color: #00ff88; color: #00ff88; text-shadow: 0 0 4px #00ff88; }
+        /* 🔥 GLB 교체 버튼 전용 강조 스타일 */
+        .btn-glb-highlight {
+            border-color: #00ff88 !important;
+            color: #00ff88 !important;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.4) !important;
+            text-shadow: 0 0 6px #00ff88 !important;
+        }
 
         /* JOYSTICK & BUTTONS */
-        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(255,255,255,0.05); border: 2px solid rgba(0,223,255,0.3); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
+        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(0, 223, 255, 0.3); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
         #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #00dfff, #0077b6); border-radius: 50%; box-shadow: 0 0 12px #00dfff; }
 
         .action-area { position: absolute; bottom: 20px; right: 20px; width: 220px; height: 220px; pointer-events: none; }
-        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(5, 12, 22, 0.85); border: 1.5px solid #00dfff; box-shadow: 0 0 8px rgba(0,223,255,0.3); font-size: 11px; }
+        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(5, 12, 22, 0.85); border: 1.5px solid #00dfff; box-shadow: 0 0 8px rgba(0, 223, 255, 0.3); font-size: 11px; }
         .btn-action:active { transform: scale(0.9); }
         #btn-attack { width: 80px; height: 80px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #0077b6, #023e8a); }
         #btn-dodge { width: 50px; height: 50px; bottom: 0; right: 100px; }
@@ -43,13 +48,13 @@
         #btn-ult { width: 60px; height: 60px; bottom: 85px; right: 85px; border-color: #ff00ff; background: radial-gradient(circle, #7000ff, #4a00e0); box-shadow: 0 0 12px #ff00ff; }
 
         /* MODALS */
-        .modal-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 290px; background: rgba(8, 16, 28, 0.96); border: 2px solid #00dfff; border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; pointer-events: auto; z-index: 100; }
-        .modal-header { font-size: 14px; font-weight: bold; color: #00dfff; text-align: center; border-bottom: 1px solid rgba(0,223,255,0.3); padding-bottom: 6px; }
+        .modal-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 290px; background: rgba(8, 16, 28, 0.96); border: 2px solid #00dfff; border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; pointer-events: auto; z-index: 100; box-shadow: 0 0 20px rgba(0, 223, 255, 0.4); }
+        .modal-header { font-size: 14px; font-weight: bold; color: #00dfff; text-align: center; border-bottom: 1px solid rgba(0, 223, 255, 0.3); padding-bottom: 6px; }
         .modal-body { font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 4px; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.05); padding: 6px; border-radius: 4px; }
         .stat-btn { background: #0077b6; border: 1px solid #00dfff; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
 
-        #toast-msg { position: absolute; top: 30%; width: 100%; text-align: center; color: #00dfff; font-size: 18px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; }
+        #toast-msg { position: absolute; top: 30%; width: 100%; text-align: center; color: #00dfff; font-size: 18px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 10px #00dfff; }
     </style>
 </head>
 <body>
@@ -70,15 +75,16 @@
                 <div class="bar-container"><div id="ui-exp-fill" class="bar-fill-exp"></div></div>
                 <div class="quest-box">📜 목표: <span id="ui-quest">몬스터 5마리 처치</span></div>
             </div>
+            
             <div class="top-right-btns">
                 <button class="btn-hud" id="btn-open-stat">⚔️ 캐릭터 스탯</button>
                 <button class="btn-hud" id="btn-open-inv">🎒 인벤토리</button>
                 <button class="btn-hud" id="btn-open-shop">🏪 상점</button>
-                <button class="btn-hud btn-glb" id="btn-upload-glb">📦 .GLB 모델 적용</button>
+                <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 모델 적용</button>
             </div>
         </div>
 
-        <div id="toast-msg">STAGE 1 START!</div>
+        <div id="toast-msg">게임 시작!</div>
 
         <div id="joystick-area"><div id="joystick-handle"></div></div>
 
@@ -155,11 +161,11 @@
             floor.receiveShadow = true;
             scene.add(floor);
 
-            // PLAYER CONTAINER
+            // PLAYER GROUP
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
 
-            // 기본 3D 캐릭터 (큐브/원통 조합)
+            // 기본 3D 캐릭터 메쉬
             let defaultMesh = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16),
                 new THREE.MeshStandardMaterial({ color: 0x00dfff })
@@ -168,32 +174,34 @@
             defaultMesh.castShadow = true;
             playerGroup.add(defaultMesh);
 
-            // 📦 GLB 모델 파일 업로드 로직
+            // 📦 GLB 모델 교체 기능
             const glbInput = document.getElementById('glb-file-input');
-            document.getElementById('btn-upload-glb').onclick = () => glbInput.click();
+            const btnGlb = document.getElementById('btn-upload-glb');
+
+            btnGlb.onclick = () => glbInput.click();
 
             glbInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
 
+                showToast("3D 모델 로딩 중...");
+
                 const url = URL.createObjectURL(file);
                 const loader = new THREE.GLTFLoader();
 
-                showToast("3D 모델 로딩 중...");
-
                 loader.load(url, (gltf) => {
-                    // 기존 기본 캐릭터 메쉬 제거
-                    while(playerGroup.children.length > 0){ 
-                        playerGroup.remove(playerGroup.children[0]); 
+                    // 기존 메쉬 삭제
+                    while(playerGroup.children.length > 0) {
+                        playerGroup.remove(playerGroup.children[0]);
                     }
 
                     const loadedModel = gltf.scene;
-                    
-                    // 크기 및 위치 자동 조정
+
+                    // 크기 자동 맞춤
                     const box = new THREE.Box3().setFromObject(loadedModel);
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 1.8 / maxDim; // 적당한 비율로 스케일 조절
+                    const scale = 1.8 / (maxDim || 1);
                     loadedModel.scale.set(scale, scale, scale);
 
                     loadedModel.traverse((child) => {
@@ -202,9 +210,9 @@
 
                     playerGroup.add(loadedModel);
                     showToast("🎉 .GLB 모델 적용 완료!");
-                }, undefined, (error) => {
-                    showToast("⚠️ 모델 불러오기 실패!");
-                    console.error(error);
+                }, undefined, (err) => {
+                    console.error(err);
+                    showToast("⚠️ GLB 로딩 실패!");
                 });
             });
 
@@ -238,7 +246,7 @@
                 document.getElementById('stat-atk').innerText = state.atk;
             }
 
-            // CONTROLS (JOYSTICK)
+            // 조이스틱 조작
             let moveVector = { x: 0, z: 0 };
             const joyArea = document.getElementById('joystick-area');
             const joyHandle = document.getElementById('joystick-handle');
@@ -263,7 +271,7 @@
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onEnd);
 
-            // ACTIONS
+            // 공격 및 모달
             document.getElementById('btn-attack').onclick = () => {
                 monsters.forEach((m, idx) => {
                     if (playerGroup.position.distanceTo(m.position) < 2.5) {
