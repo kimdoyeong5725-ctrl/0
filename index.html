@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bleach 3D Ultra Master RPG - Fixed File Upload</title>
+    <title>Bleach 3D Ultra Master RPG - Fixed UI</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
 
@@ -43,114 +43,51 @@
             pointer-events: none;
         }
 
-        .interactive {
-            pointer-events: auto !important;
-        }
-
-        /* 📌 상단 UI 패널 - 터치 먹히도록 설정 */
-        #upload-pane {
+        /* 📌 상단 레이아웃 완전히 고침 (가로 정렬 & 터치 활성화) */
+        #top-bar {
             position: absolute;
             top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(3, 10, 20, 0.92);
-            padding: 8px 18px;
-            border-radius: 20px;
-            border: 1.5px solid #00dfff;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 0 20px rgba(0, 223, 255, 0.4);
-            font-size: 11px;
-            font-weight: bold;
-            z-index: 100;
-            backdrop-filter: blur(8px);
-            pointer-events: auto !important; /* 터치 활성화 */
-        }
-
-        #file-input { display: none; }
-
-        .upload-btn {
-            background: linear-gradient(135deg, #00dfff 0%, #0055a5 100%);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 11px;
-            box-shadow: 0 0 10px rgba(0, 223, 255, 0.5);
-            transition: all 0.2s;
-            pointer-events: auto !important; /* 터치 활성화 */
-        }
-        .upload-btn:active { transform: scale(0.95); }
-
-        .mode-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #ff66aa;
-            color: #ff99cc;
-            padding: 4px 10px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-            transition: all 0.2s;
-            pointer-events: auto !important; /* 터치 활성화 */
-        }
-        .mode-btn.active-toshiro {
-            background: #0088cc;
-            color: #fff;
-            border-color: #00dfff;
-            box-shadow: 0 0 12px #00dfff;
-        }
-        .mode-btn.active-yachiru {
-            background: #e60073;
-            color: #fff;
-            border-color: #ff99cc;
-            box-shadow: 0 0 12px #ff66aa;
-        }
-
-        #hud-top {
-            position: absolute;
-            top: 12px;
-            left: 20px;
-            right: 20px;
+            left: 10px;
+            right: 10px;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            gap: 10px;
+            pointer-events: none;
+            z-index: 100;
         }
 
+        /* 체력 및 레벨 카드 */
         .hp-card {
             background: rgba(5, 12, 22, 0.88);
-            border: 2px solid rgba(0, 223, 255, 0.8);
-            border-radius: 14px;
-            padding: 10px 14px;
-            width: 250px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px);
-            transition: border-color 0.3s;
+            border: 1.5px solid rgba(0, 223, 255, 0.8);
+            border-radius: 12px;
+            padding: 8px 12px;
+            width: 180px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            pointer-events: auto !important;
         }
         .hp-card.yachiru-style { border-color: #ff66aa; }
 
         .unit-name {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 900;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            color: #fff;
         }
-        .player-name { color: #80e5ff; text-shadow: 0 0 8px #00dfff; }
+        .player-name { color: #80e5ff; text-shadow: 0 0 6px #00dfff; }
 
         .hp-bar-outer {
             width: 100%;
-            height: 12px;
+            height: 8px;
             background: rgba(0,0,0,0.8);
-            border-radius: 6px;
+            border-radius: 4px;
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .hp-bar-inner {
             height: 100%;
@@ -160,24 +97,71 @@
         #player-hp { background: linear-gradient(90deg, #0077b6, #00dfff); }
         #player-exp { background: linear-gradient(90deg, #ca8a04, #facc15); }
 
-        #minimap-container {
-            position: absolute;
-            top: 12px;
-            right: 20px;
-            width: 110px;
-            height: 110px;
-            border: 2px solid #00dfff;
-            border-radius: 50%;
-            background: rgba(5, 12, 22, 0.9);
-            overflow: hidden;
-            box-shadow: 0 0 15px rgba(0, 223, 255, 0.5);
+        /* 컨트롤 패널 (버튼 가로 정렬) */
+        #upload-pane {
+            background: rgba(3, 10, 20, 0.92);
+            padding: 6px 12px;
+            border-radius: 14px;
+            border: 1.5px solid #00dfff;
+            color: #fff;
+            display: flex;
+            flex-direction: row; /* 가로 방향 정렬 고정 */
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 0 15px rgba(0, 223, 255, 0.3);
+            font-size: 10px;
+            font-weight: bold;
+            backdrop-filter: blur(8px);
+            pointer-events: auto !important;
         }
-        #minimap-canvas { width: 100%; height: 100%; }
+
+        #file-input { display: none; }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #00dfff 0%, #0055a5 100%);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 10px;
+            box-shadow: 0 0 8px rgba(0, 223, 255, 0.5);
+            pointer-events: auto !important;
+            white-space: nowrap;
+        }
+        .upload-btn:active { transform: scale(0.95); }
+
+        .mode-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ff66aa;
+            color: #ff99cc;
+            padding: 4px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            pointer-events: auto !important;
+            white-space: nowrap;
+        }
+        .mode-btn.active-toshiro {
+            background: #0088cc;
+            color: #fff;
+            border-color: #00dfff;
+            box-shadow: 0 0 8px #00dfff;
+        }
+        .mode-btn.active-yachiru {
+            background: #e60073;
+            color: #fff;
+            border-color: #ff99cc;
+            box-shadow: 0 0 8px #ff66aa;
+        }
 
         #combo-container {
             position: absolute;
-            right: 150px;
-            top: 20px;
+            right: 20px;
+            top: 70px;
             text-align: right;
             font-family: 'Orbitron', sans-serif;
             opacity: 0;
@@ -186,23 +170,23 @@
         }
         #combo-container.active { opacity: 1; transform: scale(1); }
         #combo-count {
-            font-size: 38px;
+            font-size: 32px;
             font-weight: 900;
             color: #70e6ff;
-            text-shadow: 0 0 18px #00dfff, 2px 2px 0px #000;
+            text-shadow: 0 0 15px #00dfff, 2px 2px 0px #000;
             line-height: 1;
         }
-        #combo-label { font-size: 10px; color: #fff; letter-spacing: 2px; }
+        #combo-label { font-size: 9px; color: #fff; letter-spacing: 1px; }
 
         #shift-lock-btn {
             position: absolute;
-            left: 145px;
-            bottom: 35px;
-            width: 50px;
-            height: 38px;
+            left: 140px;
+            bottom: 30px;
+            width: 46px;
+            height: 36px;
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #00dfff;
-            border-radius: 12px;
+            border-radius: 10px;
             color: #00dfff;
             font-family: 'Orbitron', sans-serif;
             font-size: 10px;
@@ -211,21 +195,20 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 223, 255, 0.3);
             pointer-events: auto !important;
         }
         #shift-lock-btn.active {
             background: #00dfff;
             color: #000;
-            box-shadow: 0 0 18px #00dfff;
+            box-shadow: 0 0 15px #00dfff;
         }
 
         #joystick-container {
             position: absolute;
-            bottom: 25px;
-            left: 25px;
-            width: 110px;
-            height: 110px;
+            bottom: 20px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(0, 223, 255, 0.5);
             border-radius: 50%;
@@ -237,20 +220,20 @@
             pointer-events: auto !important;
         }
         #joystick-knob {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             background: radial-gradient(circle, #80e5ff 0%, #0077b6 100%);
             border-radius: 50%;
             position: absolute;
-            box-shadow: 0 0 15px #00dfff;
+            box-shadow: 0 0 12px #00dfff;
         }
 
         .btn-container {
             position: absolute;
             bottom: 15px;
             right: 15px;
-            width: 220px;
-            height: 220px;
+            width: 200px;
+            height: 200px;
             pointer-events: none;
         }
         .action-btn {
@@ -263,7 +246,7 @@
             align-items: center;
             cursor: pointer;
             touch-action: none;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
             border: 2px solid rgba(255,255,255,0.85);
             pointer-events: auto !important;
             overflow: hidden;
@@ -278,62 +261,62 @@
             justify-content: center;
             align-items: center;
             font-family: 'Orbitron', sans-serif;
-            font-size: 13px;
+            font-size: 12px;
             color: #00dfff;
             opacity: 0;
             pointer-events: none;
         }
 
         #attack-btn {
-            width: 76px; height: 76px; bottom: 10px; right: 10px;
+            width: 70px; height: 70px; bottom: 5px; right: 5px;
             background: radial-gradient(circle, #00dfff 0%, #004080 100%);
-            font-size: 15px; box-shadow: 0 0 22px #00dfff;
+            font-size: 14px; box-shadow: 0 0 18px #00dfff;
         }
         #dodge-btn {
-            width: 48px; height: 48px; bottom: 10px; right: 100px;
+            width: 44px; height: 44px; bottom: 5px; right: 90px;
             background: radial-gradient(circle, #ffcc00 0%, #886600 100%);
             font-size: 10px;
         }
         #skill-btn {
-            width: 50px; height: 50px; bottom: 100px; right: 10px;
+            width: 46px; height: 46px; bottom: 90px; right: 5px;
             background: radial-gradient(circle, #70e6ff 0%, #0055a5 100%);
-            font-size: 11px;
+            font-size: 10px;
         }
         #ult-btn {
-            width: 58px; height: 58px; bottom: 82px; right: 82px;
+            width: 52px; height: 52px; bottom: 75px; right: 75px;
             background: radial-gradient(circle, #ffffff 0%, #0099ff 100%);
-            font-size: 11px; color: #002244; box-shadow: 0 0 28px #ffffff;
+            font-size: 10px; color: #002244; box-shadow: 0 0 22px #ffffff;
         }
 
         body.yachiru-mode #attack-btn {
             background: radial-gradient(circle, #ff66cc 0%, #880044 100%);
-            box-shadow: 0 0 22px #ff66cc;
+            box-shadow: 0 0 18px #ff66cc;
         }
         body.yachiru-mode #skill-btn { background: radial-gradient(circle, #ff99dd 0%, #aa0055 100%); }
         body.yachiru-mode #ult-btn {
             background: radial-gradient(circle, #ffffff 0%, #ff3399 100%);
-            box-shadow: 0 0 28px #ff66cc;
+            box-shadow: 0 0 22px #ff66cc;
         }
         body.yachiru-mode #joystick-knob {
             background: radial-gradient(circle, #ff99cc 0%, #aa0055 100%);
-            box-shadow: 0 0 15px #ff66cc;
+            box-shadow: 0 0 12px #ff66aa;
         }
 
         .dmg-text {
             position: absolute;
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
-            font-size: 24px;
+            font-size: 22px;
             color: #ffea00;
-            text-shadow: 2px 2px 0px #000, 0 0 12px #ff3300;
+            text-shadow: 2px 2px 0px #000, 0 0 10px #ff3300;
             pointer-events: none;
             animation: dmgAnim 0.75s ease-out forwards;
             z-index: 1000;
         }
         @keyframes dmgAnim {
             0% { opacity: 1; transform: translate(-50%, 0) scale(0.6); }
-            30% { transform: translate(-50%, -35px) scale(1.35); }
-            100% { opacity: 0; transform: translate(-50%, -60px) scale(0.9); }
+            30% { transform: translate(-50%, -30px) scale(1.3); }
+            100% { opacity: 0; transform: translate(-50%, -50px) scale(0.9); }
         }
 
         .modal {
@@ -344,50 +327,44 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
             z-index: 200;
             color: #fff;
             pointer-events: auto !important;
             backdrop-filter: blur(10px);
         }
         .modal h1 {
-            font-size: 40px;
+            font-size: 32px;
             color: #38bdf8;
-            text-shadow: 0 0 25px #0284c7;
+            text-shadow: 0 0 20px #0284c7;
             font-family: 'Orbitron', sans-serif;
         }
-        .upgrade-list { display: flex; gap: 18px; margin-top: 12px; }
+        .upgrade-list { display: flex; gap: 12px; margin-top: 10px; }
         .upgrade-card {
-            width: 150px;
-            padding: 22px 12px;
+            width: 110px;
+            padding: 16px 8px;
             background: #1e293b;
             border: 2px solid #38bdf8;
-            border-radius: 14px;
+            border-radius: 12px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
-        .upgrade-card:hover {
-            transform: translateY(-8px);
-            background: #334155;
-            box-shadow: 0 0 20px #00dfff;
-        }
-        .upgrade-card h3 { font-size: 16px; color: #facc15; margin-bottom: 8px; }
-        .upgrade-card p { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+        .upgrade-card:active { transform: scale(0.95); }
+        .upgrade-card h3 { font-size: 13px; color: #facc15; margin-bottom: 6px; }
+        .upgrade-card p { font-size: 10px; color: #94a3b8; line-height: 1.3; }
 
         .btn-action {
-            padding: 12px 32px;
-            font-size: 16px;
+            padding: 10px 24px;
+            font-size: 14px;
             font-weight: bold;
             color: #fff;
             background: #2563eb;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
-            box-shadow: 0 0 20px #3b82f6;
-            transition: transform 0.2s;
+            box-shadow: 0 0 15px #3b82f6;
         }
-        .btn-action:hover { transform: scale(1.08); }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -396,19 +373,9 @@
     <div id="canvas-container"></div>
     
     <div id="ui-layer">
-        <div id="upload-pane">
-            <span id="status-text">⏳ 준비 중...</span>
-            <button id="btn-toshiro" class="mode-btn active-toshiro">❄️ 토시로</button>
-            <button id="btn-yachiru" class="mode-btn">🌸 야치루</button>
-            <button id="sound-btn" class="mode-btn" onclick="toggleSound()">🔊 사운드 ON</button>
-            
-            <button class="upload-btn" id="trigger-file-btn">.glb 교체</button>
-            <input type="file" id="file-input" accept=".glb,.gltf">
-        </div>
-
-        <div id="hud-top">
+        <div id="top-bar">
             <div class="hp-card" id="player-card">
-                <div class="unit-name player-name">
+                <div class="unit-name">
                     <span id="char-icon-name">❄️ 토시로</span>
                     <span>Lv.<span id="lvl-num">1</span> STAGE <span id="stage-num">1</span></span>
                 </div>
@@ -416,8 +383,12 @@
                 <div class="hp-bar-outer"><div id="player-exp" class="hp-bar-inner"></div></div>
             </div>
 
-            <div id="minimap-container">
-                <canvas id="minimap-canvas" width="110" height="110"></canvas>
+            <div id="upload-pane">
+                <button id="btn-toshiro" class="mode-btn active-toshiro">❄️</button>
+                <button id="btn-yachiru" class="mode-btn">🌸</button>
+                <button id="sound-btn" class="mode-btn" onclick="toggleSound()">🔊 ON</button>
+                <button class="upload-btn" id="trigger-file-btn">.glb 교체</button>
+                <input type="file" id="file-input" accept=".glb,.gltf">
             </div>
         </div>
 
@@ -439,18 +410,18 @@
 
     <div id="levelup-modal" class="modal">
         <h1>LEVEL UP!</h1>
-        <p style="color: #94a3b8;">영압이 상승했습니다. 강화할 능력을 선택하세요.</p>
+        <p style="color: #94a3b8; font-size: 12px;">강화할 능력을 선택하세요.</p>
         <div class="upgrade-list">
             <div class="upgrade-card" onclick="selectUpgrade('atk')">
                 <h3>⚔️ 영압 강화</h3>
                 <p>기본 공격력 +15</p>
             </div>
             <div class="upgrade-card" onclick="selectUpgrade('hp')">
-                <h3>❤️ 체력 완전회복</h3>
-                <p>최대 체력 +35 및 즉시 완치</p>
+                <h3>❤️ 체력 회복</h3>
+                <p>최대 체력 +35 완치</p>
             </div>
             <div class="upgrade-card" onclick="selectUpgrade('speed')">
-                <h3>⚡ 순보/신보 극의</h3>
+                <h3>⚡ 순보 극의</h3>
                 <p>이동 속도 15% 상승</p>
             </div>
         </div>
@@ -458,7 +429,7 @@
 
     <div id="gameover-modal" class="modal">
         <h1 style="color: #ef4444;">GAME OVER</h1>
-        <div style="font-size: 20px;">최종 토벌 점수: <span id="final-score" style="color: #facc15; font-weight: bold;">0</span></div>
+        <div style="font-size: 16px;">최종 점수: <span id="final-score" style="color: #facc15; font-weight: bold;">0</span></div>
         <button class="btn-action" onclick="restartGame()">다시 도전</button>
     </div>
 
@@ -468,7 +439,7 @@
 
         function toggleSound() {
             soundEnabled = !soundEnabled;
-            document.getElementById("sound-btn").innerText = soundEnabled ? "🔊 사운드 ON" : "🔇 사운드 OFF";
+            document.getElementById("sound-btn").innerText = soundEnabled ? "🔊 ON" : "🔇 OFF";
         }
 
         function playSound(type) {
@@ -509,13 +480,6 @@
                 gain.gain.setValueAtTime(0.3, now);
                 gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
                 osc.start(now); osc.stop(now + 0.25);
-            } else if (type === 'warning') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now); osc.stop(now + 0.3);
             }
         }
 
@@ -544,8 +508,6 @@
         const dirLight = new THREE.DirectionalLight(0x80d8ff, 2.2);
         dirLight.position.set(30, 50, 30);
         dirLight.castShadow = true;
-        dirLight.shadow.mapSize.width = 2048;
-        dirLight.shadow.mapSize.height = 2048;
         scene.add(dirLight);
 
         const floorGeo = new THREE.PlaneGeometry(200, 200);
@@ -575,7 +537,6 @@
 
         let modelMeshes = [];
         const loader = new THREE.GLTFLoader();
-        const statusText = document.getElementById('status-text');
 
         function createDefaultCharacter() {
             while(characterGroup.children.length > 0) { characterGroup.remove(characterGroup.children[0]); }
@@ -585,7 +546,6 @@
             defaultBoxMesh.position.y = 1.25;
             defaultBoxMesh.castShadow = true;
             characterGroup.add(defaultBoxMesh);
-            statusText.innerText = "🎮 기본 캐릭터 준비 완료!";
             isActing = false;
             isPaused = false;
         }
@@ -657,112 +617,57 @@
             }
 
             characterGroup.add(loadedCharacter);
-            statusText.innerText = "✨ 캐릭터 로드 완료! 공격 가능";
-            
-            // 📌 캐릭터 로드 직후 바로 공격 스킬 동작하도록 플래그 리셋
             isActing = false;
             isPaused = false;
             isGameOver = false;
         }
 
-        // ─── 📁 파일 교체 핵심 로직 (터치 문제 해결 버전) ───
-        
         const fileInput = document.getElementById('file-input');
         const triggerBtn = document.getElementById('trigger-file-btn');
 
-        // [.glb 교체] 버튼을 눌렀을 때 실행되는 이벤트
         triggerBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // 기본 동작 방지 (혹시나 하는 스크롤 튐 등)
-            e.stopPropagation(); // 이벤트 버블링 방지
-            fileInput.click(); // 숨겨진 진짜 파일 선택 인풋(`file-input`)을 강제로 클릭!
+            e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
         });
 
-        // 진짜 파일 선택 인풋(`file-input`)에서 파일이 선택되었을 때 실행되는 이벤트
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            statusText.innerText = "⏳ 파일 처리 중...";
-
             const fileName = file.name.toLowerCase();
-            // 파일 이름에 '야치루'가 들어가면 UI 테마 변경
             if(fileName.includes('야치루') || fileName.includes('yachiru')) {
                 setCharacterMode('yachiru');
             }
 
-            const url = URL.createObjectURL(file); // 선택한 파일의 임시 접속 주소 생성
-            
-            // Three.js GLTFLoader로 3D 모델 불러오기
+            const url = URL.createObjectURL(file);
             loader.load(
                 url, 
                 (gltf) => { 
-                    setupCharacter(gltf); // 성공 시 화면에 배치
-                    setTimeout(() => URL.revokeObjectURL(url), 1000); // 1초 뒤 임시 주소 메모리 해제
+                    setupCharacter(gltf);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
                 },
-                (xhr) => {
-                    if (xhr.lengthComputable) {
-                        const pct = Math.round((xhr.loaded / xhr.total) * 100);
-                        statusText.innerText = `⏳ 로딩 중... (${pct}%)`;
-                    }
-                },
-                (err) => {
-                    console.error("GLB 불러오기 오류:", err);
-                    statusText.innerText = "❌ .glb 파일 로드 실패";
-                }
+                undefined,
+                (err) => { console.error("GLB 로드 실패:", err); }
             );
         });
-
-        // (선택사항) 서버에 파일이 있다면 주석 해제하여 초기 캐릭터 설정
-        // loader.load('./character.glb', (g) => setupCharacter(g), undefined, () => {
-        //    statusText.innerText = "📂 .glb 파일 교체 가능";
-        // });
-
-        // ─── 👾 적 및 게임 시스템 로직 ───
 
         let enemies = [];
         let enemyBullets = [];
         let particles = [];
         let dropItems = [];
-        let bossAoes = [];
-
-        function createHealthBarCanvas() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 128; canvas.height = 16;
-            return canvas;
-        }
-
-        function updateHealthBarTexture(enemy) {
-            const ctx = enemy.hpCanvas.getContext('2d');
-            ctx.clearRect(0, 0, 128, 16);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-            ctx.fillRect(0, 0, 128, 16);
-            ctx.fillStyle = enemy.isBoss ? '#f59e0b' : (enemy.isCaster ? '#a855f7' : '#ef4444');
-            const pct = Math.max(0, enemy.hp / enemy.maxHp);
-            ctx.fillRect(2, 2, (128 - 4) * pct, 16 - 4);
-            enemy.hpTexture.needsUpdate = true;
-        }
-
-        function clearAllEnemiesAndBullets() {
-            enemies.forEach(e => scene.remove(e.mesh));
-            enemyBullets.forEach(b => scene.remove(b.mesh));
-            bossAoes.forEach(a => scene.remove(a.mesh));
-            dropItems.forEach(i => scene.remove(i.mesh));
-            particles.forEach(p => scene.remove(p.mesh));
-            enemies = []; enemyBullets = []; bossAoes = []; dropItems = []; particles = [];
-        }
 
         function spawnEnemies() {
             const count = 3 + Math.floor(stage / 2);
             for (let i = 0; i < count; i++) {
                 const isBoss = (stage % 5 === 0) && (i === 0);
-                const isCaster = !isBoss && (Math.random() > 0.55);
                 const size = isBoss ? 2.6 : 1.2;
                 
                 const mesh = new THREE.Mesh(
                     new THREE.BoxGeometry(size, size * 1.5, size),
                     new THREE.MeshStandardMaterial({
-                        color: isBoss ? 0xf59e0b : (isCaster ? 0xa855f7 : 0xef4444),
-                        roughness: 0.3, metalness: 0.5
+                        color: isBoss ? 0xf59e0b : 0xef4444,
+                        roughness: 0.3
                     })
                 );
                 mesh.position.set(
@@ -773,68 +678,45 @@
                 mesh.castShadow = true;
                 scene.add(mesh);
 
-                const canvas = createHealthBarCanvas();
-                const texture = new THREE.CanvasTexture(canvas);
-                const spriteMat = new THREE.SpriteMaterial({ map: texture });
-                const sprite = new THREE.Sprite(spriteMat);
-                sprite.scale.set(2.4, 0.3, 1);
-                sprite.position.y = (size * 1.5) / 2 + 0.8;
-                mesh.add(sprite);
-
-                const maxHpVal = isBoss ? 450 + stage * 40 : (isCaster ? 60 + stage * 10 : 80 + stage * 12);
-                const enemy = {
-                    mesh, isBoss, isCaster,
-                    hp: maxHpVal, maxHp: maxHpVal,
-                    hpCanvas: canvas, hpTexture: texture,
-                    attackTimer: 0, bossPatternTimer: 0
-                };
-                updateHealthBarTexture(enemy);
-                enemies.push(enemy);
+                enemies.push({
+                    mesh, isBoss,
+                    hp: isBoss ? 450 : 80, maxHp: isBoss ? 450 : 80
+                });
             }
         }
         spawnEnemies();
 
-        function createBossAoe(x, z) {
-            playSound('warning');
-            const geo = new THREE.RingGeometry(0.1, 4.5, 32);
-            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.rotation.x = -Math.PI / 2;
-            mesh.position.set(x, 0.05, z);
-            scene.add(mesh);
+        let comboCount = 0, comboTimer = null;
 
-            bossAoes.push({ mesh, timer: 0, maxTimer: 60, x, z });
-        }
-
-        let comboCount = 0, comboTimer = null, cameraShake = 0;
-
-        function spawnSkillParticles(pos, count = 25) {
+        function spawnSkillParticles(pos, count = 20) {
             const isYachiru = (currentMode === 'yachiru');
             const color = isYachiru ? 0xff66cc : 0x80e5ff;
             for(let i=0; i<count; i++) {
-                const geo = isYachiru ? new THREE.TetrahedronGeometry(0.25) : new THREE.OctahedronGeometry(0.25);
+                const geo = new THREE.TetrahedronGeometry(0.2);
                 const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 });
                 const p = new THREE.Mesh(geo, mat);
                 p.position.copy(pos);
                 p.position.y += 1.0;
                 scene.add(p);
 
-                const vx = (Math.random() - 0.5) * 0.45;
-                const vy = Math.random() * 0.4 + 0.15;
-                const vz = (Math.random() - 0.5) * 0.45;
-
-                particles.push({ mesh: p, vx, vy, vz, opacity: 1 });
+                particles.push({
+                    mesh: p,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: Math.random() * 0.3 + 0.1,
+                    vz: (Math.random() - 0.5) * 0.4,
+                    opacity: 1
+                });
             }
         }
 
-        function triggerDamageText(pos, damage, isCrit = false) {
-            const p = pos.clone(); p.y += 2.8; p.project(camera);
+        function triggerDamageText(pos, damage) {
+            const p = pos.clone(); p.y += 2.5; p.project(camera);
             const x = (p.x * .5 + .5) * window.innerWidth;
             const y = (-(p.y * .5) + .5) * window.innerHeight;
 
             const div = document.createElement('div');
             div.className = 'dmg-text';
-            div.innerText = (isCrit ? "CRITICAL " : "") + "-" + Math.floor(damage);
+            div.innerText = "-" + Math.floor(damage);
             div.style.left = `${x}px`; div.style.top = `${y}px`;
             if(currentMode === 'yachiru') div.style.color = '#ff66cc';
             document.body.appendChild(div);
@@ -862,7 +744,8 @@
             document.getElementById("player-exp").style.width = "0%";
             document.getElementById("gameover-modal").style.display = "none";
 
-            clearAllEnemiesAndBullets();
+            enemies.forEach(e => scene.remove(e.mesh));
+            enemies = [];
             spawnEnemies();
         }
 
@@ -899,7 +782,7 @@
         let moveDirection = { x: 0, z: 0 };
         const joystick = document.getElementById('joystick-container');
         const knob = document.getElementById('joystick-knob');
-        let jsActive = false, startX = 0, startY = 0, maxRadius = 38;
+        let jsActive = false, startX = 0, startY = 0, maxRadius = 35;
 
         const handleTouchStart = (e) => { jsActive = true; const t = e.touches ? e.touches[0] : e; startX = t.clientX; startY = t.clientY; };
         const handleTouchMove = (e) => {
@@ -915,8 +798,6 @@
         joystick.addEventListener('touchstart', handleTouchStart);
         joystick.addEventListener('touchmove', handleTouchMove);
         joystick.addEventListener('touchend', handleTouchEnd);
-        
-        // PC 마우스 호환
         joystick.addEventListener('mousedown', handleTouchStart);
         window.addEventListener('mousemove', handleTouchMove);
         window.addEventListener('mouseup', handleTouchEnd);
@@ -928,24 +809,18 @@
             for (let i = enemies.length - 1; i >= 0; i--) {
                 const e = enemies[i];
                 if (characterGroup.position.distanceTo(e.mesh.position) < range) {
-                    const dmg = baseAtk * multiplier * (1 + comboCount * 0.05);
+                    const dmg = baseAtk * multiplier;
                     e.hp -= dmg;
                     hit = true;
-                    updateHealthBarTexture(e);
                     spawnSkillParticles(e.mesh.position, 8);
-                    triggerDamageText(e.mesh.position, dmg, multiplier > 1.5);
+                    triggerDamageText(e.mesh.position, dmg);
 
                     if (e.hp <= 0) {
                         spawnSkillParticles(e.mesh.position, 20);
-                        if (Math.random() > 0.45) {
-                            const itemMesh = new THREE.Mesh(new THREE.SphereGeometry(0.35), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-                            itemMesh.position.copy(e.mesh.position); itemMesh.position.y = 0.5;
-                            scene.add(itemMesh); dropItems.push({ mesh: itemMesh });
-                        }
                         scene.remove(e.mesh);
                         enemies.splice(i, 1);
-                        score += e.isBoss ? 600 : 120;
-                        exp += e.isBoss ? 90 : 40;
+                        score += e.isBoss ? 500 : 100;
+                        exp += e.isBoss ? 80 : 35;
                     }
                 }
             }
@@ -984,22 +859,22 @@
             comboStage = (comboStage % 3) + 1;
             const isYachiru = (currentMode === 'yachiru');
             
-            const slashGeo = new THREE.RingGeometry(0.6, 2.6, 32, 1, 0, Math.PI * 0.85);
+            const slashGeo = new THREE.RingGeometry(0.6, 2.5, 32, 1, 0, Math.PI * 0.85);
             const slashMat = new THREE.MeshBasicMaterial({
-                color: isYachiru ? (comboStage === 3 ? 0xff0066 : 0xff99dd) : (comboStage === 3 ? 0xffea00 : 0x00ffff),
+                color: isYachiru ? 0xff66cc : 0x00ffff,
                 side: THREE.DoubleSide, transparent: true, opacity: 0.95
             });
             const slash = new THREE.Mesh(slashGeo, slashMat);
             slash.position.set(characterGroup.position.x, 1.2, characterGroup.position.z);
             slash.rotation.x = Math.PI / 2;
-            slash.rotation.z = -characterGroup.rotation.y - Math.PI / 2 + (comboStage * 0.4);
+            slash.rotation.z = -characterGroup.rotation.y - Math.PI / 2;
             scene.add(slash);
 
-            dealDamageToEnemies(4.2, 1.0 + comboStage * 0.25);
+            dealDamageToEnemies(4.2, 1.0 + comboStage * 0.2);
 
             let sc = 1;
             const t = setInterval(() => {
-                sc += 0.22; slash.scale.set(sc, sc, sc); slash.material.opacity -= 0.14;
+                sc += 0.2; slash.scale.set(sc, sc, sc); slash.material.opacity -= 0.15;
                 if(slash.material.opacity <= 0) { clearInterval(t); scene.remove(slash); isActing = false; }
             }, 20);
         }
@@ -1018,8 +893,8 @@
 
             let count = 0;
             const t = setInterval(() => {
-                characterGroup.position.x += dirX * 0.52;
-                characterGroup.position.z += dirZ * 0.52;
+                characterGroup.position.x += dirX * 0.5;
+                characterGroup.position.z += dirZ * 0.5;
                 count++;
                 if(count > 8) { clearInterval(t); isInvincible = false; isActing = false; }
             }, 20);
@@ -1037,90 +912,62 @@
 
             let step = 0;
             const t = setInterval(() => {
-                characterGroup.position.x += dirX * 0.6;
-                characterGroup.position.z += dirZ * 0.6;
-                dealDamageToEnemies(3.2, 1.9);
-                step++; if(step > 9) { clearInterval(t); isActing = false; }
+                characterGroup.position.x += dirX * 0.55;
+                characterGroup.position.z += dirZ * 0.55;
+                dealDamageToEnemies(3.2, 1.8);
+                step++; if(step > 8) { clearInterval(t); isActing = false; }
             }, 20);
         };
         skillBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeSkill(); });
         skillBtn.addEventListener('click', (e) => { e.preventDefault(); executeSkill(); });
 
-        let isUltCameraActive = false;
         const ultBtn = document.getElementById('ult-btn');
         const executeUlt = () => {
             if(isActing || cooldowns.ult || isPaused || isGameOver) return;
-            isActing = true; isUltCameraActive = true; autoTargetEnemy(); startCooldown('ult', 10); playSound('ult');
+            isActing = true; autoTargetEnemy(); startCooldown('ult', 10); playSound('ult');
 
             const isYachiru = (currentMode === 'yachiru');
-            const ultGeo = new THREE.OctahedronGeometry(4.8, 2);
+            const ultGeo = new THREE.OctahedronGeometry(4.5, 2);
             const ultMat = new THREE.MeshStandardMaterial({
                 color: isYachiru ? 0xff33aa : 0xb3f0ff, roughness: 0.1, transparent: true, opacity: 0.85
             });
             const ultCore = new THREE.Mesh(ultGeo, ultMat);
-            ultCore.position.set(characterGroup.position.x, 3.8, characterGroup.position.z);
+            ultCore.position.set(characterGroup.position.x, 3.5, characterGroup.position.z);
             scene.add(ultCore);
 
-            spawnSkillParticles(characterGroup.position, 60);
-            dealDamageToEnemies(8.5, 3.8);
+            spawnSkillParticles(characterGroup.position, 50);
+            dealDamageToEnemies(8.0, 3.5);
 
             let dur = 0;
             const t = setInterval(() => {
-                ultCore.rotation.y += 0.16; ultCore.material.opacity -= 0.025;
+                ultCore.rotation.y += 0.15; ultCore.material.opacity -= 0.03;
                 dur++;
-                if(dur > 35) {
+                if(dur > 30) {
                     clearInterval(t); scene.remove(ultCore);
-                    isActing = false; isUltCameraActive = false;
+                    isActing = false;
                 }
             }, 25);
         };
         ultBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeUlt(); });
         ultBtn.addEventListener('click', (e) => { e.preventDefault(); executeUlt(); });
 
-        // ─── 🗺️ 미니맵 및 애니메이션 루프 ───
-
-        const mapCanvas = document.getElementById("minimap-canvas");
-        const mapCtx = mapCanvas.getContext("2d");
-
-        function renderMinimap() {
-            mapCtx.clearRect(0, 0, 110, 110);
-            const cx = 55, cy = 55;
-
-            mapCtx.fillStyle = "#38bdf8"; // 플레이어 색상
-            mapCtx.beginPath(); mapCtx.arc(cx, cy, 3.5, 0, Math.PI * 2); mapCtx.fill();
-
-            enemies.forEach(e => {
-                const rx = (e.mesh.position.x - characterGroup.position.x) * 1.8;
-                const rz = (e.mesh.position.z - characterGroup.position.z) * 1.8;
-
-                mapCtx.fillStyle = e.isBoss ? "#facc15" : (e.isCaster ? "#a855f7" : "#ef4444");
-                mapCtx.beginPath(); mapCtx.arc(cx + rx, cy + rz, e.isBoss ? 5 : 2.5, 0, Math.PI * 2); mapCtx.fill();
-            });
-        }
-
-        // 관절 애니메이션 처리 (GLB 애니메이션 우선, 없으면 가상 Idle)
         function updateJointAnimation(delta, isMoving) {
             if (mixer) {
                 mixer.update(delta);
             } else if (loadedCharacter) {
                 const time = Date.now() * 0.012;
                 if (isMoving) {
-                    loadedCharacter.position.y = Math.abs(Math.sin(time * 1.6)) * 0.28;
-                    loadedCharacter.rotation.z = Math.sin(time) * 0.09;
-                    modelMeshes.forEach((mesh, idx) => {
-                        mesh.rotation.x = Math.sin(time + idx) * 0.12;
-                    });
+                    loadedCharacter.position.y = Math.abs(Math.sin(time * 1.6)) * 0.25;
+                    loadedCharacter.rotation.z = Math.sin(time) * 0.08;
                 } else {
-                    loadedCharacter.position.y = Math.sin(time * 0.6) * 0.06;
+                    loadedCharacter.position.y = Math.sin(time * 0.6) * 0.05;
                     loadedCharacter.rotation.z = 0;
-                    modelMeshes.forEach((mesh) => { mesh.rotation.x = 0; });
                 }
             }
         }
 
         camera.position.set(0, 4.0, 7.5);
 
-        // 메인 애니메이션 루프
         function animate() {
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
@@ -1128,134 +975,47 @@
             if (!isGameOver && !isPaused) {
                 const isMoving = (moveDirection.x !== 0 || moveDirection.z !== 0);
 
-                // 조이스틱 이동 처리
                 if (isMoving) {
                     characterGroup.position.x += moveDirection.x * moveSpeed;
                     characterGroup.position.z += moveDirection.z * moveSpeed;
-                    // 시프트락 꺼져있을 때만 이동 방향으로 몸 회전
                     if (!isShiftLock) { characterGroup.rotation.y = Math.atan2(moveDirection.x, moveDirection.z); }
                 }
 
                 updateJointAnimation(delta, isMoving);
 
-                // 시프트락 모드일 때 플레이어 몸 회전 (카메라 방향 고정)
                 if (isShiftLock) {
                     const targetRot = Math.atan2(camera.position.x - characterGroup.position.x, camera.position.z - characterGroup.position.z);
                     characterGroup.rotation.y = THREE.MathUtils.lerp(characterGroup.rotation.y, targetRot + Math.PI, 0.2);
                 }
 
-                // 적 AI 및 충돌 처리
                 enemies.forEach(e => {
                     const dist = characterGroup.position.distanceTo(e.mesh.position);
                     const dir = new THREE.Vector3().subVectors(characterGroup.position, e.mesh.position).normalize();
 
-                    if (e.isBoss) {
-                        if (dist > 2.2) e.mesh.position.addScaledVector(dir, 0.03);
-                        e.bossPatternTimer++;
-                        if (e.bossPatternTimer > 180) {
-                            createBossAoe(characterGroup.position.x, characterGroup.position.z);
-                            e.bossPatternTimer = 0;
-                        }
-                    } else if (e.isCaster) {
-                        if (dist > 8.5) e.mesh.position.addScaledVector(dir, 0.032);
-                        e.attackTimer++;
-                        if (e.attackTimer > 110) {
-                            const bullet = new THREE.Mesh(new THREE.SphereGeometry(0.28), new THREE.MeshBasicMaterial({ color: 0xa855f7 }));
-                            bullet.position.copy(e.mesh.position); scene.add(bullet);
-                            enemyBullets.push({ mesh: bullet, dir, life: 120 });
-                            e.attackTimer = 0;
-                        }
-                    } else {
-                        if (dist > 1.3) {
-                            e.mesh.position.addScaledVector(dir, 0.038);
-                        } else if (!isInvincible) {
-                            playerHp = Math.max(0, playerHp - 0.25);
-                            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
-                            if (playerHp <= 0) {
-                                isGameOver = true;
-                                document.getElementById("final-score").innerText = score;
-                                document.getElementById("gameover-modal").style.display = "flex";
-                            }
+                    if (dist > 1.3) {
+                        e.mesh.position.addScaledVector(dir, 0.035);
+                    } else if (!isInvincible) {
+                        playerHp = Math.max(0, playerHp - 0.2);
+                        document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
+                        if (playerHp <= 0) {
+                            isGameOver = true;
+                            document.getElementById("final-score").innerText = score;
+                            document.getElementById("gameover-modal").style.display = "flex";
                         }
                     }
                 });
 
-                // 보스 AOE 폭발 처리
-                for (let i = bossAoes.length - 1; i >= 0; i--) {
-                    const aoe = bossAoes[i];
-                    aoe.timer++;
-                    aoe.mesh.material.opacity = 0.3 + (aoe.timer / aoe.maxTimer) * 0.5;
-
-                    if (aoe.timer >= aoe.maxTimer) {
-                        playSound('ult');
-                        cameraShake = 0.35;
-                        const d = characterGroup.position.distanceTo(new THREE.Vector3(aoe.x, 0, aoe.z));
-                        if (d < 4.5 && !isInvincible) {
-                            playerHp = Math.max(0, playerHp - 25);
-                            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
-                        }
-                        scene.remove(aoe.mesh);
-                        bossAoes.splice(i, 1);
-                    }
-                }
-
-                // 적 투사체 처리
-                for (let i = enemyBullets.length - 1; i >= 0; i--) {
-                    const b = enemyBullets[i];
-                    b.mesh.position.addScaledVector(b.dir, 0.22);
-                    b.life--;
-
-                    if (b.mesh.position.distanceTo(characterGroup.position) < 1.1 && !isInvincible) {
-                        playerHp = Math.max(0, playerHp - 14);
-                        cameraShake = 0.22;
-                        document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
-                        scene.remove(b.mesh); enemyBullets.splice(i, 1);
-                        continue;
-                    }
-
-                    if (b.life <= 0) { scene.remove(b.mesh); enemyBullets.splice(i, 1); }
-                }
-
-                // 힐템 처리
-                for (let i = dropItems.length - 1; i >= 0; i--) {
-                    const item = dropItems[i];
-                    item.mesh.rotation.y += 0.06;
-                    if (characterGroup.position.distanceTo(item.mesh.position) < 1.3) {
-                        playSound('heal');
-                        playerHp = Math.min(maxHp, playerHp + 35);
-                        document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
-                        scene.remove(item.mesh); dropItems.splice(i, 1);
-                    }
-                }
-
-                // 이펙트 파티클 처리
                 for (let i = particles.length - 1; i >= 0; i--) {
                     const p = particles[i];
                     p.mesh.position.x += p.vx; p.mesh.position.y += p.vy; p.mesh.position.z += p.vz;
                     p.opacity -= 0.04; p.mesh.material.opacity = p.opacity;
                     if (p.opacity <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
                 }
-
-                renderMinimap();
             }
 
-            // 카메라 팔로잉 로직
-            let cx = characterGroup.position.x;
-            let cz = characterGroup.position.z + (isUltCameraActive ? 5.2 : 7.8);
-            let cy = characterGroup.position.y + (isUltCameraActive ? 2.9 : 4.2);
-
-            // 카메라 흔들림 효과
-            if (cameraShake > 0) {
-                cx += (Math.random() - 0.5) * cameraShake;
-                cy += (Math.random() - 0.5) * cameraShake;
-                cameraShake -= 0.02;
-            }
-
-            // 카메라 위치 보간 (부드럽게 이동)
-            camera.position.x = THREE.MathUtils.lerp(camera.position.x, cx, 0.08);
-            camera.position.z = THREE.MathUtils.lerp(camera.position.z, cz, 0.08);
-            camera.position.y = THREE.MathUtils.lerp(camera.position.y, cy, 0.08);
-            // 항상 캐릭터 위쪽 1.0 지점을 바라봄
+            camera.position.x = THREE.MathUtils.lerp(camera.position.x, characterGroup.position.x, 0.08);
+            camera.position.z = THREE.MathUtils.lerp(camera.position.z, characterGroup.position.z + 7.5, 0.08);
+            camera.position.y = THREE.MathUtils.lerp(camera.position.y, characterGroup.position.y + 4.0, 0.08);
             camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1.0, characterGroup.position.z);
 
             renderer.render(scene, camera);
