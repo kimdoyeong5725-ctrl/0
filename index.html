@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #1a2a3a; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #223854; font-family: 'Segoe UI', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
@@ -29,11 +29,11 @@
         .btn-glb-highlight {
             border-color: #00ff88 !important;
             color: #00ff88 !important;
-            box-shadow: 0 0 10px rgba(0, 255, 136, 0.6) !important;
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.7) !important;
         }
 
         /* JOYSTICK & BUTTONS */
-        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 223, 255, 0.5); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
+        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(0, 223, 255, 0.6); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
         #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #00dfff, #0077b6); border-radius: 50%; box-shadow: 0 0 15px #00dfff; }
 
         .action-area { position: absolute; bottom: 20px; right: 20px; width: 220px; height: 220px; pointer-events: none; }
@@ -42,7 +42,7 @@
         #btn-attack { width: 80px; height: 80px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #0099ff, #0044cc); border-color: #66ccff; box-shadow: 0 0 15px #0099ff; }
         #btn-dodge { width: 50px; height: 50px; bottom: 0; right: 100px; }
         #btn-skill { width: 50px; height: 50px; bottom: 100px; right: 0; background: radial-gradient(circle, #ff9f43, #ee5253); border-color: #ff9f43; box-shadow: 0 0 12px #ff9f43; }
-        #btn-ult { width: 65px; height: 65px; bottom: 80px; right: 80px; border-color: #e056fd; background: radial-gradient(circle, #be2edd, #6c5ce7); box-shadow: 0 0 18px #e056fd; font-size: 13px; }
+        #btn-ult { width: 65px; height: 65px; bottom: 80px; right: 80px; border-color: #e056fd; background: radial-gradient(circle, #be2edd, #6c5ce7); box-shadow: 0 0 20px #e056fd; font-size: 13px; }
 
         /* MODALS */
         .modal-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 290px; background: rgba(15, 30, 50, 0.98); border: 2px solid #00dfff; border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; pointer-events: auto; z-index: 100; box-shadow: 0 0 25px rgba(0, 223, 255, 0.5); }
@@ -141,9 +141,9 @@
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
 
-            // ☀️ 1. 배경을 훨씬 밝게 변경 (밝은 푸른 하늘색 배경)
-            scene.background = new THREE.Color(0x3a5e8c);
-            scene.fog = new THREE.FogExp2(0x3a5e8c, 0.015);
+            // ☀️ 1. 화사하고 산뜻한 야외 배경
+            scene.background = new THREE.Color(0x4b7bec);
+            scene.fog = new THREE.FogExp2(0x4b7bec, 0.012);
 
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -152,26 +152,26 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // ☀️ 2. 조명 강도를 대폭 올림 (전체적으로 환한 태양광 연출)
-            scene.add(new THREE.AmbientLight(0xffffff, 1.4)); // 기본 환경광 강화
+            // ☀️ 2. 광원 강화 (태양광 + 환경광 대폭 상향)
+            scene.add(new THREE.AmbientLight(0xffffff, 1.6));
 
-            const mainLight = new THREE.DirectionalLight(0xfff5e6, 1.8); // 태양빛
-            mainLight.position.set(20, 40, 20);
+            const mainLight = new THREE.DirectionalLight(0xfffaed, 2.2);
+            mainLight.position.set(20, 45, 20);
             mainLight.castShadow = true;
             scene.add(mainLight);
 
-            const subLight = new THREE.DirectionalLight(0x80d4ff, 0.8); // 보조 푸른빛
+            const subLight = new THREE.DirectionalLight(0xa55eea, 0.8);
             subLight.position.set(-20, 20, -20);
             scene.add(subLight);
 
-            // 밝고 화사한 그리드 & 바닥
-            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x5588bb);
+            // 밝은 그리드 & 바닥
+            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x88b0ea);
             grid.position.y = 0.01;
             scene.add(grid);
 
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(100, 100),
-                new THREE.MeshStandardMaterial({ color: 0x1c3b5e, roughness: 0.5 })
+                new THREE.MeshStandardMaterial({ color: 0x2d4d76, roughness: 0.4 })
             );
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
@@ -186,7 +186,7 @@
 
             let defaultMesh = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16),
-                new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x004466 })
+                new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x005588 })
             );
             defaultMesh.position.y = 0.8;
             defaultMesh.castShadow = true;
@@ -245,48 +245,74 @@
                 });
             });
 
-            // 💥 이펙트 파티클 시스템 (스킬 예쁘게 효과 내기)
+            // 💥 고성능 화려한 스킬 이펙트 엔진
             const particles = [];
-            function createEffectParticle(pos, colorHex, size = 0.2, speed = 0.2) {
-                const p = new THREE.Mesh(
-                    new THREE.SphereGeometry(size, 8, 8),
-                    new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 1 })
-                );
+            const expandingRings = [];
+
+            function createEffectParticle(pos, colorHex, size = 0.25, speed = 0.3, isGlow = false) {
+                const mat = isGlow 
+                    ? new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 1 })
+                    : new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 0.8, transparent: true, opacity: 1 });
+
+                const p = new THREE.Mesh(new THREE.SphereGeometry(size, 8, 8), mat);
                 p.position.copy(pos);
-                p.position.x += (Math.random() - 0.5) * 1.2;
-                p.position.y += Math.random() * 0.8;
-                p.position.z += (Math.random() - 0.5) * 1.2;
+                p.position.x += (Math.random() - 0.5) * 1.5;
+                p.position.y += Math.random() * 1.2;
+                p.position.z += (Math.random() - 0.5) * 1.5;
 
                 p.userData = {
                     velocity: new THREE.Vector3(
                         (Math.random() - 0.5) * speed,
-                        Math.random() * speed * 1.5,
+                        Math.random() * speed * 1.8,
                         (Math.random() - 0.5) * speed
                     ),
-                    life: 1.0
+                    life: 1.0,
+                    shrink: true
                 };
                 scene.add(p);
                 particles.push(p);
             }
 
-            // 🔮 궁극기 전용 보라색 마법진 링 효과
-            function createUltRing(pos) {
-                const ringGeo = new THREE.RingGeometry(0.1, 0.8, 32);
-                const ringMat = new THREE.MeshBasicMaterial({ color: 0xe056fd, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+            // 🔮 충격파 & 마법진 확산 링 이펙트
+            function createRingEffect(pos, colorHex, startSize = 0.2, endScale = 5, speed = 0.2) {
+                const ringGeo = new THREE.RingGeometry(startSize, startSize + 0.5, 32);
+                const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 1 });
                 const ring = new THREE.Mesh(ringGeo, ringMat);
                 ring.rotation.x = -Math.PI / 2;
                 ring.position.copy(pos);
-                ring.position.y = 0.05;
+                ring.position.y = 0.1;
                 scene.add(ring);
 
-                let scale = 1;
-                const expand = setInterval(() => {
-                    scale += 0.6;
-                    ring.scale.set(scale, scale, scale);
-                    ringMat.opacity -= 0.05;
-                    if (ringMat.opacity <= 0) {
-                        clearInterval(expand);
-                        scene.remove(ring);
+                expandingRings.push({
+                    mesh: ring,
+                    scale: 1,
+                    maxScale: endScale,
+                    speed: speed,
+                    mat: ringMat
+                });
+            }
+
+            // 🗡️ 공격 시 전방 검기(Flash) 이펙트
+            function createSlashFX(pos, angle) {
+                const slashGeo = new THREE.ConeGeometry(1.8, 2.5, 3);
+                const slashMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+                const slash = new THREE.Mesh(slashGeo, slashMat);
+                slash.rotation.x = Math.PI / 2;
+                slash.rotation.z = -angle;
+                slash.position.copy(pos);
+                slash.position.y = 1.0;
+                slash.position.x += Math.sin(angle) * 1.5;
+                slash.position.z += Math.cos(angle) * 1.5;
+                scene.add(slash);
+
+                let op = 0.8;
+                const anim = setInterval(() => {
+                    op -= 0.15;
+                    slash.scale.addScalar(0.2);
+                    slashMat.opacity = op;
+                    if(op <= 0) {
+                        clearInterval(anim);
+                        scene.remove(slash);
                     }
                 }, 30);
             }
@@ -347,14 +373,14 @@
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onEnd);
 
-            // ⚔️ 화려한 스킬 및 공격 액션
-            // 1. 일반 공격 (타격 이펙트)
+            // ⚔️ 스킬 및 액션
+            // 1. 일반 공격 (검기 + 타격 파티클)
             document.getElementById('btn-attack').onclick = () => {
+                createSlashFX(playerGroup.position, playerGroup.rotation.y);
                 let hit = false;
                 for(let i = monsters.length - 1; i >= 0; i--) {
-                    if (playerGroup.position.distanceTo(monsters[i].position) < 2.5) {
-                        // 타격 이펙트 파티클
-                        for(let p=0; p<10; p++) createEffectParticle(monsters[i].position, 0xff3300, 0.25, 0.3);
+                    if (playerGroup.position.distanceTo(monsters[i].position) < 2.8) {
+                        for(let p=0; p<12; p++) createEffectParticle(monsters[i].position, 0xff3300, 0.3, 0.4);
                         scene.remove(monsters[i]);
                         monsters.splice(i, 1);
                         state.gold += 20;
@@ -364,45 +390,57 @@
                 if (hit) { updateUI(); showToast("⚔️ 몬스터 처치! +20 Gold"); }
             };
 
-            // 2. 돌진 스킬 (황금 빛 궤적)
+            // 2. 돌진 스킬 (황금 충격파 + 잔상 파티클)
             document.getElementById('btn-skill').onclick = () => {
                 if (state.mp >= 10) {
                     state.mp -= 10;
                     updateUI();
                     
-                    const forwardX = Math.sin(playerGroup.rotation.y) * 4.5;
-                    const forwardZ = Math.cos(playerGroup.rotation.y) * 4.5;
+                    createRingEffect(playerGroup.position, 0xffaa00, 0.5, 4, 0.3);
+                    
+                    const forwardX = Math.sin(playerGroup.rotation.y) * 5.0;
+                    const forwardZ = Math.cos(playerGroup.rotation.y) * 5.0;
 
-                    // 이동 경로에 파티클 잔상 생성
-                    for(let i=0; i<15; i++){
-                        createEffectParticle(playerGroup.position, 0xffaa00, 0.2, 0.15);
+                    for(let i=0; i<20; i++){
+                        createEffectParticle(playerGroup.position, 0xffd700, 0.25, 0.2, true);
                     }
 
                     playerGroup.position.x += forwardX;
                     playerGroup.position.z += forwardZ;
-                    showToast("⚡ 황금 돌진!");
+                    
+                    createRingEffect(playerGroup.position, 0xff4400, 0.3, 3, 0.2);
+                    showToast("⚡ 황금 번개 돌진!");
                 } else {
                     showToast("마나가 부족합니다!");
                 }
             };
 
-            // 3. 궁극기 스킬 (마법진 + 대폭발)
+            // 3. 궁극기 스킬 (3중 마법진 + 보라색 빛 대폭발)
             document.getElementById('btn-ult').onclick = () => {
                 if (state.mp >= 30) {
                     state.mp -= 30;
                     updateUI();
 
-                    // 보라색 마법진 링 확산 연출
-                    createUltRing(playerGroup.position);
+                    // 3중 확장 마법진
+                    createRingEffect(playerGroup.position, 0xe056fd, 0.5, 8, 0.3);
+                    setTimeout(() => createRingEffect(playerGroup.position, 0xbe2edd, 0.5, 6, 0.25), 100);
+                    setTimeout(() => createRingEffect(playerGroup.position, 0xffffff, 0.5, 4, 0.2), 200);
 
-                    // 폭발 이펙트
-                    for(let p=0; p<30; p++) {
-                        createEffectParticle(playerGroup.position, 0xe056fd, 0.35, 0.5);
+                    // 순간적인 보라색 빛 조명 효과
+                    const pLight = new THREE.PointLight(0xe056fd, 5, 15);
+                    pLight.position.copy(playerGroup.position);
+                    pLight.position.y = 2;
+                    scene.add(pLight);
+                    setTimeout(() => scene.remove(pLight), 400);
+
+                    // 폭발 파티클
+                    for(let p=0; p<40; p++) {
+                        createEffectParticle(playerGroup.position, 0xe056fd, 0.35, 0.6, true);
                     }
 
                     let count = 0;
                     for(let i = monsters.length - 1; i >= 0; i--) {
-                        if (playerGroup.position.distanceTo(monsters[i].position) < 7.0) {
+                        if (playerGroup.position.distanceTo(monsters[i].position) < 8.0) {
                             scene.remove(monsters[i]);
                             monsters.splice(i, 1);
                             state.gold += 25;
@@ -415,11 +453,13 @@
                 }
             };
 
-            // 4. 후방 회피 (바람 이펙트)
+            // 4. 회피
             document.getElementById('btn-dodge').onclick = () => {
-                for(let p=0; p<8; p++) createEffectParticle(playerGroup.position, 0x00dfff, 0.15, 0.1);
-                const backX = -Math.sin(playerGroup.rotation.y) * 2.5;
-                const backZ = -Math.cos(playerGroup.rotation.y) * 2.5;
+                createRingEffect(playerGroup.position, 0x00dfff, 0.2, 2.5, 0.15);
+                for(let p=0; p<10; p++) createEffectParticle(playerGroup.position, 0x00dfff, 0.2, 0.15);
+                
+                const backX = -Math.sin(playerGroup.rotation.y) * 2.8;
+                const backZ = -Math.cos(playerGroup.rotation.y) * 2.8;
                 playerGroup.position.x += backX;
                 playerGroup.position.z += backZ;
                 showToast("💨 후방 회피!");
@@ -450,12 +490,13 @@
                     playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                 }
 
-                // 이펙트 파티클 이동 및 소멸 로직
+                // 파티클 애니메이션
                 for (let i = particles.length - 1; i >= 0; i--) {
                     const p = particles[i];
                     p.position.add(p.userData.velocity);
-                    p.userData.life -= 0.04;
+                    p.userData.life -= 0.035;
                     p.material.opacity = p.userData.life;
+                    if(p.userData.shrink) p.scale.multiplyScalar(0.96);
 
                     if (p.userData.life <= 0) {
                         scene.remove(p);
@@ -463,9 +504,22 @@
                     }
                 }
 
+                // 확산 링 애니메이션
+                for (let i = expandingRings.length - 1; i >= 0; i--) {
+                    const r = expandingRings[i];
+                    r.scale += r.speed;
+                    r.mesh.scale.set(r.scale, r.scale, r.scale);
+                    r.mat.opacity -= 0.04;
+
+                    if (r.mat.opacity <= 0 || r.scale >= r.maxScale) {
+                        scene.remove(r.mesh);
+                        expandingRings.splice(i, 1);
+                    }
+                }
+
                 // 마나 자동 회복
                 if (state.mp < state.maxMp) {
-                    state.mp += 0.08;
+                    state.mp += 0.1;
                     updateUI();
                 }
 
