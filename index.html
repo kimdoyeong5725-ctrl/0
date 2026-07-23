@@ -15,7 +15,7 @@
 
         /* TOP HUD */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .panel-box { background: rgba(10, 25, 45, 0.9); border: 1.5px solid #87ceeb; border-radius: 8px; padding: 10px; width: 220px; pointer-events: auto; box-shadow: 0 0 15px rgba(135, 206, 235, 0.5); }
+        .panel-box { background: rgba(10, 25, 45, 0.9); border: 1.5px solid #87ceeb; border-radius: 8px; padding: 10px; width: 230px; pointer-events: auto; box-shadow: 0 0 15px rgba(135, 206, 235, 0.5); }
         .gold-text { color: #ffd700; }
         .bar-container { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
         .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, #00b894); transition: width 0.15s; }
@@ -66,18 +66,18 @@
         <div id="top-hud">
             <div class="panel-box">
                 <div style="display:flex; justify-content:space-between;">
-                    <span>⚔️ 사신 <b id="ui-level" style="color:#87ceeb;">Lv.1</b></span>
+                    <span>⚔️ 사신대행 <b id="ui-level" style="color:#87ceeb;">Lv.1</b></span>
                     <span class="gold-text">💰 <b id="ui-gold">0</b></span>
                 </div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
                 <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="quest-box">📖 <span id="ui-stage">1장: 현세 호로 퇴치 (0/3)</span></div>
+                <div class="quest-box">📖 <span id="ui-stage">1장: 소울사이어티 구출편 (0/3)</span></div>
             </div>
             
             <div class="top-right-btns">
-                <button class="btn-hud" id="btn-open-stat">⚔️ 스탯</button>
+                <button class="btn-hud" id="btn-open-stat">⚔️ 영압 스탯</button>
                 <button class="btn-hud" id="btn-open-inv">🎒 참백도</button>
-                <button class="btn-hud" id="btn-open-shop">🏪 상점</button>
+                <button class="btn-hud" id="btn-open-shop">🏪 영력 단련</button>
                 <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 모델 적용</button>
                 <button class="btn-hud" id="btn-open-height" style="border-color:#a0e6ff; color:#a0e6ff;">📏 높이 조절</button>
             </div>
@@ -97,14 +97,14 @@
         <div id="modal-stat" class="modal-overlay">
             <div class="modal-header">❄️ 사신 능력치</div>
             <div class="modal-body">
-                <div class="stat-row"><span>영력(공격력)</span><b id="stat-atk">25</b></div>
+                <div class="stat-row"><span>영압(공격력)</span><b id="stat-atk">25</b></div>
                 <div class="stat-row"><span>방어력</span><b id="stat-def">5</b></div>
             </div>
             <button class="btn-hud" id="btn-close-stat">닫기</button>
         </div>
 
         <div id="modal-inv" class="modal-overlay">
-            <div class="modal-header">🎒 인벤토리</div>
+            <div class="modal-header">🎒 참백도 정보</div>
             <div class="modal-body">
                 <div class="stat-row"><span>🗡️ 빙륜환 (氷輪丸)</span><span style="color:#00ff88;">+15 영력</span></div>
             </div>
@@ -116,7 +116,7 @@
             <div class="modal-body">
                 <div class="stat-row">
                     <div>영력 +5<br><small class="gold-text">100 Gold</small></div>
-                    <button class="stat-btn" id="buy-atk">강화</button>
+                    <button class="stat-btn" id="buy-atk">단련</button>
                 </div>
             </div>
             <button class="btn-hud" id="btn-close-shop">닫기</button>
@@ -138,20 +138,20 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, isAwakened: false, stage: 1, killCount: 0 };
 
+            // 📖 블리치 실제 원작 스토리 단계
             const stagesInfo = [
-                { id: 1, name: "1장: 현세 호로 퇴치", target: 3, enemyName: "호로", color: 0xffffff },
-                { id: 2, name: "2장: 메노스 그랑데 출현", target: 2, enemyName: "메노스", color: 0x111111 },
-                { id: 3, name: "3장: 웨코문드 에스파다 결전", target: 3, enemyName: "에스파다", color: 0xe0e0e0 },
-                { id: 4, name: "4장: 결전! 아이젠 소스케", target: 1, enemyName: "아이젠", color: 0x8e44ad },
-                { id: 5, name: "5장: 반덴라이히 퀸시 침공", target: 4, enemyName: "퀸시", color: 0x00dfff },
-                { id: 6, name: "최종장: 모든 위협 평정 완료!", target: 999, enemyName: "잔당", color: 0xffffff }
+                { id: 1, name: "1장: 소울사이어티 구출편 (vs 뱌쿠야)", target: 3, enemyType: "hollow" },
+                { id: 2, name: "2장: 아란칼 / 웨코문드 편 (vs 에스파다)", target: 3, enemyType: "espada" },
+                { id: 3, name: "3장: 카라쿠라 마을 결전 (vs 아이젠)", target: 1, enemyType: "aizen" },
+                { id: 4, name: "4장: 천년혈전 편 (vs 유하바하 & 퀸시)", target: 4, enemyType: "quincy" },
+                { id: 5, name: "최종장: 세계의 평화 수호 완료!", target: 999, enemyType: "hollow" }
             ];
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
 
-            scene.background = new THREE.Color(0x22313f);
-            scene.fog = new THREE.FogExp2(0x22313f, 0.012);
+            scene.background = new THREE.Color(0x1a2536);
+            scene.fog = new THREE.FogExp2(0x1a2536, 0.012);
 
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -173,7 +173,7 @@
 
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(100, 100),
-                new THREE.MeshStandardMaterial({ color: 0x2c3e50, roughness: 0.3 })
+                new THREE.MeshStandardMaterial({ color: 0x243342, roughness: 0.3 })
             );
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
@@ -255,14 +255,14 @@
                 });
             });
 
-            // 👹 블리치 세력별 도형 몬스터 생성기
+            // 👹 원작 스토리 세력별 도형 적 생성기
             const monsters = [];
             
-            function createEnemyShape(stageId) {
+            function createEnemyShape(type) {
                 const enemyGroup = new THREE.Group();
                 let mesh, size = 1.2;
 
-                if (stageId === 1) { // 1. 호로 (하얀 상자 + 검은 구멍)
+                if (type === "hollow") { // 1. 호로 (하얀 상자 + 구멍)
                     mesh = new THREE.Mesh(
                         new THREE.BoxGeometry(1.2, 1.4, 1.2),
                         new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.2 })
@@ -275,46 +275,32 @@
                     enemyGroup.add(mesh, hole);
                     enemyGroup.position.y = 0.7;
 
-                } else if (stageId === 2) { // 2. 메노스 그랑데 (거대한 검은 기둥)
+                } else if (type === "espada") { // 2. 에스파다 (날렵한 백색/은색 원뿔)
                     mesh = new THREE.Mesh(
-                        new THREE.CylinderGeometry(1.5, 2.2, 8.0, 12),
-                        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.5 })
-                    );
-                    const redEyes = new THREE.Mesh(
-                        new THREE.BoxGeometry(1.2, 0.2, 0.2),
-                        new THREE.MeshBasicMaterial({ color: 0xff0000 })
-                    );
-                    redEyes.position.set(0, 3.0, 1.5);
-                    enemyGroup.add(mesh, redEyes);
-                    enemyGroup.position.y = 4.0;
-                    size = 2.5;
-
-                } else if (stageId === 3) { // 3. 에스파다 (날렵한 은백색 원뿔)
-                    mesh = new THREE.Mesh(
-                        new THREE.ConeGeometry(0.8, 2.2, 6),
-                        new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.5, roughness: 0.2 })
+                        new THREE.ConeGeometry(0.8, 2.4, 6),
+                        new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.6, roughness: 0.2 })
                     );
                     mesh.rotation.x = Math.PI;
                     enemyGroup.add(mesh);
-                    enemyGroup.position.y = 1.1;
-
-                } else if (stageId === 4) { // 4. 아이젠 소스케 (보라색 팔면체 최종 보스)
-                    mesh = new THREE.Mesh(
-                        new THREE.OctahedronGeometry(2.0, 0),
-                        new THREE.MeshStandardMaterial({ color: 0x8e44ad, emissive: 0x341f97, emissiveIntensity: 0.8 })
-                    );
-                    enemyGroup.add(mesh);
-                    enemyGroup.position.y = 2.2;
-                    size = 2.0;
-
-                } else { // 5. 퀸시 (하늘색 다이아몬드/십자가 형태)
-                    mesh = new THREE.Mesh(
-                        new THREE.OctahedronGeometry(1.2, 0),
-                        new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x00a8ff, emissiveIntensity: 0.6 })
-                    );
-                    mesh.scale.set(0.6, 1.8, 0.6);
-                    enemyGroup.add(mesh);
                     enemyGroup.position.y = 1.2;
+
+                } else if (type === "aizen") { // 3. 보스 아이젠 소스케 (흑자색 팔면체)
+                    mesh = new THREE.Mesh(
+                        new THREE.OctahedronGeometry(2.2, 0),
+                        new THREE.MeshStandardMaterial({ color: 0x8e44ad, emissive: 0x341f97, emissiveIntensity: 0.9 })
+                    );
+                    enemyGroup.add(mesh);
+                    enemyGroup.position.y = 2.4;
+                    size = 2.2;
+
+                } else if (type === "quincy") { // 4. 퀸시 / 유하바하 (하늘색 다이아몬드 십자가)
+                    mesh = new THREE.Mesh(
+                        new THREE.OctahedronGeometry(1.4, 0),
+                        new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x00a8ff, emissiveIntensity: 0.7 })
+                    );
+                    mesh.scale.set(0.6, 2.0, 0.6);
+                    enemyGroup.add(mesh);
+                    enemyGroup.position.y = 1.4;
                 }
 
                 enemyGroup.userData = { hitSize: size };
@@ -322,17 +308,17 @@
             }
 
             function spawnMonster() {
-                if (monsters.length < (state.stage === 4 ? 1 : 3)) {
-                    const m = createEnemyShape(state.stage);
+                const curStage = stagesInfo.find(s => s.id === state.stage);
+                if (monsters.length < (curStage.enemyType === "aizen" ? 1 : 3)) {
+                    const m = createEnemyShape(curStage.enemyType);
                     const angle = Math.random() * Math.PI * 2;
-                    const dist = state.stage === 2 ? 12 : 9;
-                    m.position.set(playerGroup.position.x + Math.cos(angle) * dist, m.position.y, playerGroup.position.z + Math.sin(angle) * dist);
+                    m.position.set(playerGroup.position.x + Math.cos(angle) * 9, m.position.y, playerGroup.position.z + Math.sin(angle) * 9);
                     scene.add(m);
                     monsters.push(m);
                 }
             }
 
-            // ❄️ 스킬 및 파티클 시스템
+            // ❄️ 이펙트 & 파티클
             const particles = [];
             const iceProjectiles = [];
 
@@ -475,7 +461,7 @@
                         }
                     }
                     checkStageProgress();
-                    showToast("❄️ 만해 [빙륜환] 각성!");
+                    showToast("❄️ 만해 [빙륜환] 해방!");
                 }
             };
 
