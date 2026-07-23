@@ -115,7 +115,6 @@
             pointer-events: auto !important;
         }
 
-        /* 📌 모바일 차단 방지: 실제 file input을 버튼 위에 투명하게 덮어씌움 */
         .upload-wrapper {
             position: relative;
             display: inline-block;
@@ -310,7 +309,7 @@
         body.yachiru-mode #skill-btn { background: radial-gradient(circle, #ff99dd 0%, #aa0055 100%); }
         body.yachiru-mode #ult-btn {
             background: radial-gradient(circle, #ffffff 0%, #ff3399 100%);
-            box-shadow: 0 0 22px #ff66cc;
+            box-shadow: 0 0 28px #ff66cc;
         }
         body.yachiru-mode #joystick-knob {
             background: radial-gradient(circle, #ff99cc 0%, #aa0055 100%);
@@ -639,6 +638,15 @@
             isPaused = false;
             isGameOver = false;
         }
+
+        /* 📌 Google Drive 링크를 직접 다운로드 링크로 변환하여 기본 캐릭터 불러오기 */
+        const googleDriveUrl = "https://drive.google.com/uc?export=download&id=1qFGuRZUKCtM5oN2xQ2ieaZ9bIyrkk2Ze";
+        loader.load(
+            googleDriveUrl,
+            (gltf) => { setupCharacter(gltf); },
+            undefined,
+            (err) => { console.log("기본 드라이브 모델 로드 실패, 기본 캡슐 표시", err); }
+        );
 
         /* 📌 파일 선택 시 작동하는 이벤트 */
         const fileInput = document.getElementById('file-input');
