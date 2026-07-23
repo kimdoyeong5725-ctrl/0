@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Bleach: Custom Background Ice Arena</title>
+    <title>3D Bleach: Vertical Backdrop Arena</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
@@ -70,7 +70,7 @@
             </div>
             
             <div class="top-right-btns">
-                <button class="btn-hud btn-bg-highlight" id="btn-upload-bg">🌄 배경 이미지 적용</button>
+                <button class="btn-hud btn-bg-highlight" id="btn-upload-bg">🖼️ 3D 입체 배경 적용</button>
                 <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 캐릭터 적용</button>
                 <button class="btn-hud" id="btn-open-stat">⚔️ 영압 스탯</button>
                 <button class="btn-hud" id="btn-open-shop">🏪 영력 단련</button>
@@ -136,7 +136,7 @@
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
 
-            scene.background = new THREE.Color(0x08101e);
+            scene.background = new THREE.Color(0x050b14);
 
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -145,28 +145,36 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            scene.add(new THREE.AmbientLight(0xcceeff, 1.8));
+            scene.add(new THREE.AmbientLight(0xffffff, 1.8));
 
-            const mainLight = new THREE.DirectionalLight(0xffffff, 2.2);
-            mainLight.position.set(20, 45, 20);
+            const mainLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            mainLight.position.set(10, 30, 20);
             mainLight.castShadow = true;
             scene.add(mainLight);
 
-            // 던전 맵 및 바닥
+            // 어두운 격자 바닥
             const mapGroup = new THREE.Group();
             scene.add(mapGroup);
 
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x162232, roughness: 0.4 });
-            const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), floorMat);
+            const floorMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(60, 60),
+                new THREE.MeshStandardMaterial({ color: 0x0a1526, roughness: 0.8 })
+            );
             floorMesh.rotation.x = -Math.PI / 2;
             floorMesh.receiveShadow = true;
             mapGroup.add(floorMesh);
 
-            const grid = new THREE.GridHelper(60, 30, 0x00dfff, 0x223344);
+            const grid = new THREE.GridHelper(60, 30, 0x00dfff, 0x1a2b3c);
             grid.position.y = 0.02;
             mapGroup.add(grid);
 
-            // 🌄 배경 및 바닥 이미지 업로드 로직
+            // 🖼️ 3D 수직 배경 스탠드(Backdrop Wall)
+            const wallMat = new THREE.MeshBasicMaterial({ color: 0x1f2937, side: THREE.DoubleSide });
+            const backgroundWall = new THREE.Mesh(new THREE.PlaneGeometry(64, 36), wallMat);
+            backgroundWall.position.set(0, 16, -20); // 캐릭터 뒤쪽에 세워둠
+            scene.add(backgroundWall);
+
+            // 이미지 업로드 시 수직 벽면에 매핑
             const bgInput = document.getElementById('bg-file-input');
             const btnBg = document.getElementById('btn-upload-bg');
             btnBg.onclick = () => bgInput.click();
@@ -179,14 +187,10 @@
                 reader.onload = function(event) {
                     const textureLoader = new THREE.TextureLoader();
                     textureLoader.load(event.target.result, (texture) => {
-                        // 배경 360 구체 적용
-                        scene.background = texture;
-                        
-                        // 바닥에도 동일 텍스처 매핑
-                        floorMat.map = texture;
-                        floorMat.needsUpdate = true;
-
-                        showToast("🌄 전장 배경 및 바닥 적용 완료!");
+                        wallMat.map = texture;
+                        wallMat.color.setHex(0xffffff);
+                        wallMat.needsUpdate = true;
+                        showToast("🖼️ 3D 세워진 배경 판 적용 완료!");
                     });
                 };
                 reader.readAsDataURL(file);
@@ -201,7 +205,7 @@
 
             function buildDefaultCharacter() {
                 const charGroup = new THREE.Group();
-                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.3, metalness: 0.2 });
+                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.3 });
                 const jointMat = new THREE.MeshBasicMaterial({ color: 0x00dfff });
 
                 const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.6, 0.7), bodyMat); head.position.y = 1.35;
@@ -217,7 +221,6 @@
 
             characterContainer.add(buildDefaultCharacter());
 
-            // 날개
             let iceWingsGroup = new THREE.Group();
             function createIceWings() {
                 iceWingsGroup.clear();
@@ -234,7 +237,7 @@
                 characterContainer.add(iceWingsGroup);
             }
 
-            // GLB 캐릭터 로더
+            // GLB 로더
             const glbInput = document.getElementById('glb-file-input');
             const btnGlb = document.getElementById('btn-upload-glb');
             const heightSlider = document.getElementById('height-slider');
@@ -277,7 +280,7 @@
                 });
             });
 
-            // 적 생성기
+            // 적
             const monsters = [];
             function createDetailedEnemy(type) {
                 const enemyGroup = new THREE.Group();
@@ -291,8 +294,7 @@
                 if (type === "hollow") {
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.3, 1.4, 8), darkMat); body.position.y = 0.7;
                     const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), bodyMat); head.position.set(0, 1.5, 0);
-                    const hole = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshBasicMaterial({ color: 0x000000 })); hole.position.set(0, 0.8, 0.26);
-                    enemyGroup.add(body, head, hole);
+                    enemyGroup.add(body, head);
                 } else if (type === "quincy_scout" || type === "sternritter") {
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.6, 8), bodyMat); body.position.y = 0.8;
                     const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), bodyMat); head.position.y = 1.7;
@@ -333,7 +335,7 @@
                 }
             }
 
-            // 얼음용 스킬
+            // 🐉 얼음용 스킬
             const iceDragons = [];
             function buildIceDragonMesh() {
                 const dragonGroup = new THREE.Group();
@@ -365,7 +367,6 @@
                 showToast("🐉 빙륜환: 얼음 용(氷龍) 소환!");
             }
 
-            // 파티클
             const particles = [];
             function createIceParticle(pos, size = 0.5, speed = 0.4) {
                 const p = new THREE.Mesh(new THREE.IcosahedronGeometry(size, 0), new THREE.MeshBasicMaterial({ color: 0x87ceeb, transparent: true, opacity: 1.0 }));
@@ -404,7 +405,7 @@
                 document.getElementById('ui-stage').innerText = `${curStage.name} (${state.killCount}/${curStage.target})`;
             }
 
-            // 조이스틱 및 입력
+            // 조이스틱
             let moveVector = { x: 0, z: 0 };
             const joyArea = document.getElementById('joystick-area');
             const joyHandle = document.getElementById('joystick-handle');
@@ -488,6 +489,10 @@
                     playerGroup.position.z += moveVector.z * 0.14;
                     playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                 }
+
+                // 배경 벽이 플레이어를 따라오게 설정 (카메라 뷰 뒤쪽에 위치 유지)
+                backgroundWall.position.x = playerGroup.position.x;
+                backgroundWall.position.z = playerGroup.position.z - 22;
 
                 // 용 이동
                 for (let i = iceDragons.length - 1; i >= 0; i--) {
