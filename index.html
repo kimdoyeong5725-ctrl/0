@@ -3,62 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Test Game</title>
+    <title>3D RPG Game - Full Version</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: sans-serif; }
-        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-        #ui { position: absolute; top: 10px; left: 10px; z-index: 10; color: #00dfff; font-weight: bold; }
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: sans-serif; color: #fff; }
+        
+        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
+
+        /* 상단 UI 패널 */
+        #top-bar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .status-panel { background: rgba(8, 15, 26, 0.85); border: 1.5px solid #00dfff; border-radius: 10px; padding: 10px; font-size: 11px; width: 180px; pointer-events: auto; }
+        .bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .hp-fill { width: 100%; height: 100%; background: #00ff88; transition: width 0.2s; }
+        .exp-fill { width: 0%; height: 100%; background: #ff00ff; transition: width 0.2s; }
+
+        .quest-box { margin-top: 6px; background: rgba(0, 223, 255, 0.1); border-left: 3px solid #ffd700; padding: 4px 6px; font-size: 10px; }
+
+        .btn-group { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+        .hud-btn { background: rgba(5, 12, 22, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; pointer-events: auto; cursor: pointer; }
+
+        /* 컨트롤 조이스틱 & 액션 버튼 */
+        #joystick-container { position: absolute; bottom: 30px; left: 25px; width: 95px; height: 95px; background: rgba(255,255,255,0.1); border: 2px solid #00dfff; border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
+        #joystick-knob { width: 38px; height: 38px; background: #00dfff; border-radius: 50%; box-shadow: 0 0 10px #00dfff; }
+
+        .btn-container { position: absolute; bottom: 20px; right: 20px; width: 190px; height: 190px; pointer-events: none; }
+        .action-btn { position: absolute; border-radius: 50%; color: white; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; background: rgba(5, 12, 22, 0.85); border: 1.5px solid #00dfff; cursor: pointer; box-shadow: 0 0 8px rgba(0,223,255,0.3); }
+        #attack-btn { width: 70px; height: 70px; bottom: 0; right: 0; font-size: 14px; background: #0077b6; }
+        #dodge-btn { width: 45px; height: 45px; bottom: 0; right: 85px; font-size: 10px; }
+        #skill-btn { width: 45px; height: 45px; bottom: 85px; right: 0; font-size: 10px; }
+        #ult-btn { width: 52px; height: 52px; bottom: 70px; right: 70px; font-size: 10px; border-color: #ff00ff; background: #7000ff; }
+
+        /* 팝업 모달 */
+        .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 250px; background: rgba(8, 15, 26, 0.95); border: 2px solid #00dfff; border-radius: 10px; padding: 12px; display: none; flex-direction: column; gap: 8px; pointer-events: auto; z-index: 50; }
+        .modal h3 { color: #00dfff; font-size: 13px; text-align: center; border-bottom: 1px solid rgba(0, 223, 255, 0.3); padding-bottom: 4px; }
+        .modal-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+        .modal-row button { background: #0077b6; border: 1px solid #00dfff; color: white; padding: 3px 6px; border-radius: 4px; font-size: 9px; }
     </style>
 </head>
 <body>
-    <div id="ui">🎮 3D 화면 테스트 중...</div>
     <div id="canvas-container"></div>
 
+    <div id="ui-layer">
+        <div id="top-bar">
+            <div class="status-panel">
+                <div>🛡️ 빛의 기사 <span id="level-text" style="color:#00dfff;">Lv.1</span></div>
+                <div style="font-size:10px; margin-top:2px;">💰 골드: <span id="gold-text" style="color:#ffd700;">0</span> | STAGE <span id="stage-text">1</span></div>
+                <div class="bar-bg"><div id="hp-fill" class="hp-fill"></div></div>
+                <div class="bar-bg"><div id="exp-fill" class="exp-fill"></div></div>
+                <div class="quest-box">📜 퀘스트: 몬스터 <span id="quest-count">0</span>/5 마리 처치</div>
+            </div>
+            <div class="btn-group">
+                <button class="hud-btn" id="open-shop">⚔️ 스탯 강화</button>
+                <button class="hud-btn" id="open-inv">🎒 인벤토리</button>
+                <button class="hud-btn" id="glb-btn">🧊 .GLB 모델 적용</button>
+            </div>
+        </div>
+
+        <div id="joystick-container"><div id="joystick-knob"></div></div>
+
+        <div class="btn-container">
+            <div id="dodge-btn" class="action-btn">회피</div>
+            <div id="skill-btn" class="action-btn">돌진</div>
+            <div id="ult-btn" class="action-btn">궁극기</div>
+            <div id="attack-btn" class="action-btn">공격</div>
+        </div>
+
+        <div id="shop-modal" class="modal">
+            <h3>⚔️ 스탯 강화</h3>
+            <div class="modal-row"><span>공격력 (+5)</span><button id="up-atk">100 G</button></div>
+            <div class="modal-row"><span>최대 체력 (+20)</span><button id="up-hp">100 G</button></div>
+            <button class="hud-btn" id="close-shop" style="margin-top:4px;">닫기</button>
+        </div>
+
+        <div id="inv-modal" class="modal">
+            <h3>🎒 인벤토리</h3>
+            <div style="font-size:10px; line-height: 1.6;">
+                <div>🗡️ 빛의 검 (공격력 +10)</div>
+                <div>🛡️ 수호자의 갑옷 (HP +50)</div>
+                <div>🧪 얼음의 정수 (궁극기 쿨타임 감소)</div>
+            </div>
+            <button class="hud-btn" id="close-inv" style="margin-top:4px;">닫기</button>
+        </div>
+    </div>
+
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            // 1. Scene
-            const scene = new THREE.Scene();
+        window.addEventListener('DOMContentLoaded', function() {
+            // 게임 데이터
+            var gold = 0, level = 1, exp = 0, maxExp = 100;
+            var playerHP = 100, maxHP = 100, playerAtk = 25;
+            var questKills = 0, stage = 1;
+
+            // 1. Scene setup
+            var container = document.getElementById('canvas-container');
+            var scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0a0f1d);
+            scene.fog = new THREE.FogExp2(0x0a0f1d, 0.02);
 
-            // 2. Camera
-            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            // 2. Camera setup
+            var camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 8, 10);
-            camera.lookAt(0, 0, 0);
 
-            // 3. Renderer
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            // 3. Renderer setup
+            var renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
 
-            // 4. Light
-            const light = new THREE.DirectionalLight(0xffffff, 1);
+            // 4. Lights & Floor
+            var light = new THREE.DirectionalLight(0x00dfff, 1.2);
             light.position.set(5, 10, 5);
             scene.add(light);
-            scene.add(new THREE.AmbientLight(0x404040));
+            scene.add(new THREE.AmbientLight(0x505050));
 
-            // 5. Grid Ground
-            const grid = new THREE.GridHelper(20, 20, 0x00dfff, 0x444444);
+            var grid = new THREE.GridHelper(60, 30, 0x00dfff, 0x223344);
             scene.add(grid);
 
-            // 6. Character (Cube)
-            const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-            const material = new THREE.MeshStandardMaterial({ color: 0x00dfff });
-            const cube = new THREE.Mesh(geometry, material);
-            cube.position.y = 0.75;
-            scene.add(cube);
+            // 5. Player Object (기본 원기둥/큐브 형태)
+            var playerGroup = new THREE.Group();
+            var bodyGeo = new THREE.CylinderGeometry(0.5, 0.5, 1.5, 16);
+            var bodyMat = new THREE.MeshStandardMaterial({ color: 0x00dfff });
+            var playerMesh = new THREE.Mesh(bodyGeo, bodyMat);
+            playerMesh.position.y = 0.75;
+            playerGroup.add(playerMesh);
+            scene.add(playerGroup);
 
-            // 7. Animation Loop
+            // 6. Monsters
+            var enemies = [];
+            function createEnemy() {
+                var eGeo = new THREE.BoxGeometry(1, 1.2, 1);
+                var eMat = new THREE.MeshStandardMaterial({ color: 0xff0055 });
+                var enemy = new THREE.Mesh(eGeo, eMat);
+
+                var angle = Math.random() * Math.PI * 2;
+                var dist = 6 + Math.random() * 6;
+                enemy.position.set(playerGroup.position.x + Math.cos(angle) * dist, 0.6, playerGroup.position.z + Math.sin(angle) * dist);
+
+                scene.add(enemy);
+                enemies.push(enemy);
+            }
+            for (var i = 0; i < 4; i++) createEnemy();
+
+            // UI 업데이트 함수
+            function updateUI() {
+                document.getElementById('gold-text').innerText = gold;
+                document.getElementById('level-text').innerText = 'Lv.' + level;
+                document.getElementById('stage-text').innerText = stage;
+                document.getElementById('quest-count').innerText = questKills;
+                document.getElementById('hp-fill').style.width = Math.max(0, (playerHP / maxHP) * 100) + '%';
+                document.getElementById('exp-fill').style.width = Math.min(100, (exp / maxExp) * 100) + '%';
+            }
+
+            // 경험치 및 퀘스트 처리
+            function addExp(amount) {
+                exp += amount;
+                if (exp >= maxExp) {
+                    exp -= maxExp;
+                    level++;
+                    maxExp += 50;
+                    playerAtk += 5;
+                    maxHP += 20;
+                    playerHP = maxHP;
+                    alert('🎉 레벨 업! Lv.' + level + ' 달성!');
+                }
+                updateUI();
+            }
+
+            // 조이스틱 이동 컨트롤
+            var moveDir = { x: 0, z: 0 };
+            var joystick = document.getElementById('joystick-container');
+            var knob = document.getElementById('joystick-knob');
+            var isDragging = false, startX = 0, startY = 0;
+
+            function handleStart(e) {
+                isDragging = true;
+                var t = e.touches ? e.touches[0] : e;
+                startX = t.clientX; startY = t.clientY;
+            }
+            function handleMove(e) {
+                if (!isDragging) return;
+                var t = e.touches ? e.touches[0] : e;
+                var dx = t.clientX - startX, dy = t.clientY - startY;
+                var dist = Math.sqrt(dx * dx + dy * dy), maxR = 25;
+                if (dist > maxR) { dx = (dx / dist) * maxR; dy = (dy / dist) * maxR; }
+                knob.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+                moveDir.x = dx / maxR; moveDir.z = dy / maxR;
+            }
+            function handleEnd() {
+                isDragging = false;
+                knob.style.transform = 'translate(0, 0)';
+                moveDir.x = 0; moveDir.z = 0;
+            }
+
+            joystick.ontouchstart = handleStart; window.ontouchmove = handleMove; window.ontouchend = handleEnd;
+            joystick.onmousedown = handleStart; window.onmousemove = handleMove; window.onmouseup = handleEnd;
+
+            // 스킬 및 공격
+            document.getElementById('attack-btn').onclick = function() {
+                for (var i = enemies.length - 1; i >= 0; i--) {
+                    var enemy = enemies[i];
+                    if (playerGroup.position.distanceTo(enemy.position) < 3.2) {
+                        scene.remove(enemy);
+                        enemies.splice(i, 1);
+                        gold += 30;
+                        questKills++;
+                        addExp(35);
+
+                        if (questKills >= 5) {
+                            stage++;
+                            questKills = 0;
+                            alert('⚔️ STAGE ' + stage + ' 클리어 보상: +100 Gold!');
+                            gold += 100;
+                        }
+                        updateUI();
+                        setTimeout(createEnemy, 1500);
+                        break;
+                    }
+                }
+            };
+
+            document.getElementById('dodge-btn').onclick = function() {
+                playerGroup.position.x += moveDir.x * 3.0;
+                playerGroup.position.z += moveDir.z * 3.0;
+            };
+
+            document.getElementById('skill-btn').onclick = function() {
+                playerGroup.position.x += moveDir.x * 5.0;
+                playerGroup.position.z += moveDir.z * 5.0;
+            };
+
+            document.getElementById('ult-btn').onclick = function() {
+                for (var i = enemies.length - 1; i >= 0; i--) {
+                    scene.remove(enemies[i]);
+                    gold += 20;
+                    addExp(20);
+                }
+                enemies = [];
+                alert('💥 궁극기 발동! 광역 적 전멸!');
+                updateUI();
+                for (var j = 0; j < 4; j++) setTimeout(createEnemy, 2000);
+            };
+
+            // 모달 관리
+            document.getElementById('open-shop').onclick = function() { document.getElementById('shop-modal').style.display = 'flex'; };
+            document.getElementById('close-shop').onclick = function() { document.getElementById('shop-modal').style.display = 'none'; };
+            document.getElementById('open-inv').onclick = function() { document.getElementById('inv-modal').style.display = 'flex'; };
+            document.getElementById('close-inv').onclick = function() { document.getElementById('inv-modal').style.display = 'none'; };
+
+            document.getElementById('up-atk').onclick = function() {
+                if (gold >= 100) { gold -= 100; playerAtk += 5; alert('공격력이 증가했습니다!'); updateUI(); }
+                else alert('골드가 부족합니다!');
+            };
+            document.getElementById('up-hp').onclick = function() {
+                if (gold >= 100) { gold -= 100; maxHP += 20; playerHP += 20; alert('최대 체력이 증가했습니다!'); updateUI(); }
+                else alert('골드가 부족합니다!');
+            };
+
+            document.getElementById('glb-btn').onclick = function() {
+                alert('.GLB 커스텀 캐릭터 모델을 불러올 준비가 되었습니다.');
+            };
+
+            // 프레임 애니메이션 루프
             function animate() {
                 requestAnimationFrame(animate);
-                cube.rotation.y += 0.01; // 회전하는 큐브
+
+                if (moveDir.x !== 0 || moveDir.z !== 0) {
+                    playerGroup.position.x += moveDir.x * 0.11;
+                    playerGroup.position.z += moveDir.z * 0.11;
+                    playerGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                }
+
+                // AI 추적
+                for (var i = 0; i < enemies.length; i++) {
+                    var enemy = enemies[i];
+                    var dir = playerGroup.position.clone().sub(enemy.position).normalize();
+                    enemy.position.x += dir.x * 0.025;
+                    enemy.position.z += dir.z * 0.025;
+                }
+
+                // 카메라는 플레이어를 따라감
+                camera.position.set(playerGroup.position.x, playerGroup.position.y + 8, playerGroup.position.z + 8);
+                camera.lookAt(playerGroup.position);
+
                 renderer.render(scene, camera);
             }
+
             animate();
 
-            // Resize
-            window.addEventListener('resize', () => {
+            window.addEventListener('resize', function() {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
