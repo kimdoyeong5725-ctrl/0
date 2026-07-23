@@ -1,0 +1,339 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    touch-action: none;
+    user-select: none;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #040814;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+}
+
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* TOP HUD */
+#top-hud {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.panel-box {
+    background: rgba(8, 16, 28, 0.88);
+    border: 1.5px solid #00dfff;
+    border-radius: 8px;
+    padding: 10px;
+    width: 220px;
+    pointer-events: auto;
+    box-shadow: 0 0 12px rgba(0, 223, 255, 0.2);
+}
+
+.status-head {
+    display: flex;
+    justify-content: space-between;
+}
+
+#ui-level {
+    color: #00dfff;
+}
+
+.gold-text {
+    color: #ffd700;
+}
+
+.stage-text {
+    font-size: 10px;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+.bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.bar-fill-hp {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #00ff88, #00b894);
+    transition: width 0.15s ease-out;
+}
+
+.bar-fill-mp {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #0984e3, #74b9ff);
+    transition: width 0.15s ease-out;
+}
+
+.bar-fill-exp {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #e056fd, #be2edd);
+    transition: width 0.15s ease-out;
+}
+
+.quest-box {
+    margin-top: 8px;
+    background: rgba(0, 223, 255, 0.08);
+    border-left: 3px solid #f1c40f;
+    padding: 5px;
+    font-size: 11px;
+}
+
+.top-right-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.btn-hud {
+    background: rgba(5, 12, 22, 0.9);
+    border: 1.5px solid #00dfff;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    pointer-events: auto;
+    cursor: pointer;
+    text-shadow: 0 0 4px #00dfff;
+}
+
+.btn-hud:active {
+    transform: scale(0.95);
+}
+
+/* BOSS HP BAR */
+#boss-hp-container {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    max-width: 350px;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+}
+
+#boss-name {
+    font-size: 12px;
+    color: #ff0055;
+    font-weight: bold;
+    text-shadow: 0 0 5px #ff0055;
+    margin-bottom: 2px;
+}
+
+.boss-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #ff0055;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.boss-bar-fill {
+    width: 100%;
+    height: 100%;
+    background: #ff0055;
+    transition: width 0.1s;
+}
+
+/* JOYSTICK & BUTTONS */
+#joystick-area {
+    position: absolute;
+    bottom: 35px;
+    left: 30px;
+    width: 110px;
+    height: 110px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(0, 223, 255, 0.3);
+    border-radius: 50%;
+    pointer-events: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#joystick-handle {
+    width: 45px;
+    height: 45px;
+    background: radial-gradient(circle, #00dfff, #0077b6);
+    border-radius: 50%;
+    box-shadow: 0 0 12px #00dfff;
+}
+
+.action-area {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 220px;
+    height: 220px;
+    pointer-events: none;
+}
+
+.btn-action {
+    position: absolute;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+    cursor: pointer;
+    background: rgba(5, 12, 22, 0.85);
+    border: 1.5px solid #00dfff;
+    box-shadow: 0 0 8px rgba(0, 223, 255, 0.3);
+    font-size: 11px;
+}
+
+.btn-action:active {
+    transform: scale(0.9);
+}
+
+#btn-attack {
+    width: 80px;
+    height: 80px;
+    bottom: 0;
+    right: 0;
+    font-size: 16px;
+    background: radial-gradient(circle, #0077b6, #023e8a);
+}
+
+#btn-dodge {
+    width: 50px;
+    height: 50px;
+    bottom: 0;
+    right: 100px;
+}
+
+#btn-skill {
+    width: 50px;
+    height: 50px;
+    bottom: 100px;
+    right: 0;
+}
+
+#btn-ult {
+    width: 60px;
+    height: 60px;
+    bottom: 85px;
+    right: 85px;
+    border-color: #ff00ff;
+    background: radial-gradient(circle, #7000ff, #4a00e0);
+    box-shadow: 0 0 12px #ff00ff;
+}
+
+/* MODAL WINDOWS */
+.modal-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 290px;
+    background: rgba(8, 16, 28, 0.96);
+    border: 2px solid #00dfff;
+    border-radius: 12px;
+    padding: 15px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+    z-index: 100;
+    box-shadow: 0 0 20px rgba(0, 223, 255, 0.4);
+}
+
+.modal-header {
+    font-size: 14px;
+    font-weight: bold;
+    color: #00dfff;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 223, 255, 0.3);
+    padding-bottom: 6px;
+}
+
+.modal-body {
+    font-size: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px;
+    border-radius: 4px;
+}
+
+.stat-bonus {
+    color: #00ff88;
+}
+
+.stat-btn {
+    background: #0077b6;
+    border: 1px solid #00dfff;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.modal-close-btn {
+    margin-top: 4px;
+}
+
+/* TOAST */
+#toast-msg {
+    position: absolute;
+    top: 30%;
+    width: 100%;
+    text-align: center;
+    color: #00dfff;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 10px #00dfff;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: 20;
+}
