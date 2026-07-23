@@ -41,12 +41,12 @@
             pointer-events: none;
         }
 
-        /* 상단 UI */
+        /* 상단 UI 레이아웃 */
         #top-bar {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
+            top: 12px;
+            left: 12px;
+            right: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -57,11 +57,12 @@
             background: rgba(5, 12, 22, 0.85);
             border: 1.5px solid #00dfff;
             border-radius: 8px;
-            padding: 6px 10px;
+            padding: 8px 12px;
             color: #fff;
             font-size: 11px;
             font-weight: bold;
             pointer-events: auto;
+            box-shadow: 0 0 10px rgba(0, 223, 255, 0.3);
         }
 
         .btn-group {
@@ -74,11 +75,12 @@
             background: rgba(0, 0, 0, 0.7);
             border: 1.5px solid #00dfff;
             color: #fff;
-            padding: 6px 10px;
+            padding: 6px 12px;
             border-radius: 8px;
             font-size: 11px;
             font-weight: bold;
             cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 223, 255, 0.3);
         }
 
         .upload-wrapper {
@@ -96,14 +98,14 @@
             cursor: pointer;
         }
 
-        /* 조이스틱 */
+        /* 컨트롤 조이스틱 */
         #joystick-container {
             position: absolute;
             bottom: 25px;
             left: 25px;
             width: 100px;
             height: 100px;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             border: 2px solid rgba(0, 223, 255, 0.5);
             border-radius: 50%;
             display: flex;
@@ -117,10 +119,10 @@
             height: 40px;
             background: #00dfff;
             border-radius: 50%;
-            box-shadow: 0 0 10px #00dfff;
+            box-shadow: 0 0 12px #00dfff;
         }
 
-        /* 스킬 버튼 */
+        /* 액션 버튼 */
         .btn-container {
             position: absolute;
             bottom: 15px;
@@ -139,13 +141,13 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            border: 2px solid rgba(255,255,255,0.8);
+            border: 2px solid rgba(255,255,255,0.85);
             pointer-events: auto;
-            background: rgba(0, 0, 0, 0.6);
-            box-shadow: 0 0 10px rgba(0,223,255,0.3);
+            background: rgba(0, 0, 0, 0.65);
+            box-shadow: 0 0 10px rgba(0,223,255,0.4);
         }
 
-        #attack-btn { width: 70px; height: 70px; bottom: 5px; right: 5px; background: #0077b6; font-size: 14px; }
+        #attack-btn { width: 70px; height: 70px; bottom: 5px; right: 5px; background: #0077b6; font-size: 14px; box-shadow: 0 0 15px #00dfff; }
         #dodge-btn { width: 45px; height: 45px; bottom: 5px; right: 90px; font-size: 10px; }
         #skill-btn { width: 45px; height: 45px; bottom: 90px; right: 5px; font-size: 10px; }
         #ult-btn { width: 55px; height: 55px; bottom: 75px; right: 75px; font-size: 10px; background: #0055a5; }
@@ -158,9 +160,9 @@
     
     <div id="ui-layer">
         <div id="top-bar">
-            <div class="status-box">❄️ 토시로 Lv.1</div>
+            <div class="status-box">❄️ 토시로 Lv.1 STAGE 1</div>
             <div class="btn-group">
-                <button class="top-btn" onclick="resetCamera()">카메라 리셋</button>
+                <button class="top-btn" id="reset-cam-btn">카메라 리셋</button>
                 <div class="upload-wrapper">
                     <button class="top-btn">.glb 교체</button>
                     <input type="file" id="file-input" accept=".glb,.gltf">
@@ -181,155 +183,159 @@
     </div>
 
     <script>
-        // 1. 씬 및 카메라 설정
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x02050a);
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Scene & Renderer Initialization
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x02050a);
 
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        container.appendChild(renderer.domElement);
+            const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
 
-        // 2. 조명 및 바닥
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-        scene.add(ambientLight);
+            // 2. Lighting & World Setup
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-        dirLight.position.set(10, 20, 10);
-        scene.add(dirLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            dirLight.position.set(10, 20, 10);
+            scene.add(dirLight);
 
-        const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
-        grid.position.y = 0;
-        scene.add(grid);
+            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
+            grid.position.y = 0;
+            scene.add(grid);
 
-        // 3. 캐릭터 그룹 및 기본 캐릭터 생성
-        const characterGroup = new THREE.Group();
-        scene.add(characterGroup);
+            // 3. Character Construction
+            const characterGroup = new THREE.Group();
+            scene.add(characterGroup);
 
-        let currentMesh = null;
-        let mixer = null;
-        let clock = new THREE.Clock();
+            let currentMesh = null;
+            let mixer = null;
+            const clock = new THREE.Clock();
 
-        function createDefaultCapsule() {
-            if (currentMesh) characterGroup.remove(currentMesh);
-            
-            const geo = new THREE.CapsuleGeometry(0.5, 1.2, 4, 8);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff });
-            currentMesh = new THREE.Mesh(geo, mat);
-            currentMesh.position.y = 1.1;
-            characterGroup.add(currentMesh);
-        }
-
-        // 기본 캐릭터 즉시 배치
-        createDefaultCapsule();
-
-        // 4. 카메라 위치 초기화 함수
-        function resetCamera() {
-            camera.position.set(0, 4, 7);
-            camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
-        }
-        resetCamera();
-
-        // 5. .glb 파일 로드 처리
-        const loader = new THREE.GLTFLoader();
-        document.getElementById('file-input').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const url = URL.createObjectURL(file);
-            loader.load(url, (gltf) => {
+            function createDefaultCapsule() {
                 if (currentMesh) characterGroup.remove(currentMesh);
                 
-                currentMesh = gltf.scene;
-                
-                // 크기 조정
-                const box = new THREE.Box3().setFromObject(currentMesh);
-                const size = box.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const scale = 2.5 / maxDim;
-                
-                currentMesh.scale.set(scale, scale, scale);
-                currentMesh.position.set(0, 0, 0);
-                
+                const geo = new THREE.CapsuleGeometry(0.5, 1.2, 4, 8);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.3 });
+                currentMesh = new THREE.Mesh(geo, mat);
+                currentMesh.position.y = 1.1;
                 characterGroup.add(currentMesh);
-
-                if (gltf.animations && gltf.animations.length > 0) {
-                    mixer = new THREE.AnimationMixer(currentMesh);
-                    mixer.clipAction(gltf.animations[0]).play();
-                }
-            });
-        });
-
-        // 6. 조이스틱 조작
-        let moveDir = { x: 0, z: 0 };
-        const joystick = document.getElementById('joystick-container');
-        const knob = document.getElementById('joystick-knob');
-        let active = false, startX = 0, startY = 0;
-
-        function handleStart(e) {
-            active = true;
-            const t = e.touches ? e.touches[0] : e;
-            startX = t.clientX; startY = t.clientY;
-        }
-
-        function handleMove(e) {
-            if (!active) return;
-            const t = e.touches ? e.touches[0] : e;
-            let dx = t.clientX - startX;
-            let dy = t.clientY - startY;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            const maxR = 35;
-
-            if (dist > maxR) { dx = (dx/dist)*maxR; dy = (dy/dist)*maxR; }
-            knob.style.transform = `translate(${dx}px, ${dy}px)`;
-            
-            moveDir.x = dx / maxR;
-            moveDir.z = dy / maxR;
-        }
-
-        function handleEnd() {
-            active = false;
-            knob.style.transform = 'translate(0px, 0px)';
-            moveDir.x = 0; moveDir.z = 0;
-        }
-
-        joystick.addEventListener('touchstart', handleStart);
-        window.addEventListener('touchmove', handleMove);
-        window.addEventListener('touchend', handleEnd);
-        joystick.addEventListener('mousedown', handleStart);
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', handleEnd);
-
-        // 7. 애니메이션 루프
-        function animate() {
-            requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-
-            if (mixer) mixer.update(delta);
-
-            if (moveDir.x !== 0 || moveDir.z !== 0) {
-                characterGroup.position.x += moveDir.x * 0.12;
-                characterGroup.position.z += moveDir.z * 0.12;
-                characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
             }
 
-            // 카메라 추적
-            camera.position.x = characterGroup.position.x;
-            camera.position.z = characterGroup.position.z + 7;
-            camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+            createDefaultCapsule();
 
-            renderer.render(scene, camera);
-        }
+            // Camera Setup
+            function resetCamera() {
+                camera.position.set(0, 4, 7);
+                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+            }
+            resetCamera();
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('reset-cam-btn').addEventListener('click', resetCamera);
+
+            // 4. Custom GLB Loading
+            const loader = new THREE.GLTFLoader();
+            document.getElementById('file-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const url = URL.createObjectURL(file);
+                loader.load(url, (gltf) => {
+                    if (currentMesh) characterGroup.remove(currentMesh);
+                    
+                    currentMesh = gltf.scene;
+                    
+                    const box = new THREE.Box3().setFromObject(currentMesh);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 2.5 / (maxDim || 1);
+                    
+                    currentMesh.scale.set(scale, scale, scale);
+                    currentMesh.position.set(0, 0, 0);
+                    
+                    characterGroup.add(currentMesh);
+
+                    if (gltf.animations && gltf.animations.length > 0) {
+                        mixer = new THREE.AnimationMixer(currentMesh);
+                        mixer.clipAction(gltf.animations[0]).play();
+                    }
+                }, undefined, (err) => {
+                    console.error("GLB Load Error: ", err);
+                });
+            });
+
+            // 5. Touch / Joystick Controls
+            const moveDir = { x: 0, z: 0 };
+            const joystick = document.getElementById('joystick-container');
+            const knob = document.getElementById('joystick-knob');
+            let active = false, startX = 0, startY = 0;
+
+            function handleStart(e) {
+                active = true;
+                const t = e.touches ? e.touches[0] : e;
+                startX = t.clientX; startY = t.clientY;
+            }
+
+            function handleMove(e) {
+                if (!active) return;
+                const t = e.touches ? e.touches[0] : e;
+                let dx = t.clientX - startX;
+                let dy = t.clientY - startY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const maxR = 35;
+
+                if (dist > maxR) { dx = (dx/dist)*maxR; dy = (dy/dist)*maxR; }
+                knob.style.transform = `translate(${dx}px, ${dy}px)`;
+                
+                moveDir.x = dx / maxR;
+                moveDir.z = dy / maxR;
+            }
+
+            function handleEnd() {
+                active = false;
+                knob.style.transform = 'translate(0px, 0px)';
+                moveDir.x = 0; moveDir.z = 0;
+            }
+
+            joystick.addEventListener('touchstart', handleStart);
+            window.addEventListener('touchmove', handleMove);
+            window.addEventListener('touchend', handleEnd);
+            joystick.addEventListener('mousedown', handleStart);
+            window.addEventListener('mousemove', handleMove);
+            window.addEventListener('mouseup', handleEnd);
+
+            // 6. Main Render Loop
+            function animate() {
+                requestAnimationFrame(animate);
+                const delta = clock.getDelta();
+
+                if (mixer) mixer.update(delta);
+
+                if (moveDir.x !== 0 || moveDir.z !== 0) {
+                    characterGroup.position.x += moveDir.x * 0.12;
+                    characterGroup.position.z += moveDir.z * 0.12;
+                    characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                }
+
+                // Smooth Camera Follow
+                camera.position.x = characterGroup.position.x;
+                camera.position.z = characterGroup.position.z + 7;
+                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+
+                renderer.render(scene, camera);
+            }
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            animate();
         });
-
-        animate();
     </script>
 </body>
 </html>
