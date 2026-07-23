@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Fantasy Action RPG Engine</title>
+    <title>3D Grand Fantasy Action RPG - Full Edition</title>
     <style>
         /* ==========================================================================
-           1. RESET & BASE LAYOUT STYLES
+           1. CORE RESET & VIEWPORT STYLES
            ========================================================================== */
         * {
             box-sizing: border-box;
@@ -22,7 +22,7 @@
             height: 100%;
             overflow: hidden;
             background-color: #02050a;
-            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Segoe UI', Roboto, 'Apple SD Gothic Neo', sans-serif;
             color: #ffffff;
         }
 
@@ -46,7 +46,7 @@
         }
 
         /* ==========================================================================
-           2. HUD & STATUS PANEL STYLES
+           2. HEADS-UP DISPLAY (HUD) STYLES
            ========================================================================== */
         #top-bar {
             position: absolute;
@@ -68,7 +68,7 @@
             font-weight: bold;
             pointer-events: auto;
             box-shadow: 0 0 20px rgba(0, 223, 255, 0.25);
-            min-width: 270px;
+            min-width: 280px;
             backdrop-filter: blur(10px);
         }
 
@@ -158,7 +158,7 @@
         }
 
         /* ==========================================================================
-           3. QUEST BANNER & BOSS UI
+           3. QUEST, NOTIFICATIONS & BOSS DISPLAY
            ========================================================================== */
         #quest-box {
             position: absolute;
@@ -169,7 +169,7 @@
             padding: 10px 14px;
             border-radius: 0 10px 10px 0;
             font-size: 12px;
-            max-width: 240px;
+            max-width: 250px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(5px);
         }
@@ -306,7 +306,7 @@
         }
 
         /* ==========================================================================
-           5. ACTION CONTROLS & DAMAGE DISPLAY
+           5. TOUCH CONTROLS, SKILLS & FLOATING TEXT
            ========================================================================== */
         #joystick-container {
             position: absolute;
@@ -506,7 +506,7 @@
     <div id="ui-layer">
         <div id="top-bar">
             <div class="status-panel">
-                <div>🛡️ 빛의 기사 <span id="level-text" style="color:#00dfff;">Lv.1</span></div>
+                <div>🛡️ 성기사 <span id="level-text" style="color:#00dfff;">Lv.1</span></div>
                 <div style="font-size:11px; margin-top:4px;">💰 골드: <span id="gold-text" style="color:#ffd700;">0</span> | 스테이지 <span id="stage-text" style="color:#00ff88;">1</span></div>
 
                 <div class="bar-container">
@@ -533,7 +533,7 @@
         <div id="minimap-container"><canvas id="minimap-canvas"></canvas></div>
 
         <div id="boss-hp-container">
-            <div id="boss-name">☠️ 심연의 서리 보스</div>
+            <div id="boss-name">☠️ 심연의 서리 군주</div>
             <div class="boss-bar-bg"><div id="boss-hp-fill"></div></div>
         </div>
 
@@ -589,6 +589,7 @@
     </div>
 
     <script>
+        // Dynamically load dependencies if needed
         function loadScript(src) {
             return new Promise((resolve, reject) => {
                 const s = document.createElement('script');
@@ -599,6 +600,7 @@
             });
         }
 
+        // Web Audio API Synthesizer (Zero External Audio File Dependency)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         function playSound(type) {
@@ -674,6 +676,7 @@
         }
 
         async function startRpgEngine() {
+            // Load Three.js core and GLTF loader dynamically if not present
             if (typeof THREE === 'undefined') await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
             if (typeof THREE.GLTFLoader === 'undefined') await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
 
@@ -690,6 +693,7 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
+            // Light setup
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
             scene.add(ambientLight);
 
@@ -709,6 +713,7 @@
             const pointLight = new THREE.PointLight(0x00dfff, 2, 25);
             scene.add(pointLight);
 
+            // Ground & Grid
             const gridHelper = new THREE.GridHelper(150, 75, 0x00dfff, 0x0a2035);
             gridHelper.position.y = -0.01;
             scene.add(gridHelper);
@@ -720,6 +725,7 @@
             groundMesh.receiveShadow = true;
             scene.add(groundMesh);
 
+            // Game State Variables
             let stage = 1;
             let gold = 0;
             let level = 1;
@@ -745,6 +751,7 @@
             let mixer = null;
             const clock = new THREE.Clock();
 
+            // Default Player Geometric Model
             function createDefaultAvatar() {
                 const group = new THREE.Group();
                 const bodyGeo = new THREE.CapsuleGeometry(0.55, 1.2, 8, 16);
@@ -766,6 +773,7 @@
             currentMesh = createDefaultAvatar();
             characterGroup.add(currentMesh);
 
+            // Update HUD UI Elements
             function updateUI() {
                 document.getElementById('hp-text').innerText = `${Math.ceil(playerHP)}/${maxHP}`;
                 document.getElementById('hp-fill').style.width = `${Math.max(0, (playerHP / maxHP) * 100)}%`;
@@ -782,6 +790,7 @@
                 document.getElementById('quest-text').innerText = `몬스터 처치 (${questProgress}/${questTarget})`;
             }
 
+            // File Upload for Custom 3D Model
             const gltfLoader = new THREE.GLTFLoader();
             document.getElementById('file-input').onchange = function(e) {
                 const file = e.target.files[0];
@@ -824,6 +833,7 @@
                 }, 2200);
             }
 
+            // Floating Damage Indicator Text
             function spawnDmgText(worldPos, damage, isCritical = false) {
                 const vector = worldPos.clone().project(camera);
                 const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
@@ -849,6 +859,7 @@
                 setTimeout(() => el.remove(), 600);
             }
 
+            // Particle Effect System
             function createParticleExplosion(pos, color, count = 12) {
                 for (let i = 0; i < count; i++) {
                     const pGeo = new THREE.SphereGeometry(0.14, 4, 4);
@@ -864,6 +875,7 @@
                 }
             }
 
+            // Portal System for Stage Progression
             function spawnPortal() {
                 const pGeo = new THREE.TorusGeometry(1.6, 0.3, 16, 32);
                 const pMat = new THREE.MeshBasicMaterial({ color: 0xffd700 });
@@ -874,6 +886,7 @@
                 showNotice('✨ 차원 포탈 오픈! 포탈로 이동하세요.');
             }
 
+            // Monster Spawner & AI Factory
             function initStageMonsters() {
                 stageCleared = false;
                 if (portalMesh) { scene.remove(portalMesh); portalMesh = null; }
@@ -944,6 +957,7 @@
                 enemies.push(enemyGroup);
             }
 
+            // EXP & Level System
             function addExp(amount) {
                 exp += amount;
                 if (exp >= maxExp) {
@@ -958,6 +972,7 @@
                 updateUI();
             }
 
+            // Damage Calculation & Knockback
             function applyDamageToEnemies(range, multiplier, pushPower = 1.2) {
                 enemies.forEach((enemy, idx) => {
                     const dist = characterGroup.position.distanceTo(enemy.position);
@@ -1005,6 +1020,7 @@
                 });
             }
 
+            // Modal Controls
             document.getElementById('shop-btn').onclick = () => { document.getElementById('shop-modal').style.display = 'flex'; };
             document.getElementById('close-shop').onclick = () => { document.getElementById('shop-modal').style.display = 'none'; };
             document.getElementById('inv-btn').onclick = () => { document.getElementById('inv-modal').style.display = 'flex'; };
@@ -1030,6 +1046,7 @@
                 }
             };
 
+            // Cooldown Handler
             const cooldowns = { dodge: false, skill: false, ult: false };
             function triggerCooldown(type, sec) {
                 cooldowns[type] = true;
@@ -1050,6 +1067,7 @@
                 }, 1000);
             }
 
+            // Skill Button Handlers
             document.getElementById('attack-btn').onclick = () => {
                 playSound('attack');
                 applyDamageToEnemies(3.0, 1.0, 0.9);
@@ -1083,6 +1101,7 @@
                 createParticleExplosion(characterGroup.position, 0xff00ff, 40);
             };
 
+            // Touch Joystick Input Controller
             let moveDir = { x: 0, z: 0 };
             const joystick = document.getElementById('joystick-container');
             const knob = document.getElementById('joystick-knob');
@@ -1117,6 +1136,7 @@
             joystick.ontouchstart = handleTouchStart; window.ontouchmove = handleTouchMove; window.ontouchend = handleTouchEnd;
             joystick.onmousedown = handleTouchStart; window.onmousemove = handleTouchMove; window.onmouseup = handleTouchEnd;
 
+            // Keyboard Shortcuts Controls
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') moveDir.z = -1;
                 if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') moveDir.z = 1;
@@ -1134,6 +1154,7 @@
                 if (['a', 'A', 'd', 'D', 'ArrowLeft', 'ArrowRight'].includes(e.key)) moveDir.x = 0;
             });
 
+            // Minimap Renderer
             const minimapCanvas = document.getElementById('minimap-canvas');
             const mmCtx = minimapCanvas.getContext('2d');
             minimapCanvas.width = 110; minimapCanvas.height = 110;
@@ -1142,9 +1163,11 @@
                 mmCtx.clearRect(0, 0, 110, 110);
                 const cx = 55, cy = 55;
 
+                // Player Icon
                 mmCtx.fillStyle = '#00dfff';
                 mmCtx.beginPath(); mmCtx.arc(cx, cy, 4.5, 0, Math.PI * 2); mmCtx.fill();
 
+                // Monster Icons
                 enemies.forEach(enemy => {
                     const dx = (enemy.position.x - characterGroup.position.x) * 1.6;
                     const dz = (enemy.position.z - characterGroup.position.z) * 1.6;
@@ -1154,6 +1177,7 @@
                     mmCtx.fill();
                 });
 
+                // Portal Icon
                 if (portalMesh) {
                     const dx = (portalMesh.position.x - characterGroup.position.x) * 1.6;
                     const dz = (portalMesh.position.z - characterGroup.position.z) * 1.6;
@@ -1164,6 +1188,7 @@
 
             initStageMonsters();
 
+            // Main Game Engine Loop
             function renderLoop() {
                 if (isGameOver) return;
                 requestAnimationFrame(renderLoop);
@@ -1171,17 +1196,20 @@
                 const delta = clock.getDelta();
                 if (mixer) mixer.update(delta);
 
+                // Player Position Translation
                 if (moveDir.x !== 0 || moveDir.z !== 0) {
                     characterGroup.position.x += moveDir.x * moveSpeed;
                     characterGroup.position.z += moveDir.z * moveSpeed;
                     characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
                 }
 
+                // Portal Interaction Check
                 if (portalMesh && characterGroup.position.distanceTo(portalMesh.position) < 1.8) {
                     stage++;
                     initStageMonsters();
                 }
 
+                // Particle Lifetime Loop
                 particles.forEach((p, idx) => {
                     p.position.add(p.userData.vel);
                     p.userData.life -= 0.035;
@@ -1192,6 +1220,7 @@
                     }
                 });
 
+                // Enemy AI Movement & Attack Patterns
                 const now = Date.now();
                 enemies.forEach((enemy) => {
                     const dist = characterGroup.position.distanceTo(enemy.position);
@@ -1222,6 +1251,7 @@
 
                     enemy.lookAt(characterGroup.position);
 
+                    // Melee Damage Hitbox Collision
                     if (dist < (enemy.userData.type === 'boss' ? 2.1 : 1.1)) {
                         playerHP -= enemy.userData.type === 'boss' ? 0.95 : 0.35;
                         updateUI();
@@ -1234,6 +1264,7 @@
                     }
                 });
 
+                // Ranged Projectiles Physics & Collisions
                 projectiles.forEach((p, idx) => {
                     p.position.add(p.userData.dir.clone().multiplyScalar(0.22));
                     if (characterGroup.position.distanceTo(p.position) < 0.9) {
@@ -1248,6 +1279,7 @@
                     }
                 });
 
+                // Dynamic Camera Control & Screen Shake Effect
                 let shakeOffset = new THREE.Vector3(0, 0, 0);
                 if (cameraShake > 0) {
                     shakeOffset.set((Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4);
