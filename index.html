@@ -3,165 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Web Game</title>
+    <title>3D Game Fix</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; touch-action: none; user-select: none; }
+        body { overflow: hidden; background-color: #02050a; font-family: sans-serif; width: 100vw; height: 100vh; }
+        
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
-        body {
-            overflow: hidden;
-            background-color: #02050a;
-            font-family: sans-serif;
-            width: 100vw;
-            height: 100vh;
-        }
+        #top-bar { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .status-box { background: rgba(5, 12, 22, 0.85); border: 1.5px solid #00dfff; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 11px; font-weight: bold; pointer-events: auto; }
+        .top-btn { background: rgba(0, 0, 0, 0.7); border: 1.5px solid #00dfff; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; pointer-events: auto; }
+        
+        .upload-wrapper { position: relative; display: inline-block; }
+        #file-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
+        #joystick-container { position: absolute; bottom: 25px; left: 25px; width: 100px; height: 100px; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(0, 223, 255, 0.5); border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: auto; }
+        #joystick-knob { width: 40px; height: 40px; background: #00dfff; border-radius: 50%; box-shadow: 0 0 12px #00dfff; }
 
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        /* 상단 UI */
-        #top-bar {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-        }
-
-        .status-box {
-            background: rgba(5, 12, 22, 0.85);
-            border: 1.5px solid #00dfff;
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #fff;
-            font-size: 11px;
-            font-weight: bold;
-            pointer-events: auto;
-            box-shadow: 0 0 10px rgba(0, 223, 255, 0.3);
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 6px;
-            pointer-events: auto;
-        }
-
-        .top-btn {
-            background: rgba(0, 0, 0, 0.7);
-            border: 1.5px solid #00dfff;
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(0, 223, 255, 0.3);
-        }
-
-        .upload-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        #file-input {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        /* 조이스틱 */
-        #joystick-container {
-            position: absolute;
-            bottom: 25px;
-            left: 25px;
-            width: 100px;
-            height: 100px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 2px solid rgba(0, 223, 255, 0.5);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: auto;
-        }
-
-        #joystick-knob {
-            width: 40px;
-            height: 40px;
-            background: #00dfff;
-            border-radius: 50%;
-            box-shadow: 0 0 12px #00dfff;
-        }
-
-        /* 스킬 버튼 */
-        .btn-container {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
-            width: 200px;
-            height: 200px;
-            pointer-events: none;
-        }
-
-        .action-btn {
-            position: absolute;
-            border-radius: 50%;
-            color: white;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            border: 2px solid rgba(255,255,255,0.85);
-            pointer-events: auto;
-            background: rgba(0, 0, 0, 0.65);
-            box-shadow: 0 0 10px rgba(0,223,255,0.4);
-        }
-
+        .btn-container { position: absolute; bottom: 15px; right: 15px; width: 200px; height: 200px; pointer-events: none; }
+        .action-btn { position: absolute; border-radius: 50%; color: white; font-weight: bold; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px solid rgba(255,255,255,0.85); pointer-events: auto; background: rgba(0, 0, 0, 0.65); box-shadow: 0 0 10px rgba(0,223,255,0.4); }
+        
         #attack-btn { width: 70px; height: 70px; bottom: 5px; right: 5px; background: #0077b6; font-size: 14px; box-shadow: 0 0 15px #00dfff; }
         #dodge-btn { width: 45px; height: 45px; bottom: 5px; right: 90px; font-size: 10px; }
         #skill-btn { width: 45px; height: 45px; bottom: 90px; right: 5px; font-size: 10px; }
         #ult-btn { width: 55px; height: 55px; bottom: 75px; right: 75px; font-size: 10px; background: #0055a5; }
+
+        #debug-log { position: absolute; top: 60px; left: 12px; color: #ff5555; font-size: 10px; z-index: 100; background: rgba(0,0,0,0.8); padding: 5px; border-radius: 4px; max-width: 80%; display: none; }
     </style>
-    <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
     <div id="canvas-container"></div>
+    <div id="debug-log"></div>
     
     <div id="ui-layer">
         <div id="top-bar">
             <div class="status-box">❄️ 토시로 Lv.1</div>
-            <div class="btn-group">
+            <div>
                 <button class="top-btn" id="cam-btn">카메라 리셋</button>
                 <div class="upload-wrapper">
                     <button class="top-btn">.glb 교체</button>
@@ -183,56 +61,76 @@
     </div>
 
     <script>
-        window.onload = function() {
-            const container = document.getElementById('canvas-container');
-            
-            // 1. Scene / Camera / Renderer
-            const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x02050a);
+        function logError(msg) {
+            const el = document.getElementById('debug-log');
+            el.style.display = 'block';
+            el.innerHTML += msg + '<br>';
+        }
 
-            const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
+        // 스크립트 동적 로드 (CDN 오류 방지)
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.onload = resolve;
+                s.onerror = () => reject('스크립트 로드 실패: ' + src);
+                document.head.appendChild(s);
+            });
+        }
 
-            // 2. 조명 & 3D 격자
-            const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-            scene.add(ambientLight);
+        async function initGame() {
+            try {
+                // 1. Three.js 라이브러리 차례대로 로딩
+                if (typeof THREE === 'undefined') {
+                    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js');
+                }
+                if (typeof THREE.GLTFLoader === 'undefined') {
+                    await loadScript('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js');
+                }
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-            dirLight.position.set(10, 20, 10);
-            scene.add(dirLight);
+                // 2. 씬 초기화
+                const container = document.getElementById('canvas-container');
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x02050a);
 
-            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
-            scene.add(grid);
+                const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
 
-            // 3. 캐릭터
-            const characterGroup = new THREE.Group();
-            scene.add(characterGroup);
+                // 3. 조명 및 바닥
+                scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+                dirLight.position.set(10, 20, 10);
+                scene.add(dirLight);
 
-            let currentMesh = null;
-            let mixer = null;
-            const clock = new THREE.Clock();
+                const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
+                scene.add(grid);
 
-            // 기본 3D 캐릭터 (임시)
-            const geo = new THREE.CylinderGeometry(0.4, 0.4, 1.5, 16);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.2 });
-            currentMesh = new THREE.Mesh(geo, mat);
-            currentMesh.position.y = 0.75;
-            characterGroup.add(currentMesh);
+                // 4. 캐릭터 생성
+                const characterGroup = new THREE.Group();
+                scene.add(characterGroup);
 
-            // 카메라 초기 위치
-            function resetCamera() {
-                camera.position.set(0, 4, 8);
-                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
-            }
-            resetCamera();
+                let currentMesh = null;
+                let mixer = null;
+                const clock = new THREE.Clock();
 
-            document.getElementById('cam-btn').onclick = resetCamera;
+                // 기본 3D 캐릭터 (캡슐)
+                const geo = new THREE.CapsuleGeometry(0.5, 1.2, 4, 8);
+                const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.3 });
+                currentMesh = new THREE.Mesh(geo, mat);
+                currentMesh.position.y = 1.1;
+                characterGroup.add(currentMesh);
 
-            // 4. .glb 파일 교체기
-            if (typeof THREE.GLTFLoader !== 'undefined') {
+                function resetCamera() {
+                    camera.position.set(0, 4, 8);
+                    camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+                }
+                resetCamera();
+                document.getElementById('cam-btn').onclick = resetCamera;
+
+                // 5. GLB 파일 업로드 로직
                 const loader = new THREE.GLTFLoader();
                 document.getElementById('file-input').onchange = function(e) {
                     const file = e.target.files[0];
@@ -241,10 +139,8 @@
                     const url = URL.createObjectURL(file);
                     loader.load(url, function(gltf) {
                         if (currentMesh) characterGroup.remove(currentMesh);
-
                         currentMesh = gltf.scene;
 
-                        // 스케일 자동 조절
                         const box = new THREE.Box3().setFromObject(currentMesh);
                         const size = box.getSize(new THREE.Vector3());
                         const maxDim = Math.max(size.x, size.y, size.z);
@@ -252,86 +148,88 @@
 
                         currentMesh.scale.set(scale, scale, scale);
                         currentMesh.position.set(0, 0, 0);
-
                         characterGroup.add(currentMesh);
 
                         if (gltf.animations && gltf.animations.length > 0) {
                             mixer = new THREE.AnimationMixer(currentMesh);
                             mixer.clipAction(gltf.animations[0]).play();
                         }
-                    });
+                    }, undefined, (err) => logError('GLB 로드 에러: ' + err.message));
                 };
-            }
 
-            // 5. 조이스틱
-            let moveDir = { x: 0, z: 0 };
-            const joystick = document.getElementById('joystick-container');
-            const knob = document.getElementById('joystick-knob');
-            let active = false, startX = 0, startY = 0;
+                // 6. 조이스틱 조작
+                let moveDir = { x: 0, z: 0 };
+                const joystick = document.getElementById('joystick-container');
+                const knob = document.getElementById('joystick-knob');
+                let active = false, startX = 0, startY = 0;
 
-            function handleStart(e) {
-                active = true;
-                const t = e.touches ? e.touches[0] : e;
-                startX = t.clientX; startY = t.clientY;
-            }
-
-            function handleMove(e) {
-                if (!active) return;
-                const t = e.touches ? e.touches[0] : e;
-                let dx = t.clientX - startX;
-                let dy = t.clientY - startY;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const maxR = 35;
-
-                if (dist > maxR) { dx = (dx/dist)*maxR; dy = (dy/dist)*maxR; }
-                knob.style.transform = `translate(${dx}px, ${dy}px)`;
-
-                moveDir.x = dx / maxR;
-                moveDir.z = dy / maxR;
-            }
-
-            function handleEnd() {
-                active = false;
-                knob.style.transform = 'translate(0px, 0px)';
-                moveDir.x = 0; moveDir.z = 0;
-            }
-
-            joystick.ontouchstart = handleStart;
-            window.ontouchmove = handleMove;
-            window.ontouchend = handleEnd;
-            joystick.onmousedown = handleStart;
-            window.onmousemove = handleMove;
-            window.onmouseup = handleEnd;
-
-            // 6. 렌더링 루프
-            function animate() {
-                requestAnimationFrame(animate);
-                const delta = clock.getDelta();
-
-                if (mixer) mixer.update(delta);
-
-                if (moveDir.x !== 0 || moveDir.z !== 0) {
-                    characterGroup.position.x += moveDir.x * 0.1;
-                    characterGroup.position.z += moveDir.z * 0.1;
-                    characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                function handleStart(e) {
+                    active = true;
+                    const t = e.touches ? e.touches[0] : e;
+                    startX = t.clientX; startY = t.clientY;
                 }
 
-                // 카메라 추적
-                camera.position.x = characterGroup.position.x;
-                camera.position.z = characterGroup.position.z + 8;
-                camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+                function handleMove(e) {
+                    if (!active) return;
+                    const t = e.touches ? e.touches[0] : e;
+                    let dx = t.clientX - startX;
+                    let dy = t.clientY - startY;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    const maxR = 35;
 
-                renderer.render(scene, camera);
+                    if (dist > maxR) { dx = (dx/dist)*maxR; dy = (dy/dist)*maxR; }
+                    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+                    moveDir.x = dx / maxR;
+                    moveDir.z = dy / maxR;
+                }
+
+                function handleEnd() {
+                    active = false;
+                    knob.style.transform = 'translate(0px, 0px)';
+                    moveDir.x = 0; moveDir.z = 0;
+                }
+
+                joystick.ontouchstart = handleStart;
+                window.ontouchmove = handleMove;
+                window.ontouchend = handleEnd;
+                joystick.onmousedown = handleStart;
+                window.onmousemove = handleMove;
+                window.onmouseup = handleEnd;
+
+                // 7. 렌더 루프
+                function animate() {
+                    requestAnimationFrame(animate);
+                    const delta = clock.getDelta();
+
+                    if (mixer) mixer.update(delta);
+
+                    if (moveDir.x !== 0 || moveDir.z !== 0) {
+                        characterGroup.position.x += moveDir.x * 0.1;
+                        characterGroup.position.z += moveDir.z * 0.1;
+                        characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                    }
+
+                    camera.position.x = characterGroup.position.x;
+                    camera.position.z = characterGroup.position.z + 8;
+                    camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+
+                    renderer.render(scene, camera);
+                }
+
+                window.onresize = function() {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                };
+
+                animate();
+
+            } catch (err) {
+                logError(err);
             }
+        }
 
-            window.onresize = function() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            };
-
-            animate();
-        };
+        window.onload = initGame;
     </script>
 </body>
 </html>
