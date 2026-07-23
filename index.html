@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bleach 3D Ultra Master RPG</title>
+    <title>3D Web Game</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -19,7 +17,7 @@
         body {
             overflow: hidden;
             background-color: #02050a;
-            font-family: 'Noto Sans KR', sans-serif;
+            font-family: sans-serif;
             width: 100vw;
             height: 100vh;
         }
@@ -43,7 +41,7 @@
             pointer-events: none;
         }
 
-        /* 상단 레이아웃 */
+        /* 상단 UI */
         #top-bar {
             position: absolute;
             top: 10px;
@@ -51,88 +49,41 @@
             right: 10px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
+            align-items: center;
             pointer-events: none;
-            z-index: 100;
         }
 
-        /* 체력 및 레벨 카드 */
-        .hp-card {
-            background: rgba(5, 12, 22, 0.88);
-            border: 1.5px solid rgba(0, 223, 255, 0.8);
-            border-radius: 12px;
-            padding: 8px 12px;
-            width: 180px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
-            backdrop-filter: blur(8px);
-            pointer-events: auto !important;
-        }
-        .hp-card.yachiru-style { border-color: #ff66aa; }
-
-        .unit-name {
-            font-size: 11px;
-            font-weight: 900;
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
+        .status-box {
+            background: rgba(5, 12, 22, 0.85);
+            border: 1.5px solid #00dfff;
+            border-radius: 8px;
+            padding: 6px 10px;
             color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            pointer-events: auto;
         }
 
-        .hp-bar-outer {
-            width: 100%;
-            height: 8px;
-            background: rgba(0,0,0,0.8);
-            border-radius: 4px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.2);
-            margin-bottom: 4px;
+        .btn-group {
+            display: flex;
+            gap: 6px;
+            pointer-events: auto;
         }
-        .hp-bar-inner {
-            height: 100%;
-            width: 100%;
-            transition: width 0.2s ease-out;
-        }
-        #player-hp { background: linear-gradient(90deg, #0077b6, #00dfff); }
-        #player-exp { background: linear-gradient(90deg, #ca8a04, #facc15); }
 
-        /* 컨트롤 패널 */
-        #upload-pane {
-            background: rgba(3, 10, 20, 0.92);
-            padding: 6px 12px;
-            border-radius: 14px;
+        .top-btn {
+            background: rgba(0, 0, 0, 0.7);
             border: 1.5px solid #00dfff;
             color: #fff;
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 0 15px rgba(0, 223, 255, 0.3);
-            font-size: 10px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 11px;
             font-weight: bold;
-            backdrop-filter: blur(8px);
-            pointer-events: auto !important;
+            cursor: pointer;
         }
 
         .upload-wrapper {
             position: relative;
             display: inline-block;
-            overflow: hidden;
-        }
-
-        .upload-btn {
-            background: linear-gradient(135deg, #00dfff 0%, #0055a5 100%);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 10px;
-            box-shadow: 0 0 8px rgba(0, 223, 255, 0.5);
-            white-space: nowrap;
-            display: block;
         }
 
         #file-input {
@@ -143,105 +94,33 @@
             height: 100%;
             opacity: 0;
             cursor: pointer;
-            font-size: 0;
-            pointer-events: auto !important;
         }
 
-        .mode-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid #ff66aa;
-            color: #ff99cc;
-            padding: 4px 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 10px;
-            font-weight: bold;
-            pointer-events: auto !important;
-            white-space: nowrap;
-        }
-        .mode-btn.active-toshiro {
-            background: #0088cc;
-            color: #fff;
-            border-color: #00dfff;
-            box-shadow: 0 0 8px #00dfff;
-        }
-        .mode-btn.active-yachiru {
-            background: #e60073;
-            color: #fff;
-            border-color: #ff99cc;
-            box-shadow: 0 0 8px #ff66aa;
-        }
-
-        #combo-container {
-            position: absolute;
-            right: 20px;
-            top: 70px;
-            text-align: right;
-            font-family: 'Orbitron', sans-serif;
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        #combo-container.active { opacity: 1; transform: scale(1); }
-        #combo-count {
-            font-size: 32px;
-            font-weight: 900;
-            color: #70e6ff;
-            text-shadow: 0 0 15px #00dfff, 2px 2px 0px #000;
-            line-height: 1;
-        }
-        #combo-label { font-size: 9px; color: #fff; letter-spacing: 1px; }
-
-        #shift-lock-btn {
-            position: absolute;
-            left: 140px;
-            bottom: 30px;
-            width: 46px;
-            height: 36px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00dfff;
-            border-radius: 10px;
-            color: #00dfff;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 10px;
-            font-weight: 900;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            pointer-events: auto !important;
-        }
-        #shift-lock-btn.active {
-            background: #00dfff;
-            color: #000;
-            box-shadow: 0 0 15px #00dfff;
-        }
-
+        /* 조이스틱 */
         #joystick-container {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            bottom: 25px;
+            left: 25px;
             width: 100px;
             height: 100px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(0, 223, 255, 0.5);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            touch-action: none;
-            backdrop-filter: blur(5px);
-            pointer-events: auto !important;
+            pointer-events: auto;
         }
+
         #joystick-knob {
             width: 40px;
             height: 40px;
-            background: radial-gradient(circle, #80e5ff 0%, #0077b6 100%);
+            background: #00dfff;
             border-radius: 50%;
-            position: absolute;
-            box-shadow: 0 0 12px #00dfff;
+            box-shadow: 0 0 10px #00dfff;
         }
 
+        /* 스킬 버튼 */
         .btn-container {
             position: absolute;
             bottom: 15px;
@@ -250,268 +129,199 @@
             height: 200px;
             pointer-events: none;
         }
+
         .action-btn {
             position: absolute;
             border-radius: 50%;
             color: white;
-            font-weight: 900;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            touch-action: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
-            border: 2px solid rgba(255,255,255,0.85);
-            pointer-events: auto !important;
-            overflow: hidden;
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-        .action-btn:active { transform: scale(0.9); }
-        .cooldown-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.82);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 12px;
-            color: #00dfff;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #attack-btn {
-            width: 70px; height: 70px; bottom: 5px; right: 5px;
-            background: radial-gradient(circle, #00dfff 0%, #004080 100%);
-            font-size: 14px; box-shadow: 0 0 18px #00dfff;
-        }
-        #dodge-btn {
-            width: 44px; height: 44px; bottom: 5px; right: 90px;
-            background: radial-gradient(circle, #ffcc00 0%, #886600 100%);
-            font-size: 10px;
-        }
-        #skill-btn {
-            width: 46px; height: 46px; bottom: 90px; right: 5px;
-            background: radial-gradient(circle, #70e6ff 0%, #0055a5 100%);
-            font-size: 10px;
-        }
-        #ult-btn {
-            width: 52px; height: 52px; bottom: 75px; right: 75px;
-            background: radial-gradient(circle, #ffffff 0%, #0099ff 100%);
-            font-size: 10px; color: #002244; box-shadow: 0 0 22px #ffffff;
-        }
-
-        body.yachiru-mode #attack-btn {
-            background: radial-gradient(circle, #ff66cc 0%, #880044 100%);
-            box-shadow: 0 0 18px #ff66cc;
-        }
-        body.yachiru-mode #skill-btn { background: radial-gradient(circle, #ff99dd 0%, #aa0055 100%); }
-        body.yachiru-mode #ult-btn {
-            background: radial-gradient(circle, #ffffff 0%, #ff3399 100%);
-            box-shadow: 0 0 28px #ff66cc;
-        }
-        body.yachiru-mode #joystick-knob {
-            background: radial-gradient(circle, #ff99cc 0%, #aa0055 100%);
-            box-shadow: 0 0 12px #ff66aa;
-        }
-
-        .dmg-text {
-            position: absolute;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            font-size: 22px;
-            color: #ffea00;
-            text-shadow: 2px 2px 0px #000, 0 0 10px #ff3300;
-            pointer-events: none;
-            animation: dmgAnim 0.75s ease-out forwards;
-            z-index: 1000;
-        }
-        @keyframes dmgAnim {
-            0% { opacity: 1; transform: translate(-50%, 0) scale(0.6); }
-            30% { transform: translate(-50%, -30px) scale(1.3); }
-            100% { opacity: 0; transform: translate(-50%, -50px) scale(0.9); }
-        }
-
-        .modal {
-            position: absolute;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(2, 6, 23, 0.94);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 16px;
-            z-index: 200;
-            color: #fff;
-            pointer-events: auto !important;
-            backdrop-filter: blur(10px);
-        }
-        .modal h1 {
-            font-size: 32px;
-            color: #38bdf8;
-            text-shadow: 0 0 20px #0284c7;
-            font-family: 'Orbitron', sans-serif;
-        }
-        .upgrade-list { display: flex; gap: 12px; margin-top: 10px; }
-        .upgrade-card {
-            width: 110px;
-            padding: 16px 8px;
-            background: #1e293b;
-            border: 2px solid #38bdf8;
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .upgrade-card:active { transform: scale(0.95); }
-        .upgrade-card h3 { font-size: 13px; color: #facc15; margin-bottom: 6px; }
-        .upgrade-card p { font-size: 10px; color: #94a3b8; line-height: 1.3; }
-
-        .btn-action {
-            padding: 10px 24px;
-            font-size: 14px;
             font-weight: bold;
-            color: #fff;
-            background: #2563eb;
-            border: none;
-            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
-            box-shadow: 0 0 15px #3b82f6;
+            border: 2px solid rgba(255,255,255,0.8);
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 10px rgba(0,223,255,0.3);
         }
+
+        #attack-btn { width: 70px; height: 70px; bottom: 5px; right: 5px; background: #0077b6; font-size: 14px; }
+        #dodge-btn { width: 45px; height: 45px; bottom: 5px; right: 90px; font-size: 10px; }
+        #skill-btn { width: 45px; height: 45px; bottom: 90px; right: 5px; font-size: 10px; }
+        #ult-btn { width: 55px; height: 55px; bottom: 75px; right: 75px; font-size: 10px; background: #0055a5; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
-<body class="toshiro-mode">
+<body>
     <div id="canvas-container"></div>
     
     <div id="ui-layer">
         <div id="top-bar">
-            <div class="hp-card" id="player-card">
-                <div class="unit-name">
-                    <span id="char-icon-name">❄️ 토시로</span>
-                    <span>Lv.<span id="lvl-num">1</span> STAGE <span id="stage-num">1</span></span>
-                </div>
-                <div class="hp-bar-outer"><div id="player-hp" class="hp-bar-inner"></div></div>
-                <div class="hp-bar-outer"><div id="player-exp" class="hp-bar-inner"></div></div>
-            </div>
-
-            <div id="upload-pane">
-                <button id="btn-toshiro" class="mode-btn active-toshiro">❄️</button>
-                <button id="btn-yachiru" class="mode-btn">🌸</button>
-                <button id="sound-btn" class="mode-btn" onclick="toggleSound()">🔊 ON</button>
-                
+            <div class="status-box">❄️ 토시로 Lv.1</div>
+            <div class="btn-group">
+                <button class="top-btn" onclick="resetCamera()">카메라 리셋</button>
                 <div class="upload-wrapper">
-                    <button class="upload-btn">.glb 교체</button>
+                    <button class="top-btn">.glb 교체</button>
                     <input type="file" id="file-input" accept=".glb,.gltf">
                 </div>
             </div>
         </div>
 
-        <div id="combo-container">
-            <div id="combo-count">0</div>
-            <div id="combo-label">Hits Combo</div>
+        <div id="joystick-container">
+            <div id="joystick-knob"></div>
         </div>
 
-        <div id="shift-lock-btn">LOCK</div>
-        <div id="joystick-container"><div id="joystick-knob"></div></div>
-
         <div class="btn-container">
-            <div id="dodge-btn" class="action-btn">회피<div id="dodge-cd" class="cooldown-overlay"></div></div>
-            <div id="skill-btn" class="action-btn"><span id="skill-label">돌진</span><div id="skill-cd" class="cooldown-overlay"></div></div>
-            <div id="ult-btn" class="action-btn"><span id="ult-label">빙륜환</span><div id="ult-cd" class="cooldown-overlay"></div></div>
+            <div id="dodge-btn" class="action-btn">회피</div>
+            <div id="skill-btn" class="action-btn">돌진</div>
+            <div id="ult-btn" class="action-btn">빙륜환</div>
             <div id="attack-btn" class="action-btn">공격</div>
         </div>
     </div>
 
-    <div id="levelup-modal" class="modal">
-        <h1>LEVEL UP!</h1>
-        <p style="color: #94a3b8; font-size: 12px;">강화할 능력을 선택하세요.</p>
-        <div class="upgrade-list">
-            <div class="upgrade-card" onclick="selectUpgrade('atk')">
-                <h3>⚔️ 영압 강화</h3>
-                <p>기본 공격력 +15</p>
-            </div>
-            <div class="upgrade-card" onclick="selectUpgrade('hp')">
-                <h3>❤️ 체력 회복</h3>
-                <p>최대 체력 +35 완치</p>
-            </div>
-            <div class="upgrade-card" onclick="selectUpgrade('speed')">
-                <h3>⚡ 순보 극의</h3>
-                <p>이동 속도 15% 상승</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="gameover-modal" class="modal">
-        <h1 style="color: #ef4444;">GAME OVER</h1>
-        <div style="font-size: 16px;">최종 점수: <span id="final-score" style="color: #facc15; font-weight: bold;">0</span></div>
-        <button class="btn-action" onclick="restartGame()">다시 도전</button>
-    </div>
-
     <script>
-        let soundEnabled = true;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-        function toggleSound() {
-            soundEnabled = !soundEnabled;
-            document.getElementById("sound-btn").innerText = soundEnabled ? "🔊 ON" : "🔇 OFF";
-        }
-
-        function playSound(type) {
-            if (!soundEnabled) return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-
-            if (type === 'hit') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(320, now);
-                osc.frequency.exponentialRampToValueAtTime(50, now + 0.12);
-                gain.gain.setValueAtTime(0.35, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-                osc.start(now); osc.stop(now + 0.12);
-            } else if (type === 'dash') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(180, now);
-                osc.frequency.exponentialRampToValueAtTime(600, now + 0.18);
-                gain.gain.setValueAtTime(0.25, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
-                osc.start(now); osc.stop(now + 0.18);
-            } else if (type === 'ult') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(90, now);
-                osc.frequency.exponentialRampToValueAtTime(650, now + 0.45);
-                gain.gain.setValueAtTime(0.45, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
-                osc.start(now); osc.stop(now + 0.45);
-            } else if (type === 'heal') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(350, now);
-                osc.frequency.exponentialRampToValueAtTime(900, now + 0.25);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                osc.start(now); osc.stop(now + 0.25);
-            }
-        }
-
+        // 1. 씬 및 카메라 설정
+        const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x02050a);
-        scene.fog = new THREE.FogExp2(0x02050a, 0.016);
 
-        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.outputEncoding = THREE.sRGBEncoding;
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        container.appendChild(renderer.domElement);
+
+        // 2. 조명 및 바닥
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(10, 20, 10);
+        scene.add(dirLight);
+
+        const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0x112233);
+        grid.position.y = 0;
+        scene.add(grid);
+
+        // 3. 캐릭터 그룹 및 기본 캐릭터 생성
+        const characterGroup = new THREE.Group();
+        scene.add(characterGroup);
+
+        let currentMesh = null;
+        let mixer = null;
+        let clock = new THREE.Clock();
+
+        function createDefaultCapsule() {
+            if (currentMesh) characterGroup.remove(currentMesh);
+            
+            const geo = new THREE.CapsuleGeometry(0.5, 1.2, 4, 8);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff });
+            currentMesh = new THREE.Mesh(geo, mat);
+            currentMesh.position.y = 1.1;
+            characterGroup.add(currentMesh);
+        }
+
+        // 기본 캐릭터 즉시 배치
+        createDefaultCapsule();
+
+        // 4. 카메라 위치 초기화 함수
+        function resetCamera() {
+            camera.position.set(0, 4, 7);
+            camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+        }
+        resetCamera();
+
+        // 5. .glb 파일 로드 처리
+        const loader = new THREE.GLTFLoader();
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            loader.load(url, (gltf) => {
+                if (currentMesh) characterGroup.remove(currentMesh);
+                
+                currentMesh = gltf.scene;
+                
+                // 크기 조정
+                const box = new THREE.Box3().setFromObject(currentMesh);
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 2.5 / maxDim;
+                
+                currentMesh.scale.set(scale, scale, scale);
+                currentMesh.position.set(0, 0, 0);
+                
+                characterGroup.add(currentMesh);
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(currentMesh);
+                    mixer.clipAction(gltf.animations[0]).play();
+                }
+            });
+        });
+
+        // 6. 조이스틱 조작
+        let moveDir = { x: 0, z: 0 };
+        const joystick = document.getElementById('joystick-container');
+        const knob = document.getElementById('joystick-knob');
+        let active = false, startX = 0, startY = 0;
+
+        function handleStart(e) {
+            active = true;
+            const t = e.touches ? e.touches[0] : e;
+            startX = t.clientX; startY = t.clientY;
+        }
+
+        function handleMove(e) {
+            if (!active) return;
+            const t = e.touches ? e.touches[0] : e;
+            let dx = t.clientX - startX;
+            let dy = t.clientY - startY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const maxR = 35;
+
+            if (dist > maxR) { dx = (dx/dist)*maxR; dy = (dy/dist)*maxR; }
+            knob.style.transform = `translate(${dx}px, ${dy}px)`;
+            
+            moveDir.x = dx / maxR;
+            moveDir.z = dy / maxR;
+        }
+
+        function handleEnd() {
+            active = false;
+            knob.style.transform = 'translate(0px, 0px)';
+            moveDir.x = 0; moveDir.z = 0;
+        }
+
+        joystick.addEventListener('touchstart', handleStart);
+        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('touchend', handleEnd);
+        joystick.addEventListener('mousedown', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        // 7. 애니메이션 루프
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            if (mixer) mixer.update(delta);
+
+            if (moveDir.x !== 0 || moveDir.z !== 0) {
+                characterGroup.position.x += moveDir.x * 0.12;
+                characterGroup.position.z += moveDir.z * 0.12;
+                characterGroup.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+            }
+
+            // 카메라 추적
+            camera.position.x = characterGroup.position.x;
+            camera.position.z = characterGroup.position.z + 7;
+            camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1, characterGroup.position.z);
+
+            renderer.render(scene, camera);
+        }
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -519,527 +329,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        const ambientLight = new THREE.AmbientLight(0xd0f4ff, 1.3);
-        scene.add(ambientLight);
-        
-        const dirLight = new THREE.DirectionalLight(0x80d8ff, 2.2);
-        dirLight.position.set(30, 50, 30);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-
-        const floorGeo = new THREE.PlaneGeometry(200, 200);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x08101a, roughness: 0.4, metalness: 0.4 });
-        const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.rotation.x = -Math.PI / 2;
-        floor.receiveShadow = true;
-        scene.add(floor);
-
-        const grid = new THREE.GridHelper(200, 100, 0x00dfff, 0x112233);
-        grid.position.y = 0.01;
-        scene.add(grid);
-
-        const characterGroup = new THREE.Group();
-        scene.add(characterGroup);
-
-        let loadedCharacter = null;
-        let defaultBoxMesh = null;
-        let mixer = null;
-        let clock = new THREE.Clock();
-        let currentMode = 'toshiro';
-        let isShiftLock = false;
-
-        let playerHp = 100, maxHp = 100, exp = 0, level = 1, stage = 1, score = 0;
-        let baseAtk = 25, moveSpeed = 0.17;
-        let isInvincible = false, isPaused = false, isGameOver = false, isActing = false;
-
-        let modelMeshes = [];
-        const loader = new THREE.GLTFLoader();
-
-        function createDefaultCharacter() {
-            while(characterGroup.children.length > 0) { characterGroup.remove(characterGroup.children[0]); }
-            const geo = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x00dfff, roughness: 0.2 });
-            defaultBoxMesh = new THREE.Mesh(geo, mat);
-            defaultBoxMesh.position.y = 1.25;
-            defaultBoxMesh.castShadow = true;
-            characterGroup.add(defaultBoxMesh);
-            isActing = false;
-            isPaused = false;
-        }
-
-        // 기본 캐릭터 즉시 생성
-        createDefaultCharacter();
-
-        function setCharacterMode(mode) {
-            currentMode = mode;
-            const btnT = document.getElementById('btn-toshiro');
-            const btnY = document.getElementById('btn-yachiru');
-            const iconName = document.getElementById('char-icon-name');
-            const skillLabel = document.getElementById('skill-label');
-            const ultLabel = document.getElementById('ult-label');
-            const card = document.getElementById('player-card');
-
-            if(mode === 'yachiru') {
-                document.body.className = 'yachiru-mode';
-                btnT.className = 'mode-btn'; btnY.className = 'mode-btn active-yachiru';
-                iconName.innerText = "🌸 야치루";
-                skillLabel.innerText = "야수돌진";
-                ultLabel.innerText = "삼보검수";
-                card.classList.add('yachiru-style');
-                if(defaultBoxMesh) defaultBoxMesh.material.color.setHex(0xff66cc);
-            } else {
-                document.body.className = 'toshiro-mode';
-                btnT.className = 'mode-btn active-toshiro'; btnY.className = 'mode-btn';
-                iconName.innerText = "❄️ 토시로";
-                skillLabel.innerText = "빙각돌진";
-                ultLabel.innerText = "빙륜환";
-                card.classList.remove('yachiru-style');
-                if(defaultBoxMesh) defaultBoxMesh.material.color.setHex(0x00dfff);
-            }
-        }
-
-        document.getElementById('btn-toshiro').addEventListener('click', () => setCharacterMode('toshiro'));
-        document.getElementById('btn-yachiru').addEventListener('click', () => setCharacterMode('yachiru'));
-
-        function setupCharacter(gltf) {
-            while(characterGroup.children.length > 0) { characterGroup.remove(characterGroup.children[0]); }
-            loadedCharacter = gltf.scene;
-            defaultBoxMesh = null;
-            modelMeshes = [];
-
-            const box = new THREE.Box3().setFromObject(loadedCharacter);
-            const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const center = box.getCenter(new THREE.Vector3());
-            
-            const scaleFactor = 3.2 / maxDim;
-            loadedCharacter.scale.set(scaleFactor, scaleFactor, scaleFactor);
-            loadedCharacter.position.x = -center.x * scaleFactor;
-            loadedCharacter.position.y = -box.min.y * scaleFactor;
-            loadedCharacter.position.z = -center.z * scaleFactor;
-
-            loadedCharacter.traverse((node) => {
-                if (node.isMesh) {
-                    node.castShadow = true;
-                    node.receiveShadow = true;
-                    modelMeshes.push(node);
-                }
-            });
-
-            if (gltf.animations && gltf.animations.length > 0) {
-                mixer = new THREE.AnimationMixer(loadedCharacter);
-                const action = mixer.clipAction(gltf.animations[0]);
-                action.play();
-            } else {
-                mixer = null;
-            }
-
-            characterGroup.add(loadedCharacter);
-            isActing = false;
-            isPaused = false;
-            isGameOver = false;
-        }
-
-        /* 📌 파일 선택 시 .glb 파일 교체 */
-        const fileInput = document.getElementById('file-input');
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const fileName = file.name.toLowerCase();
-            if(fileName.includes('야치루') || fileName.includes('yachiru')) {
-                setCharacterMode('yachiru');
-            }
-
-            const url = URL.createObjectURL(file);
-            loader.load(
-                url, 
-                (gltf) => { 
-                    setupCharacter(gltf);
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                },
-                undefined,
-                (err) => { 
-                    console.error("GLB 로드 실패:", err);
-                    alert("파일을 불러오는 중 오류가 발생했습니다.");
-                }
-            );
-        });
-
-        let enemies = [];
-        let enemyBullets = [];
-        let particles = [];
-
-        function spawnEnemies() {
-            const count = 3 + Math.floor(stage / 2);
-            for (let i = 0; i < count; i++) {
-                const isBoss = (stage % 5 === 0) && (i === 0);
-                const size = isBoss ? 2.6 : 1.2;
-                
-                const mesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(size, size * 1.5, size),
-                    new THREE.MeshStandardMaterial({
-                        color: isBoss ? 0xf59e0b : 0xef4444,
-                        roughness: 0.3
-                    })
-                );
-                mesh.position.set(
-                    characterGroup.position.x + (Math.random() - 0.5) * 32,
-                    (size * 1.5) / 2,
-                    characterGroup.position.z + (Math.random() - 0.5) * 32
-                );
-                mesh.castShadow = true;
-                scene.add(mesh);
-
-                enemies.push({
-                    mesh, isBoss,
-                    hp: isBoss ? 450 : 80, maxHp: isBoss ? 450 : 80
-                });
-            }
-        }
-        spawnEnemies();
-
-        let comboCount = 0, comboTimer = null;
-
-        function spawnSkillParticles(pos, count = 20) {
-            const isYachiru = (currentMode === 'yachiru');
-            const color = isYachiru ? 0xff66cc : 0x80e5ff;
-            for(let i=0; i<count; i++) {
-                const geo = new THREE.TetrahedronGeometry(0.2);
-                const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1 });
-                const p = new THREE.Mesh(geo, mat);
-                p.position.copy(pos);
-                p.position.y += 1.0;
-                scene.add(p);
-
-                particles.push({
-                    mesh: p,
-                    vx: (Math.random() - 0.5) * 0.4,
-                    vy: Math.random() * 0.3 + 0.1,
-                    vz: (Math.random() - 0.5) * 0.4,
-                    opacity: 1
-                });
-            }
-        }
-
-        function triggerDamageText(pos, damage) {
-            const p = pos.clone(); p.y += 2.5; p.project(camera);
-            const x = (p.x * .5 + .5) * window.innerWidth;
-            const y = (-(p.y * .5) + .5) * window.innerHeight;
-
-            const div = document.createElement('div');
-            div.className = 'dmg-text';
-            div.innerText = "-" + Math.floor(damage);
-            div.style.left = `${x}px`; div.style.top = `${y}px`;
-            if(currentMode === 'yachiru') div.style.color = '#ff66cc';
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 750);
-        }
-
-        function selectUpgrade(type) {
-            if (type === 'atk') baseAtk += 15;
-            if (type === 'hp') { maxHp += 35; playerHp = maxHp; }
-            if (type === 'speed') moveSpeed *= 1.15;
-
-            document.getElementById("levelup-modal").style.display = "none";
-            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
-            isPaused = false;
-        }
-
-        function restartGame() {
-            playerHp = maxHp; exp = 0; level = 1; stage = 1; score = 0;
-            isGameOver = false; isPaused = false; isActing = false;
-            characterGroup.position.set(0, 0, 0);
-
-            document.getElementById("lvl-num").innerText = level;
-            document.getElementById("stage-num").innerText = stage;
-            document.getElementById("player-hp").style.width = "100%";
-            document.getElementById("player-exp").style.width = "0%";
-            document.getElementById("gameover-modal").style.display = "none";
-
-            enemies.forEach(e => scene.remove(e.mesh));
-            enemies = [];
-            spawnEnemies();
-        }
-
-        function autoTargetEnemy() {
-            let nearest = null, minDist = 18;
-            enemies.forEach(e => {
-                const d = characterGroup.position.distanceTo(e.mesh.position);
-                if (d < minDist) { minDist = d; nearest = e; }
-            });
-            if(nearest) {
-                characterGroup.lookAt(nearest.mesh.position.x, characterGroup.position.y, nearest.mesh.position.z);
-            }
-        }
-
-        const cooldowns = { dodge: false, skill: false, ult: false };
-        function startCooldown(type, sec) {
-            cooldowns[type] = true;
-            const cdEl = document.getElementById(type + '-cd');
-            cdEl.style.opacity = '1';
-            let remain = sec; cdEl.innerText = remain;
-            const t = setInterval(() => {
-                remain--;
-                if(remain <= 0) { clearInterval(t); cooldowns[type] = false; cdEl.style.opacity = '0'; }
-                else { cdEl.innerText = remain; }
-            }, 1000);
-        }
-
-        const shiftLockBtn = document.getElementById('shift-lock-btn');
-        shiftLockBtn.addEventListener('click', () => {
-            isShiftLock = !isShiftLock;
-            shiftLockBtn.classList.toggle('active', isShiftLock);
-        });
-
-        let moveDirection = { x: 0, z: 0 };
-        const joystick = document.getElementById('joystick-container');
-        const knob = document.getElementById('joystick-knob');
-        let jsActive = false, startX = 0, startY = 0, maxRadius = 35;
-
-        const handleTouchStart = (e) => { jsActive = true; const t = e.touches ? e.touches[0] : e; startX = t.clientX; startY = t.clientY; };
-        const handleTouchMove = (e) => {
-            if(!jsActive) return; const t = e.touches ? e.touches[0] : e;
-            let dx = t.clientX - startX; let dy = t.clientY - startY;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            if(dist > maxRadius) { dx = (dx/dist)*maxRadius; dy = (dy/dist)*maxRadius; }
-            knob.style.transform = `translate(${dx}px, ${dy}px)`;
-            moveDirection.x = dx / maxRadius; moveDirection.z = dy / maxRadius;
-        };
-        const handleTouchEnd = () => { jsActive = false; knob.style.transform = 'translate(0px,0px)'; moveDirection.x = 0; moveDirection.z = 0; };
-
-        joystick.addEventListener('touchstart', handleTouchStart);
-        joystick.addEventListener('touchmove', handleTouchMove);
-        joystick.addEventListener('touchend', handleTouchEnd);
-        joystick.addEventListener('mousedown', handleTouchStart);
-        window.addEventListener('mousemove', handleTouchMove);
-        window.addEventListener('mouseup', handleTouchEnd);
-
-        let comboStage = 0;
-
-        function dealDamageToEnemies(range = 4.0, multiplier = 1.0) {
-            let hit = false;
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const e = enemies[i];
-                if (characterGroup.position.distanceTo(e.mesh.position) < range) {
-                    const dmg = baseAtk * multiplier;
-                    e.hp -= dmg;
-                    hit = true;
-                    spawnSkillParticles(e.mesh.position, 8);
-                    triggerDamageText(e.mesh.position, dmg);
-
-                    if (e.hp <= 0) {
-                        spawnSkillParticles(e.mesh.position, 20);
-                        scene.remove(e.mesh);
-                        enemies.splice(i, 1);
-                        score += e.isBoss ? 500 : 100;
-                        exp += e.isBoss ? 80 : 35;
-                    }
-                }
-            }
-
-            if (hit) {
-                playSound('hit');
-                comboCount++;
-                document.getElementById('combo-count').innerText = comboCount;
-                document.getElementById('combo-container').classList.add('active');
-                clearTimeout(comboTimer);
-                comboTimer = setTimeout(() => { comboCount = 0; document.getElementById('combo-container').classList.remove('active'); }, 2200);
-            }
-
-            if (enemies.length === 0) {
-                stage++;
-                document.getElementById("stage-num").innerText = stage;
-                spawnEnemies();
-            }
-
-            if (exp >= 100) {
-                level++; exp %= 100;
-                playSound('heal');
-                document.getElementById("lvl-num").innerText = level;
-                document.getElementById("levelup-modal").style.display = "flex";
-                isPaused = true;
-            }
-
-            document.getElementById("player-exp").style.width = exp + "%";
-            document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
-        }
-
-        function executeAttack() {
-            if(isActing || isPaused || isGameOver) return;
-            isActing = true; autoTargetEnemy();
-
-            comboStage = (comboStage % 3) + 1;
-            const isYachiru = (currentMode === 'yachiru');
-            
-            const slashGeo = new THREE.RingGeometry(0.6, 2.5, 32, 1, 0, Math.PI * 0.85);
-            const slashMat = new THREE.MeshBasicMaterial({
-                color: isYachiru ? 0xff66cc : 0x00ffff,
-                side: THREE.DoubleSide, transparent: true, opacity: 0.95
-            });
-            const slash = new THREE.Mesh(slashGeo, slashMat);
-            slash.position.set(characterGroup.position.x, 1.2, characterGroup.position.z);
-            slash.rotation.x = Math.PI / 2;
-            slash.rotation.z = -characterGroup.rotation.y - Math.PI / 2;
-            scene.add(slash);
-
-            dealDamageToEnemies(4.2, 1.0 + comboStage * 0.2);
-
-            let sc = 1;
-            const t = setInterval(() => {
-                sc += 0.2; slash.scale.set(sc, sc, sc); slash.material.opacity -= 0.15;
-                if(slash.material.opacity <= 0) { clearInterval(t); scene.remove(slash); isActing = false; }
-            }, 20);
-        }
-
-        const attackBtn = document.getElementById('attack-btn');
-        attackBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeAttack(); });
-        attackBtn.addEventListener('click', (e) => { e.preventDefault(); executeAttack(); });
-
-        const dodgeBtn = document.getElementById('dodge-btn');
-        const executeDodge = () => {
-            if(isActing || cooldowns.dodge || isPaused || isGameOver) return;
-            isActing = true; isInvincible = true; startCooldown('dodge', 2); playSound('dash');
-
-            const dirX = moveDirection.x !== 0 ? moveDirection.x : Math.sin(characterGroup.rotation.y);
-            const dirZ = moveDirection.z !== 0 ? moveDirection.z : Math.cos(characterGroup.rotation.y);
-
-            let count = 0;
-            const t = setInterval(() => {
-                characterGroup.position.x += dirX * 0.5;
-                characterGroup.position.z += dirZ * 0.5;
-                count++;
-                if(count > 8) { clearInterval(t); isInvincible = false; isActing = false; }
-            }, 20);
-        };
-        dodgeBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeDodge(); });
-        dodgeBtn.addEventListener('click', (e) => { e.preventDefault(); executeDodge(); });
-
-        const skillBtn = document.getElementById('skill-btn');
-        const executeSkill = () => {
-            if(isActing || cooldowns.skill || isPaused || isGameOver) return;
-            isActing = true; autoTargetEnemy(); startCooldown('skill', 5); playSound('dash');
-
-            const dirX = Math.sin(characterGroup.rotation.y);
-            const dirZ = Math.cos(characterGroup.rotation.y);
-
-            let step = 0;
-            const t = setInterval(() => {
-                characterGroup.position.x += dirX * 0.55;
-                characterGroup.position.z += dirZ * 0.55;
-                dealDamageToEnemies(3.2, 1.8);
-                step++; if(step > 8) { clearInterval(t); isActing = false; }
-            }, 20);
-        };
-        skillBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeSkill(); });
-        skillBtn.addEventListener('click', (e) => { e.preventDefault(); executeSkill(); });
-
-        const ultBtn = document.getElementById('ult-btn');
-        const executeUlt = () => {
-            if(isActing || cooldowns.ult || isPaused || isGameOver) return;
-            isActing = true; autoTargetEnemy(); startCooldown('ult', 10); playSound('ult');
-
-            const isYachiru = (currentMode === 'yachiru');
-            const ultGeo = new THREE.OctahedronGeometry(4.5, 2);
-            const ultMat = new THREE.MeshStandardMaterial({
-                color: isYachiru ? 0xff33aa : 0xb3f0ff, roughness: 0.1, transparent: true, opacity: 0.85
-            });
-            const ultCore = new THREE.Mesh(ultGeo, ultMat);
-            ultCore.position.set(characterGroup.position.x, 3.5, characterGroup.position.z);
-            scene.add(ultCore);
-
-            spawnSkillParticles(characterGroup.position, 50);
-            dealDamageToEnemies(8.0, 3.5);
-
-            let dur = 0;
-            const t = setInterval(() => {
-                ultCore.rotation.y += 0.15; ultCore.material.opacity -= 0.03;
-                dur++;
-                if(dur > 30) {
-                    clearInterval(t); scene.remove(ultCore);
-                    isActing = false;
-                }
-            }, 25);
-        };
-        ultBtn.addEventListener('touchstart', (e) => { e.preventDefault(); executeUlt(); });
-        ultBtn.addEventListener('click', (e) => { e.preventDefault(); executeUlt(); });
-
-        function updateJointAnimation(delta, isMoving) {
-            if (mixer) {
-                mixer.update(delta);
-            } else if (loadedCharacter) {
-                const time = Date.now() * 0.012;
-                if (isMoving) {
-                    loadedCharacter.position.y = Math.abs(Math.sin(time * 1.6)) * 0.25;
-                    loadedCharacter.rotation.z = Math.sin(time) * 0.08;
-                } else {
-                    loadedCharacter.position.y = Math.sin(time * 0.6) * 0.05;
-                    loadedCharacter.rotation.z = 0;
-                }
-            } else if (defaultBoxMesh) {
-                const time = Date.now() * 0.012;
-                if (isMoving) {
-                    defaultBoxMesh.position.y = 1.25 + Math.abs(Math.sin(time * 1.6)) * 0.25;
-                } else {
-                    defaultBoxMesh.position.y = 1.25 + Math.sin(time * 0.6) * 0.05;
-                }
-            }
-        }
-
-        camera.position.set(0, 4.0, 7.5);
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-
-            if (!isGameOver && !isPaused) {
-                const isMoving = (moveDirection.x !== 0 || moveDirection.z !== 0);
-
-                if (isMoving) {
-                    characterGroup.position.x += moveDirection.x * moveSpeed;
-                    characterGroup.position.z += moveDirection.z * moveSpeed;
-                    if (!isShiftLock) { characterGroup.rotation.y = Math.atan2(moveDirection.x, moveDirection.z); }
-                }
-
-                updateJointAnimation(delta, isMoving);
-
-                if (isShiftLock) {
-                    const targetRot = Math.atan2(camera.position.x - characterGroup.position.x, camera.position.z - characterGroup.position.z);
-                    characterGroup.rotation.y = THREE.MathUtils.lerp(characterGroup.rotation.y, targetRot + Math.PI, 0.2);
-                }
-
-                enemies.forEach(e => {
-                    const dist = characterGroup.position.distanceTo(e.mesh.position);
-                    const dir = new THREE.Vector3().subVectors(characterGroup.position, e.mesh.position).normalize();
-
-                    if (dist > 1.3) {
-                        e.mesh.position.addScaledVector(dir, 0.035);
-                    } else if (!isInvincible) {
-                        playerHp = Math.max(0, playerHp - 0.2);
-                        document.getElementById("player-hp").style.width = (playerHp / maxHp * 100) + "%";
-                        if (playerHp <= 0) {
-                            isGameOver = true;
-                            document.getElementById("final-score").innerText = score;
-                            document.getElementById("gameover-modal").style.display = "flex";
-                        }
-                    }
-                });
-
-                for (let i = particles.length - 1; i >= 0; i--) {
-                    const p = particles[i];
-                    p.mesh.position.x += p.vx; p.mesh.position.y += p.vy; p.mesh.position.z += p.vz;
-                    p.opacity -= 0.04; p.mesh.material.opacity = p.opacity;
-                    if (p.opacity <= 0) { scene.remove(p.mesh); particles.splice(i, 1); }
-                }
-            }
-
-            camera.position.x = THREE.MathUtils.lerp(camera.position.x, characterGroup.position.x, 0.08);
-            camera.position.z = THREE.MathUtils.lerp(camera.position.z, characterGroup.position.z + 7.5, 0.08);
-            camera.position.y = THREE.MathUtils.lerp(camera.position.y, characterGroup.position.y + 4.0, 0.08);
-            camera.lookAt(characterGroup.position.x, characterGroup.position.y + 1.0, characterGroup.position.z);
-
-            renderer.render(scene, camera);
-        }
         animate();
     </script>
 </body>
