@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Canvas Game</title>
+    <title>3D Web Game</title>
     <style>
         * {
             box-sizing: border-box;
@@ -140,7 +140,7 @@
     
     <div id="ui-layer">
         <div id="top-bar">
-            <div class="status-box" id="status">❄️ 토시로 Lv.1 STAGE 1</div>
+            <div class="status-box">❄️ 토시로 Lv.1</div>
             <div class="btn-group">
                 <button class="top-btn" id="reset-btn">카메라 리셋</button>
             </div>
@@ -169,23 +169,14 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // 게임 변수
-        let player = {
-            x: 0,
-            z: 0,
-            angle: 0,
-            size: 20,
-            speed: 3
-        };
-
-        let camera = { x: 0, z: -150 };
+        let player = { x: 0, z: 0, angle: 0, speed: 3 };
 
         document.getElementById('reset-btn').addEventListener('click', () => {
             player.x = 0;
             player.z = 0;
         });
 
-        // 조이스틱 연동
+        // 조이스틱 조작
         let moveDir = { x: 0, z: 0 };
         const joystick = document.getElementById('joystick-container');
         const knob = document.getElementById('joystick-knob');
@@ -225,12 +216,11 @@
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
 
-        // 3D 투영 매핑
+        // 3D 투영 좌표 계산
         function project(x, z) {
             const relX = x - player.x;
-            const relZ = z - player.z + 250; // 카메라인근 거리
-            const fov = 300;
-            const scale = fov / (relZ || 1);
+            const relZ = z - player.z + 250;
+            const scale = 300 / (relZ || 1);
             
             return {
                 x: canvas.width / 2 + relX * scale,
@@ -239,20 +229,19 @@
             };
         }
 
-        // 메인 렌더링 루프
+        // 게임 메인 루프
         function loop() {
-            // 플레이어 이동
             if (moveDir.x !== 0 || moveDir.z !== 0) {
                 player.x += moveDir.x * player.speed;
                 player.z -= moveDir.z * player.speed;
                 player.angle = Math.atan2(moveDir.x, -moveDir.z);
             }
 
-            // 바탕 청소
+            // 배경
             ctx.fillStyle = '#02050a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 3D 격자 바닥 그리기
+            // 3D 바닥 격자
             ctx.strokeStyle = 'rgba(0, 223, 255, 0.25)';
             ctx.lineWidth = 1;
 
@@ -282,7 +271,7 @@
                 ctx.stroke();
             }
 
-            // 캐릭터 그리기
+            // 캐릭터
             const pPos = project(player.x, player.z);
 
             // 그림자
@@ -291,7 +280,7 @@
             ctx.ellipse(pPos.x, pPos.y + 10, 15 * pPos.scale, 8 * pPos.scale, 0, 0, Math.PI * 2);
             ctx.fill();
 
-            // 캐릭터 원형 본체
+            // 구체 본체
             ctx.fillStyle = '#00dfff';
             ctx.shadowColor = '#00dfff';
             ctx.shadowBlur = 15;
@@ -300,7 +289,7 @@
             ctx.fill();
             ctx.shadowBlur = 0;
 
-            // 시선 방향 표시
+            // 정면 방향 눈금
             const headX = pPos.x + Math.sin(player.angle) * 12 * pPos.scale;
             const headY = pPos.y - 12 * pPos.scale - Math.cos(player.angle) * 12 * pPos.scale;
             ctx.fillStyle = '#ffffff';
