@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Mobile Action RPG</title>
+    <title>3D Mobile Action RPG - Ice Awakening</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #223854; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #1a2a3a; font-family: 'Segoe UI', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
         /* TOP HUD */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .panel-box { background: rgba(15, 30, 50, 0.9); border: 1.5px solid #00dfff; border-radius: 8px; padding: 10px; width: 200px; pointer-events: auto; box-shadow: 0 0 15px rgba(0, 223, 255, 0.4); }
+        .panel-box { background: rgba(10, 25, 45, 0.85); border: 1.5px solid #87ceeb; border-radius: 8px; padding: 10px; width: 200px; pointer-events: auto; box-shadow: 0 0 15px rgba(135, 206, 235, 0.5); }
         .gold-text { color: #ffd700; }
         .bar-container { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
         .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, #00b894); transition: width 0.15s; }
-        .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #0984e3, #74b9ff); transition: width 0.15s; }
-        .quest-box { margin-top: 8px; background: rgba(0, 223, 255, 0.15); border-left: 3px solid #f1c40f; padding: 5px; font-size: 11px; }
+        .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #00dfff, #74b9ff); transition: width 0.15s; }
+        .quest-box { margin-top: 8px; background: rgba(0, 223, 255, 0.15); border-left: 3px solid #87ceeb; padding: 5px; font-size: 11px; }
 
         .top-right-btns { display: flex; flex-direction: column; gap: 6px; }
-        .btn-hud { background: rgba(10, 25, 45, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #00dfff; }
+        .btn-hud { background: rgba(10, 25, 45, 0.9); border: 1.5px solid #87ceeb; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #87ceeb; }
         .btn-hud:active { transform: scale(0.95); }
 
         .btn-glb-highlight {
@@ -33,25 +33,25 @@
         }
 
         /* JOYSTICK & BUTTONS */
-        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(0, 223, 255, 0.6); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
-        #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #00dfff, #0077b6); border-radius: 50%; box-shadow: 0 0 15px #00dfff; }
+        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(135, 206, 235, 0.15); border: 2px solid rgba(135, 206, 235, 0.7); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
+        #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #e0f7fa, #00dfff); border-radius: 50%; box-shadow: 0 0 15px #00dfff; }
 
         .action-area { position: absolute; bottom: 20px; right: 20px; width: 220px; height: 220px; pointer-events: none; }
-        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(10, 25, 45, 0.9); border: 1.5px solid #00dfff; box-shadow: 0 0 10px rgba(0, 223, 255, 0.4); font-size: 11px; }
+        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(10, 25, 45, 0.9); border: 1.5px solid #87ceeb; box-shadow: 0 0 12px rgba(135, 206, 235, 0.6); font-size: 11px; }
         .btn-action:active { transform: scale(0.9); }
-        #btn-attack { width: 80px; height: 80px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #0099ff, #0044cc); border-color: #66ccff; box-shadow: 0 0 15px #0099ff; }
+        #btn-attack { width: 80px; height: 80px; bottom: 0; right: 0; font-size: 15px; background: radial-gradient(circle, #87ceeb, #0099ff); border-color: #e0f7fa; box-shadow: 0 0 18px #87ceeb; }
         #btn-dodge { width: 50px; height: 50px; bottom: 0; right: 100px; }
-        #btn-skill { width: 50px; height: 50px; bottom: 100px; right: 0; background: radial-gradient(circle, #ff9f43, #ee5253); border-color: #ff9f43; box-shadow: 0 0 12px #ff9f43; }
-        #btn-ult { width: 65px; height: 65px; bottom: 80px; right: 80px; border-color: #e056fd; background: radial-gradient(circle, #be2edd, #6c5ce7); box-shadow: 0 0 20px #e056fd; font-size: 13px; }
+        #btn-skill { width: 55px; height: 55px; bottom: 100px; right: 0; background: radial-gradient(circle, #a0e6ff, #00bfff); border-color: #e0f7fa; box-shadow: 0 0 15px #a0e6ff; font-size: 10px; text-align: center; }
+        #btn-ult { width: 70px; height: 70px; bottom: 80px; right: 80px; border-color: #ffffff; background: radial-gradient(circle, #e0f7fa, #00dfff); box-shadow: 0 0 25px #ffffff; color: #003366; font-size: 12px; }
 
         /* MODALS */
-        .modal-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 290px; background: rgba(15, 30, 50, 0.98); border: 2px solid #00dfff; border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; pointer-events: auto; z-index: 100; box-shadow: 0 0 25px rgba(0, 223, 255, 0.5); }
-        .modal-header { font-size: 14px; font-weight: bold; color: #00dfff; text-align: center; border-bottom: 1px solid rgba(0, 223, 255, 0.3); padding-bottom: 6px; }
+        .modal-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 290px; background: rgba(10, 25, 45, 0.98); border: 2px solid #87ceeb; border-radius: 12px; padding: 15px; display: none; flex-direction: column; gap: 10px; pointer-events: auto; z-index: 100; box-shadow: 0 0 25px rgba(135, 206, 235, 0.6); }
+        .modal-header { font-size: 14px; font-weight: bold; color: #87ceeb; text-align: center; border-bottom: 1px solid rgba(135, 206, 235, 0.3); padding-bottom: 6px; }
         .modal-body { font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
         .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.08); padding: 6px; border-radius: 4px; }
-        .stat-btn { background: #0077b6; border: 1px solid #00dfff; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+        .stat-btn { background: #0077b6; border: 1px solid #87ceeb; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
 
-        #toast-msg { position: absolute; top: 30%; width: 100%; text-align: center; color: #00ff88; font-size: 20px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 12px #00ff88; }
+        #toast-msg { position: absolute; top: 28%; width: 100%; text-align: center; color: #a0e6ff; font-size: 22px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 15px #00dfff; }
 
         #height-slider-box { display: flex; flex-direction: column; gap: 6px; align-items: center; margin-top: 5px; }
         #height-slider-box input { width: 100%; cursor: pointer; }
@@ -66,36 +66,36 @@
         <div id="top-hud">
             <div class="panel-box">
                 <div style="display:flex; justify-content:space-between;">
-                    <span>🛡️ 기사 <b id="ui-level" style="color:#00dfff;">Lv.1</b></span>
+                    <span>❄️ 빙설 기사 <b id="ui-level" style="color:#87ceeb;">Lv.1</b></span>
                     <span class="gold-text">💰 <b id="ui-gold">0</b></span>
                 </div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
                 <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="quest-box">📜 목표: <span id="ui-quest">몬스터 처치</span></div>
+                <div class="quest-box">📜 목표: <span id="ui-quest">몬스터 토벌</span></div>
             </div>
             
             <div class="top-right-btns">
-                <button class="btn-hud" id="btn-open-stat">⚔️ 캐릭터 스탯</button>
+                <button class="btn-hud" id="btn-open-stat">⚔️ 스탯</button>
                 <button class="btn-hud" id="btn-open-inv">🎒 인벤토리</button>
                 <button class="btn-hud" id="btn-open-shop">🏪 상점</button>
                 <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 모델 적용</button>
-                <button class="btn-hud" id="btn-open-height" style="border-color:#ff9f43; color:#ff9f43;">📏 캐릭터 높이 조절</button>
+                <button class="btn-hud" id="btn-open-height" style="border-color:#a0e6ff; color:#a0e6ff;">📏 높이 조절</button>
             </div>
         </div>
 
-        <div id="toast-msg">게임 시작!</div>
+        <div id="toast-msg">빙설의 세계로 입장합니다!</div>
 
         <div id="joystick-area"><div id="joystick-handle"></div></div>
 
         <div class="action-area">
             <div id="btn-dodge" class="btn-action">회피</div>
-            <div id="btn-skill" class="btn-action">돌진</div>
-            <div id="btn-ult" class="btn-action">궁극기</div>
+            <div id="btn-skill" class="btn-action">얼음송이</div>
+            <div id="btn-ult" class="btn-action">눈꽃각성</div>
             <div id="btn-attack" class="btn-action">공격</div>
         </div>
 
         <div id="modal-stat" class="modal-overlay">
-            <div class="modal-header">⚔️ 캐릭터 스탯</div>
+            <div class="modal-header">❄️ 캐릭터 스탯</div>
             <div class="modal-body">
                 <div class="stat-row"><span>공격력</span><b id="stat-atk">25</b></div>
                 <div class="stat-row"><span>방어력</span><b id="stat-def">5</b></div>
@@ -106,7 +106,7 @@
         <div id="modal-inv" class="modal-overlay">
             <div class="modal-header">🎒 인벤토리</div>
             <div class="modal-body">
-                <div class="stat-row"><span>🗡️ 성스러운 검</span><span style="color:#00ff88;">+15 ATK</span></div>
+                <div class="stat-row"><span>🗡️ 얼음 결정 검</span><span style="color:#00ff88;">+15 ATK</span></div>
             </div>
             <button class="btn-hud" id="btn-close-inv">닫기</button>
         </div>
@@ -123,10 +123,10 @@
         </div>
 
         <div id="modal-height" class="modal-overlay">
-            <div class="modal-header">📏 캐릭터 높이(Y축) 수동 조절</div>
+            <div class="modal-header">📏 캐릭터 높이(Y축) 조절</div>
             <div class="modal-body">
                 <div id="height-slider-box">
-                    <span>파묻힘 해제 높이: <b id="height-val" style="color:#00dfff;">0.0</b></span>
+                    <span>높이 조절: <b id="height-val" style="color:#87ceeb;">0.0</b></span>
                     <input type="range" id="height-slider" min="-3" max="5" step="0.1" value="0">
                 </div>
             </div>
@@ -136,13 +136,14 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25 };
+            const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, isAwakened: false };
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
 
-            scene.background = new THREE.Color(0x54a0ff);
-            scene.fog = new THREE.FogExp2(0x54a0ff, 0.012);
+            // ❄️ 산뜻하고 차가운 하늘색 배경
+            scene.background = new THREE.Color(0x64b5f6);
+            scene.fog = new THREE.FogExp2(0x64b5f6, 0.01);
 
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -151,29 +152,32 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            scene.add(new THREE.AmbientLight(0xffffff, 2.0));
+            // ☀️ 환한 차가운 빛
+            scene.add(new THREE.AmbientLight(0xe0f7fa, 2.2));
 
-            const mainLight = new THREE.DirectionalLight(0xfffaed, 2.5);
+            const mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
             mainLight.position.set(20, 45, 20);
             mainLight.castShadow = true;
             scene.add(mainLight);
 
-            const subLight = new THREE.DirectionalLight(0xa55eea, 1.0);
+            const subLight = new THREE.DirectionalLight(0x00dfff, 1.2);
             subLight.position.set(-20, 20, -20);
             scene.add(subLight);
 
-            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0xa5b1c2);
+            // 눈 판 바닥 & 하늘색 그리드
+            const grid = new THREE.GridHelper(100, 50, 0x00dfff, 0xb2ebf2);
             grid.position.y = 0.01;
             scene.add(grid);
 
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(100, 100),
-                new THREE.MeshStandardMaterial({ color: 0x3867d6, roughness: 0.3 })
+                new THREE.MeshStandardMaterial({ color: 0x29b6f6, roughness: 0.2, metalness: 0.1 })
             );
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
             scene.add(floor);
 
+            // PLAYER GROUP
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
 
@@ -182,11 +186,37 @@
 
             let defaultMesh = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16),
-                new THREE.MeshStandardMaterial({ color: 0x00dfff, emissive: 0x005588 })
+                new THREE.MeshStandardMaterial({ color: 0x87ceeb, emissive: 0x00dfff, emissiveIntensity: 0.4 })
             );
             defaultMesh.position.y = 0.8;
             defaultMesh.castShadow = true;
             characterContainer.add(defaultMesh);
+
+            // 🪽 3D 얼음 날개 제작 함수
+            let iceWingsGroup = new THREE.Group();
+            function createIceWings() {
+                iceWingsGroup.clear();
+                const wingMat = new THREE.MeshStandardMaterial({ 
+                    color: 0xe0f7fa, 
+                    emissive: 0x00dfff, 
+                    emissiveIntensity: 0.8,
+                    transparent: true, 
+                    opacity: 0.85,
+                    roughness: 0.1
+                });
+
+                // 왼날개 & 오른날개 깃털 세그먼트
+                for(let side of [-1, 1]) {
+                    for(let i=0; i<4; i++) {
+                        const feather = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.8 - i*0.2, 4), wingMat);
+                        feather.rotation.z = side * (Math.PI / 3 + i * 0.15);
+                        feather.rotation.x = 0.2;
+                        feather.position.set(side * (0.4 + i*0.25), 1.2 + i*0.1, -0.3);
+                        iceWingsGroup.add(feather);
+                    }
+                }
+                characterContainer.add(iceWingsGroup);
+            }
 
             // 📦 GLB 로더 및 높이 조절
             const glbInput = document.getElementById('glb-file-input');
@@ -235,60 +265,132 @@
                     });
 
                     characterContainer.add(loadedModel);
+                    if (state.isAwakened) createIceWings();
                     showToast("🎉 적용 완료!");
                 }, undefined, (err) => {
                     showToast("⚠️ GLB 로딩 실패!");
                 });
             });
 
-            // 💥 대형 이펙트 관리 시스템
+            // ❄️ 얼음 파티클 & 개체 관리
             const particles = [];
-            const expandingRings = [];
+            const iceProjectiles = [];
+            const temporaryObjects = [];
 
-            // 1. 대형 입자 파티클
-            function createGiantParticle(pos, colorHex, size = 0.6, speed = 0.5) {
-                const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 1.0 });
-                const p = new THREE.Mesh(new THREE.SphereGeometry(size, 12, 12), mat);
+            // 하늘색 얼음 입자 생성
+            function createIceParticle(pos, size = 0.5, speed = 0.4) {
+                const colors = [0x87ceeb, 0x00dfff, 0xe0f7fa, 0xffffff];
+                const randColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                const mat = new THREE.MeshBasicMaterial({ color: randColor, transparent: true, opacity: 1.0 });
+                const p = new THREE.Mesh(new THREE.IcosahedronGeometry(size, 0), mat);
                 p.position.copy(pos);
-                p.position.x += (Math.random() - 0.5) * 2.5;
-                p.position.y += Math.random() * 2.0;
-                p.position.z += (Math.random() - 0.5) * 2.5;
+                p.position.x += (Math.random() - 0.5) * 2.0;
+                p.position.y += Math.random() * 1.8;
+                p.position.z += (Math.random() - 0.5) * 2.0;
 
                 p.userData = {
                     velocity: new THREE.Vector3(
                         (Math.random() - 0.5) * speed,
-                        Math.random() * speed * 1.5,
+                        Math.random() * speed * 1.2,
                         (Math.random() - 0.5) * speed
                     ),
-                    life: 1.0
+                    life: 1.0,
+                    rotSpeed: (Math.random() - 0.5) * 0.2
                 };
                 scene.add(p);
                 particles.push(p);
             }
 
-            // 2. 대형 확장 마법진 링
-            function createGiantRing(pos, colorHex, endScale = 12, speed = 0.4) {
-                const ringGeo = new THREE.RingGeometry(0.8, 1.6, 32);
-                const ringMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 1.0 });
-                const ring = new THREE.Mesh(ringGeo, ringMat);
-                ring.rotation.x = -Math.PI / 2;
-                ring.position.copy(pos);
-                ring.position.y = 0.15;
-                scene.add(ring);
+            // ❄️ 얼음송이 (프로젝트타일 구체) 발사
+            function launchIceOrb() {
+                const orbGroup = new THREE.Group();
+                
+                // 중심 얼음 결정 구체
+                const coreGeo = new THREE.IcosahedronGeometry(0.7, 1);
+                const coreMat = new THREE.MeshStandardMaterial({ color: 0xe0f7fa, emissive: 0x00dfff, emissiveIntensity: 0.9, roughness: 0.1 });
+                const core = new THREE.Mesh(coreGeo, coreMat);
+                orbGroup.add(core);
 
-                expandingRings.push({
-                    mesh: ring,
-                    scale: 1,
-                    maxScale: endScale,
-                    speed: speed,
-                    mat: ringMat
-                });
+                // 주변 보조 얼음 조각들
+                for(let i=0; i<6; i++) {
+                    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.8, 4), coreMat);
+                    spike.rotation.x = Math.random() * Math.PI;
+                    spike.rotation.z = Math.random() * Math.PI;
+                    orbGroup.add(spike);
+                }
+
+                orbGroup.position.copy(playerGroup.position);
+                orbGroup.position.y += 1.0;
+
+                const angle = playerGroup.rotation.y;
+                const dir = new THREE.Vector3(Math.sin(angle), 0, Math.cos(angle)).normalize();
+
+                orbGroup.userData = {
+                    dir: dir,
+                    speed: 0.45,
+                    life: 100
+                };
+
+                scene.add(orbGroup);
+                iceProjectiles.push(orbGroup);
             }
 
-            // 3. 큼직한 전방 검기(Slash)
-            function createGiantSlash(pos, angle) {
-                const slashGeo = new THREE.RingGeometry(2.0, 3.5, 32, 1, 0, Math.PI * 0.8);
-                const slashMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide, transparent: true, opacity: 1.0 });
+            // 🏔️ 눈꽃산(눈덮인 고봉) 연출 생성
+            function createSnowMountain(pos) {
+                const mtnGroup = new THREE.Group();
+                mtnGroup.position.copy(pos);
+
+                // 메인 눈꽃산 몸체 (Cone)
+                const mountainGeo = new THREE.ConeGeometry(5.0, 7.0, 8);
+                const mountainMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, roughness: 0.3, metalness: 0.2 });
+                const mountain = new THREE.Mesh(mountainGeo, mountainMat);
+                mountain.position.y = 3.5;
+                mtnGroup.add(mountain);
+
+                // 산 꼭대기 눈(Cap)
+                const snowCapGeo = new THREE.ConeGeometry(2.2, 3.0, 8);
+                const snowCapMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const snowCap = new THREE.Mesh(snowCapGeo, snowCapMat);
+                snowCap.position.y = 5.5;
+                mtnGroup.add(snowCap);
+
+                // 주변 얼음 가시 기둥들
+                for(let i=0; i<8; i++) {
+                    const ang = (i / 8) * Math.PI * 2;
+                    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.8, 4.0, 5), new THREE.MeshBasicMaterial({ color: 0xe0f7fa }));
+                    spike.position.set(Math.cos(ang) * 4.2, 2.0, Math.sin(ang) * 4.2);
+                    spike.rotation.x = (Math.random() - 0.5) * 0.5;
+                    mtnGroup.add(spike);
+                }
+
+                scene.add(mtnGroup);
+
+                // 애니메이션 (솟아오르다 사라짐)
+                mtnGroup.scale.set(0.1, 0.1, 0.1);
+                let sc = 0.1;
+                const raiseAnim = setInterval(() => {
+                    sc += 0.1;
+                    mtnGroup.scale.set(sc, sc, sc);
+                    if(sc >= 1.0) clearInterval(raiseAnim);
+                }, 20);
+
+                setTimeout(() => {
+                    let opacity = 1.0;
+                    const fadeAnim = setInterval(() => {
+                        mtnGroup.position.y -= 0.15;
+                        if(mtnGroup.position.y <= -8.0) {
+                            clearInterval(fadeAnim);
+                            scene.remove(mtnGroup);
+                        }
+                    }, 30);
+                }, 2500);
+            }
+
+            // 🗡️ 하늘색 검기(Slash)
+            function createIceSlash(pos, angle) {
+                const slashGeo = new THREE.RingGeometry(2.5, 4.0, 32, 1, 0, Math.PI * 0.85);
+                const slashMat = new THREE.MeshBasicMaterial({ color: 0x87ceeb, side: THREE.DoubleSide, transparent: true, opacity: 1.0 });
                 const slash = new THREE.Mesh(slashGeo, slashMat);
                 slash.rotation.x = -Math.PI / 2;
                 slash.rotation.z = -angle + Math.PI / 2;
@@ -298,8 +400,8 @@
 
                 let op = 1.0;
                 const anim = setInterval(() => {
-                    op -= 0.1;
-                    slash.scale.addScalar(0.25);
+                    op -= 0.12;
+                    slash.scale.addScalar(0.2);
                     slashMat.opacity = op;
                     if(op <= 0) {
                         clearInterval(anim);
@@ -314,10 +416,10 @@
                 if (monsters.length < 3) {
                     const m = new THREE.Mesh(
                         new THREE.BoxGeometry(1.2, 1.2, 1.2),
-                        new THREE.MeshStandardMaterial({ color: 0xff3366, roughness: 0.3 })
+                        new THREE.MeshStandardMaterial({ color: 0x1e3799, emissive: 0x0c2461, roughness: 0.3 })
                     );
                     const angle = Math.random() * Math.PI * 2;
-                    m.position.set(playerGroup.position.x + Math.cos(angle) * 8, 0.6, playerGroup.position.z + Math.sin(angle) * 8);
+                    m.position.set(playerGroup.position.x + Math.cos(angle) * 9, 0.6, playerGroup.position.z + Math.sin(angle) * 9);
                     m.castShadow = true;
                     scene.add(m);
                     monsters.push(m);
@@ -364,96 +466,90 @@
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onEnd);
 
-            // ⚔️ 선명하고 눈에 띄는 대형 스킬 연출
-            // 1. 일반 공격 (대형 시안색 검기)
+            // ⚔️ 스킬 컨트롤
+            // 1. 일반 공격 (하늘색 검기)
             document.getElementById('btn-attack').onclick = () => {
-                createGiantSlash(playerGroup.position, playerGroup.rotation.y);
+                createIceSlash(playerGroup.position, playerGroup.rotation.y);
+                for(let p=0; p<6; p++) createIceParticle(playerGroup.position, 0.3, 0.3);
+
                 let hit = false;
                 for(let i = monsters.length - 1; i >= 0; i--) {
-                    if (playerGroup.position.distanceTo(monsters[i].position) < 3.2) {
-                        for(let p=0; p<15; p++) createGiantParticle(monsters[i].position, 0xff3300, 0.5, 0.6);
+                    if (playerGroup.position.distanceTo(monsters[i].position) < 3.5) {
+                        for(let p=0; p<15; p++) createIceParticle(monsters[i].position, 0.5, 0.6);
                         scene.remove(monsters[i]);
                         monsters.splice(i, 1);
                         state.gold += 20;
                         hit = true;
                     }
                 }
-                if (hit) { updateUI(); showToast("⚔️ 몬스터 처치! +20 Gold"); }
+                if (hit) { updateUI(); showToast("⚔️ 빙설 타격! +20 Gold"); }
             };
 
-            // 2. 돌진 (황금 폭발 & 거대 번개 궤적)
+            // 2. 스킬 [얼음송이 발사] (기존 돌진 대체)
             document.getElementById('btn-skill').onclick = () => {
                 if (state.mp >= 10) {
                     state.mp -= 10;
                     updateUI();
                     
-                    createGiantRing(playerGroup.position, 0xffbb00, 6, 0.4);
+                    launchIceOrb();
+                    for(let p=0; p<10; p++) createIceParticle(playerGroup.position, 0.4, 0.3);
 
-                    const forwardX = Math.sin(playerGroup.rotation.y) * 5.5;
-                    const forwardZ = Math.cos(playerGroup.rotation.y) * 5.5;
-
-                    for(let i=0; i<25; i++){
-                        createGiantParticle(playerGroup.position, 0xfffa65, 0.4, 0.3);
-                    }
-
-                    playerGroup.position.x += forwardX;
-                    playerGroup.position.z += forwardZ;
-                    
-                    createGiantRing(playerGroup.position, 0xff3838, 8, 0.5);
-                    showToast("⚡ 황금 섬광 돌진!");
+                    showToast("❄️ 얼음송이 투척!");
                 } else {
                     showToast("마나가 부족합니다!");
                 }
             };
 
-            // 3. 궁극기 (초대형 보라색 마법진 + 눈부신 오로라 폭발)
+            // 3. 궁극기 [눈꽃산의 각성] (눈꽃산 생성 + 얼음 날개 + 각성 오라)
             document.getElementById('btn-ult').onclick = () => {
                 if (state.mp >= 30) {
                     state.mp -= 30;
                     updateUI();
+                    state.isAwakened = true;
 
-                    // 초대형 마법진 3연속 팡!
-                    createGiantRing(playerGroup.position, 0xff00ff, 14, 0.6);
-                    setTimeout(() => createGiantRing(playerGroup.position, 0xbe2edd, 10, 0.5), 80);
-                    setTimeout(() => createGiantRing(playerGroup.position, 0xffffff, 8, 0.4), 160);
+                    // 1) 거대 눈꽃산 솟아오름
+                    createSnowMountain(playerGroup.position);
 
-                    // 화면 전체를 덮는 강렬한 순간 광원
-                    const flashLight = new THREE.PointLight(0xff00ff, 15, 35);
+                    // 2) 3D 얼음 날개 장착
+                    createIceWings();
+
+                    // 3) 눈부신 하늘색 순간 빛
+                    const flashLight = new THREE.PointLight(0x00dfff, 20, 40);
                     flashLight.position.copy(playerGroup.position);
-                    flashLight.position.y = 3;
+                    flashLight.position.y = 4;
                     scene.add(flashLight);
-                    setTimeout(() => scene.remove(flashLight), 300);
+                    setTimeout(() => scene.remove(flashLight), 400);
 
-                    // 수많은 거대 입자 폭발
-                    for(let p=0; p<50; p++) {
-                        createGiantParticle(playerGroup.position, 0xe056fd, 0.6, 0.8);
+                    // 4) 얼음 결정 폭풍
+                    for(let p=0; p<60; p++) {
+                        createIceParticle(playerGroup.position, 0.6, 0.8);
                     }
 
+                    // 주변 몬스터 대량 처치
                     let count = 0;
                     for(let i = monsters.length - 1; i >= 0; i--) {
-                        if (playerGroup.position.distanceTo(monsters[i].position) < 9.0) {
+                        if (playerGroup.position.distanceTo(monsters[i].position) < 10.0) {
                             scene.remove(monsters[i]);
                             monsters.splice(i, 1);
                             state.gold += 25;
                             count++;
                         }
                     }
-                    showToast(`💥 초강력 궁극기 발동! (${count}마리 섬멸)`);
+                    showToast(`🪽 눈꽃산의 각성! 빙설의 날개 개방 (${count}마리 처치)`);
                 } else {
                     showToast("마나가 부족합니다!");
                 }
             };
 
-            // 4. 회피
+            // 4. 얼음 회피
             document.getElementById('btn-dodge').onclick = () => {
-                createGiantRing(playerGroup.position, 0x00dfff, 4, 0.3);
-                for(let p=0; p<10; p++) createGiantParticle(playerGroup.position, 0x18dcff, 0.3, 0.2);
+                for(let p=0; p<12; p++) createIceParticle(playerGroup.position, 0.3, 0.2);
                 
-                const backX = -Math.sin(playerGroup.rotation.y) * 3.0;
-                const backZ = -Math.cos(playerGroup.rotation.y) * 3.0;
+                const backX = -Math.sin(playerGroup.rotation.y) * 3.2;
+                const backZ = -Math.cos(playerGroup.rotation.y) * 3.2;
                 playerGroup.position.x += backX;
                 playerGroup.position.z += backZ;
-                showToast("💨 후방 회피!");
+                showToast("💨 서리 미끄러짐 회피!");
             };
 
             // 모달 관리
@@ -475,19 +571,58 @@
             function animate() {
                 requestAnimationFrame(animate);
 
+                // 이동 및 방향
                 if (moveVector.x !== 0 || moveVector.z !== 0) {
-                    playerGroup.position.x += moveVector.x * 0.12;
-                    playerGroup.position.z += moveVector.z * 0.12;
+                    playerGroup.position.x += moveVector.x * 0.13;
+                    playerGroup.position.z += moveVector.z * 0.13;
                     playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                 }
 
-                // 파티클 애니메이션
+                // 각성 상태 오라 파티클 지속 생성
+                if (state.isAwakened && Math.random() < 0.4) {
+                    createIceParticle(playerGroup.position, 0.25, 0.15);
+                }
+
+                // 얼음송이 투사체 이동 및 충돌
+                for (let i = iceProjectiles.length - 1; i >= 0; i--) {
+                    const orb = iceProjectiles[i];
+                    orb.position.addScaledVector(orb.userData.dir, orb.userData.speed);
+                    orb.rotation.y += 0.1;
+                    orb.rotation.x += 0.1;
+                    orb.userData.life -= 1;
+
+                    // 궤적 파티클
+                    if (Math.random() < 0.5) createIceParticle(orb.position, 0.3, 0.1);
+
+                    // 몬스터 충돌 감지
+                    for (let mIdx = monsters.length - 1; mIdx >= 0; mIdx--) {
+                        if (orb.position.distanceTo(monsters[mIdx].position) < 1.8) {
+                            for(let p=0; p<15; p++) createIceParticle(monsters[mIdx].position, 0.5, 0.5);
+                            scene.remove(monsters[mIdx]);
+                            monsters.splice(mIdx, 1);
+                            state.gold += 20;
+                            updateUI();
+                            showToast("💥 얼음송이 적중! 처치!");
+                            
+                            scene.remove(orb);
+                            iceProjectiles.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    if (orb.userData.life <= 0 && scene.children.includes(orb)) {
+                        scene.remove(orb);
+                        iceProjectiles.splice(i, 1);
+                    }
+                }
+
+                // 파티클 소멸
                 for (let i = particles.length - 1; i >= 0; i--) {
                     const p = particles[i];
                     p.position.add(p.userData.velocity);
-                    p.userData.life -= 0.04;
+                    p.userData.life -= 0.035;
                     p.material.opacity = p.userData.life;
-                    p.scale.multiplyScalar(0.95);
+                    p.rotation.y += p.userData.rotSpeed;
 
                     if (p.userData.life <= 0) {
                         scene.remove(p);
@@ -495,20 +630,7 @@
                     }
                 }
 
-                // 확장 링 애니메이션
-                for (let i = expandingRings.length - 1; i >= 0; i--) {
-                    const r = expandingRings[i];
-                    r.scale += r.speed;
-                    r.mesh.scale.set(r.scale, r.scale, r.scale);
-                    r.mat.opacity -= 0.05;
-
-                    if (r.mat.opacity <= 0 || r.scale >= r.maxScale) {
-                        scene.remove(r.mesh);
-                        expandingRings.splice(i, 1);
-                    }
-                }
-
-                // 마나 자동 회복
+                // 마나 회복
                 if (state.mp < state.maxMp) {
                     state.mp += 0.12;
                     updateUI();
