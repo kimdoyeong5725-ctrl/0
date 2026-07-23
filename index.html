@@ -15,7 +15,7 @@
 
         /* TOP HUD */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .panel-box { background: rgba(8, 16, 28, 0.88); border: 1.5px solid #00dfff; border-radius: 8px; padding: 10px; width: 220px; pointer-events: auto; box-shadow: 0 0 12px rgba(0, 223, 255, 0.2); }
+        .panel-box { background: rgba(8, 16, 28, 0.88); border: 1.5px solid #00dfff; border-radius: 8px; padding: 10px; width: 200px; pointer-events: auto; box-shadow: 0 0 12px rgba(0, 223, 255, 0.2); }
         .gold-text { color: #ffd700; }
         .bar-container { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.15); border-radius: 4px; overflow: hidden; margin-top: 4px; }
         .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #00ff88, #00b894); transition: width 0.15s; }
@@ -24,14 +24,13 @@
         .quest-box { margin-top: 8px; background: rgba(0, 223, 255, 0.08); border-left: 3px solid #f1c40f; padding: 5px; font-size: 11px; }
 
         .top-right-btns { display: flex; flex-direction: column; gap: 6px; }
-        .btn-hud { background: rgba(5, 12, 22, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #00dfff; }
+        .btn-hud { background: rgba(5, 12, 22, 0.9); border: 1.5px solid #00dfff; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #00dfff; }
         .btn-hud:active { transform: scale(0.95); }
 
         .btn-glb-highlight {
             border-color: #00ff88 !important;
             color: #00ff88 !important;
             box-shadow: 0 0 10px rgba(0, 255, 136, 0.4) !important;
-            text-shadow: 0 0 6px #00ff88 !important;
         }
 
         /* JOYSTICK & BUTTONS */
@@ -43,7 +42,7 @@
         .btn-action:active { transform: scale(0.9); }
         #btn-attack { width: 80px; height: 80px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #0077b6, #023e8a); }
         #btn-dodge { width: 50px; height: 50px; bottom: 0; right: 100px; }
-        #btn-skill { width: 50px; height: 50px; bottom: 100px; right: 0; }
+        #btn-skill { width: 50px; height: 50px; bottom: 100px; right: 0; background: radial-gradient(circle, #e67e22, #d35400); border-color: #f39c12; }
         #btn-ult { width: 60px; height: 60px; bottom: 85px; right: 85px; border-color: #ff00ff; background: radial-gradient(circle, #7000ff, #4a00e0); box-shadow: 0 0 12px #ff00ff; }
 
         /* MODALS */
@@ -54,6 +53,10 @@
         .stat-btn { background: #0077b6; border: 1px solid #00dfff; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
 
         #toast-msg { position: absolute; top: 30%; width: 100%; text-align: center; color: #00dfff; font-size: 18px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 10px #00dfff; }
+
+        /* 높이 조절 슬라이더 전용 레이아웃 */
+        #height-slider-box { display: flex; flex-direction: column; gap: 6px; align-items: center; margin-top: 5px; }
+        #height-slider-box input { width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -65,14 +68,12 @@
         <div id="top-hud">
             <div class="panel-box">
                 <div style="display:flex; justify-content:space-between;">
-                    <span>🛡️ 빛의 기사 <b id="ui-level" style="color:#00dfff;">Lv.1</b></span>
+                    <span>🛡️ 기사 <b id="ui-level" style="color:#00dfff;">Lv.1</b></span>
                     <span class="gold-text">💰 <b id="ui-gold">0</b></span>
                 </div>
-                <div style="font-size:10px; color:#aaa; margin-top:2px;">STAGE <b id="ui-stage">1</b></div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
                 <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="bar-container"><div id="ui-exp-fill" class="bar-fill-exp"></div></div>
-                <div class="quest-box">📜 목표: <span id="ui-quest">몬스터 5마리 처치</span></div>
+                <div class="quest-box">📜 목표: <span id="ui-quest">몬스터 처치</span></div>
             </div>
             
             <div class="top-right-btns">
@@ -80,6 +81,7 @@
                 <button class="btn-hud" id="btn-open-inv">🎒 인벤토리</button>
                 <button class="btn-hud" id="btn-open-shop">🏪 상점</button>
                 <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 모델 적용</button>
+                <button class="btn-hud" id="btn-open-height" style="border-color:#ff9f43; color:#ff9f43;">📏 캐릭터 높이 조절</button>
             </div>
         </div>
 
@@ -121,11 +123,22 @@
             </div>
             <button class="btn-hud" id="btn-close-shop">닫기</button>
         </div>
+
+        <div id="modal-height" class="modal-overlay">
+            <div class="modal-header">📏 캐릭터 높이(Y축) 수동 조절</div>
+            <div class="modal-body">
+                <div id="height-slider-box">
+                    <span>파묻힘 해제 높이: <b id="height-val" style="color:#00dfff;">0.0</b></span>
+                    <input type="range" id="height-slider" min="-3" max="5" step="0.1" value="0">
+                </div>
+            </div>
+            <button class="btn-hud" id="btn-close-height">완료</button>
+        </div>
     </div>
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const state = { gold: 0, level: 1, exp: 0, maxExp: 100, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, def: 5, stage: 1 };
+            const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25 };
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
@@ -139,7 +152,7 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
             const dirLight = new THREE.DirectionalLight(0x00dfff, 1.2);
             dirLight.position.set(15, 25, 15);
             dirLight.castShadow = true;
@@ -160,20 +173,33 @@
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
 
-            // 기본 3D 캐릭터 (기본 높이 적용)
+            // GLB 내부 메쉬를 감쌀 컨테이너
+            const characterContainer = new THREE.Group();
+            playerGroup.add(characterContainer);
+
+            // 기본 캐릭터 (원통)
             let defaultMesh = new THREE.Mesh(
                 new THREE.CylinderGeometry(0.5, 0.6, 1.6, 16),
                 new THREE.MeshStandardMaterial({ color: 0x00dfff })
             );
-            defaultMesh.position.y = 0.8; // 기본 캡슐 높이 보정
+            defaultMesh.position.y = 0.8;
             defaultMesh.castShadow = true;
-            playerGroup.add(defaultMesh);
+            characterContainer.add(defaultMesh);
 
-            // 📦 GLB 모델 교체 + 🔥 발바닥 자동 정렬 로직 추가!
+            // 📦 GLB 업로드 및 높이 수동 조절
             const glbInput = document.getElementById('glb-file-input');
             const btnGlb = document.getElementById('btn-upload-glb');
+            const heightSlider = document.getElementById('height-slider');
+            const heightVal = document.getElementById('height-val');
 
             btnGlb.onclick = () => glbInput.click();
+
+            // 높이 슬라이더 조절 시 즉시 반응
+            heightSlider.addEventListener('input', (e) => {
+                const yOffset = parseFloat(e.target.value);
+                characterContainer.position.y = yOffset;
+                heightVal.innerText = yOffset.toFixed(1);
+            });
 
             glbInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
@@ -185,31 +211,33 @@
                 const loader = new THREE.GLTFLoader();
 
                 loader.load(url, (gltf) => {
-                    while(playerGroup.children.length > 0) {
-                        playerGroup.remove(playerGroup.children[0]);
+                    while(characterContainer.children.length > 0) {
+                        characterContainer.remove(characterContainer.children[0]);
                     }
 
                     const loadedModel = gltf.scene;
 
-                    // 1. 모델 크기 계산
-                    let box = new THREE.Box3().setFromObject(loadedModel);
-                    let size = box.getSize(new THREE.Vector3());
+                    // 자동 크기 계산
+                    const box = new THREE.Box3().setFromObject(loadedModel);
+                    const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 2.0 / (maxDim || 1); // 높이 약 2m로 조정
+                    const scale = 2.0 / (maxDim || 1);
                     loadedModel.scale.set(scale, scale, scale);
 
-                    // 2. 🔥 발바닥 바닥 정렬 (Y축 보정)
-                    box = new THREE.Box3().setFromObject(loadedModel);
-                    loadedModel.position.y = -box.min.y; // 바닥면(min.y)을 0 지점으로 올림
+                    // 자동 높이 보정 후 기본 적용
+                    const newBox = new THREE.Box3().setFromObject(loadedModel);
+                    const autoY = -newBox.min.y;
+                    characterContainer.position.y = autoY;
+                    heightSlider.value = autoY;
+                    heightVal.innerText = autoY.toFixed(1);
 
                     loadedModel.traverse((child) => {
                         if (child.isMesh) child.castShadow = true;
                     });
 
-                    playerGroup.add(loadedModel);
-                    showToast("🎉 .GLB 모델 위치 보정 완료!");
+                    characterContainer.add(loadedModel);
+                    showToast("🎉 적용 완료! 높이가 맞지 않으면 [높이 조절]을 눌러주세요.");
                 }, undefined, (err) => {
-                    console.error(err);
                     showToast("⚠️ GLB 로딩 실패!");
                 });
             });
@@ -241,10 +269,11 @@
                 document.getElementById('ui-gold').innerText = state.gold;
                 document.getElementById('ui-level').innerText = `Lv.${state.level}`;
                 document.getElementById('ui-hp-fill').style.width = `${(state.hp / state.maxHp) * 100}%`;
+                document.getElementById('ui-mp-fill').style.width = `${(state.mp / state.maxMp) * 100}%`;
                 document.getElementById('stat-atk').innerText = state.atk;
             }
 
-            // 조이스틱 조작
+            // 조이스틱
             let moveVector = { x: 0, z: 0 };
             const joyArea = document.getElementById('joystick-area');
             const joyHandle = document.getElementById('joystick-handle');
@@ -269,18 +298,66 @@
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onEnd);
 
+            // ⚔️ 공격 & 스킬 기능 구현
+            // 1. 일반 공격
             document.getElementById('btn-attack').onclick = () => {
-                monsters.forEach((m, idx) => {
-                    if (playerGroup.position.distanceTo(m.position) < 2.5) {
-                        scene.remove(m);
-                        monsters.splice(idx, 1);
+                let hit = false;
+                for(let i = monsters.length - 1; i >= 0; i--) {
+                    if (playerGroup.position.distanceTo(monsters[i].position) < 2.5) {
+                        scene.remove(monsters[i]);
+                        monsters.splice(i, 1);
                         state.gold += 20;
-                        updateUI();
-                        showToast("몬스터 처치! +20 Gold");
+                        hit = true;
                     }
-                });
+                }
+                if (hit) { updateUI(); showToast("몬스터 처치! +20 Gold"); }
             };
 
+            // 2. 스킬 (돌진)
+            document.getElementById('btn-skill').onclick = () => {
+                if (state.mp >= 10) {
+                    state.mp -= 10;
+                    updateUI();
+                    const forwardX = Math.sin(playerGroup.rotation.y) * 4;
+                    const forwardZ = Math.cos(playerGroup.rotation.y) * 4;
+                    playerGroup.position.x += forwardX;
+                    playerGroup.position.z += forwardZ;
+                    showToast("⚡ 돌진 스킬 사용!");
+                } else {
+                    showToast("마나가 부족합니다!");
+                }
+            };
+
+            // 3. 궁극기 (광역 공격)
+            document.getElementById('btn-ult').onclick = () => {
+                if (state.mp >= 30) {
+                    state.mp -= 30;
+                    updateUI();
+                    let count = 0;
+                    for(let i = monsters.length - 1; i >= 0; i--) {
+                        if (playerGroup.position.distanceTo(monsters[i].position) < 7.0) {
+                            scene.remove(monsters[i]);
+                            monsters.splice(i, 1);
+                            state.gold += 25;
+                            count++;
+                        }
+                    }
+                    showToast(`💥 궁극기 발동! (${count}마리 섬멸)`);
+                } else {
+                    showToast("마나가 부족합니다!");
+                }
+            };
+
+            // 4. 회피
+            document.getElementById('btn-dodge').onclick = () => {
+                const backX = -Math.sin(playerGroup.rotation.y) * 2;
+                const backZ = -Math.cos(playerGroup.rotation.y) * 2;
+                playerGroup.position.x += backX;
+                playerGroup.position.z += backZ;
+                showToast("💨 후방 회피!");
+            };
+
+            // 모달 관리
             const toggleModal = (id, show) => document.getElementById(id).style.display = show ? 'flex' : 'none';
             document.getElementById('btn-open-stat').onclick = () => toggleModal('modal-stat', true);
             document.getElementById('btn-close-stat').onclick = () => toggleModal('modal-stat', false);
@@ -288,6 +365,8 @@
             document.getElementById('btn-close-inv').onclick = () => toggleModal('modal-inv', false);
             document.getElementById('btn-open-shop').onclick = () => toggleModal('modal-shop', true);
             document.getElementById('btn-close-shop').onclick = () => toggleModal('modal-shop', false);
+            document.getElementById('btn-open-height').onclick = () => toggleModal('modal-height', true);
+            document.getElementById('btn-close-height').onclick = () => toggleModal('modal-height', false);
 
             document.getElementById('buy-atk').onclick = () => {
                 if (state.gold >= 100) { state.gold -= 100; state.atk += 5; updateUI(); }
@@ -300,6 +379,12 @@
                     playerGroup.position.x += moveVector.x * 0.12;
                     playerGroup.position.z += moveVector.z * 0.12;
                     playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
+                }
+
+                // 마나 자동 회복
+                if (state.mp < state.maxMp) {
+                    state.mp += 0.05;
+                    updateUI();
                 }
 
                 spawnMonster();
