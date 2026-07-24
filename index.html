@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Bleach: Dynamic Stage Arena</title>
+    <title>Bleach 3D: World & Character Chronicles</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
@@ -26,7 +26,6 @@
         .btn-hud { background: rgba(5, 12, 24, 0.94); border: 1.5px solid #00dfff; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; pointer-events: auto; cursor: pointer; text-shadow: 0 0 4px #00dfff; }
         .btn-hud:active { transform: scale(0.95); }
         .btn-glb-highlight { border-color: #00ff88 !important; color: #00ff88 !important; box-shadow: 0 0 12px rgba(0, 255, 136, 0.6) !important; }
-        .btn-bg-highlight { border-color: #ff9f43 !important; color: #ff9f43 !important; box-shadow: 0 0 12px rgba(255, 159, 67, 0.6) !important; }
 
         /* CONTROLS */
         #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(0, 223, 255, 0.12); border: 2px solid rgba(0, 223, 255, 0.6); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
@@ -47,7 +46,7 @@
         .stat-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.08); padding: 6px; border-radius: 4px; }
         .stat-btn { background: #0077b6; border: 1px solid #00dfff; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
 
-        #toast-msg { position: absolute; top: 22%; width: 100%; text-align: center; color: #a0e6ff; font-size: 20px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 15px #00dfff; }
+        #toast-msg { position: absolute; top: 20%; width: 100%; text-align: center; color: #a0e6ff; font-size: 20px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; z-index: 20; text-shadow: 0 0 15px #00dfff; }
         #height-slider-box { display: flex; flex-direction: column; gap: 6px; align-items: center; margin-top: 5px; }
         #height-slider-box input { width: 100%; cursor: pointer; }
     </style>
@@ -55,7 +54,6 @@
 <body>
     <div id="canvas-container"></div>
     <input type="file" id="glb-file-input" accept=".glb, .gltf" style="display: none;">
-    <input type="file" id="bg-file-input" accept="image/*" style="display: none;">
 
     <div id="ui-layer">
         <div id="top-hud">
@@ -66,19 +64,18 @@
                 </div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
                 <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="quest-box">📖 <span id="ui-stage">로딩 중...</span></div>
+                <div class="quest-box">📖 <span id="ui-stage">스테이지 로딩...</span></div>
             </div>
             
             <div class="top-right-btns">
-                <button class="btn-hud btn-bg-highlight" id="btn-upload-bg">🌄 배경 이미지 적용</button>
-                <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 캐릭터 적용</button>
-                <button class="btn-hud" id="btn-open-stat">⚔️ 영압 스탯</button>
+                <button class="btn-hud btn-glb-highlight" id="btn-upload-glb">📦 .GLB 커스텀 모델</button>
+                <button class="btn-hud" id="btn-open-stat">⚔️ 영압 능력치</button>
                 <button class="btn-hud" id="btn-open-shop">🏪 영력 단련</button>
-                <button class="btn-hud" id="btn-open-height" style="border-color:#a0e6ff; color:#a0e6ff;">📏 높이 조절</button>
+                <button class="btn-hud" id="btn-open-height" style="border-color:#a0e6ff; color:#a0e6ff;">📏 캐릭터 높이</button>
             </div>
         </div>
 
-        <div id="toast-msg">블리치 전장 개전!</div>
+        <div id="toast-msg">블리치 세계관 입장!</div>
         <div id="joystick-area"><div id="joystick-handle"></div></div>
 
         <div class="action-area">
@@ -89,16 +86,16 @@
         </div>
 
         <div id="modal-stat" class="modal-overlay">
-            <div class="modal-header">❄️ 사신 능력치</div>
+            <div class="modal-header">❄️ 영압 상태창</div>
             <div class="modal-body">
-                <div class="stat-row"><span>영압(공격력)</span><b id="stat-atk">25</b></div>
+                <div class="stat-row"><span>공격력 (영압)</span><b id="stat-atk">25</b></div>
                 <div class="stat-row"><span>체력</span><b id="stat-hp-text">100 / 100</b></div>
             </div>
             <button class="btn-hud" id="btn-close-stat">닫기</button>
         </div>
 
         <div id="modal-shop" class="modal-overlay">
-            <div class="modal-header">🏪 영압 단련</div>
+            <div class="modal-header">🏪 영력 단련소</div>
             <div class="modal-body">
                 <div class="stat-row">
                     <div>영력 +5 / HP +20<br><small class="gold-text">100 Gold</small></div>
@@ -109,10 +106,10 @@
         </div>
 
         <div id="modal-height" class="modal-overlay">
-            <div class="modal-header">📏 캐릭터 높이 조절</div>
+            <div class="modal-header">📏 높이 조절</div>
             <div class="modal-body">
                 <div id="height-slider-box">
-                    <span>높이: <b id="height-val" style="color:#00dfff;">0.0</b></span>
+                    <span>높이 Offset: <b id="height-val" style="color:#00dfff;">0.0</b></span>
                     <input type="range" id="height-slider" min="-3" max="5" step="0.1" value="0">
                 </div>
             </div>
@@ -124,25 +121,25 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { gold: 0, level: 1, hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 25, isAwakened: false, stage: 1, killCount: 0 };
 
-            // 12개 원작 흐름에 맞춘 맵 테마 설정 (바닥/배경 테마 색상 지정)
+            // 원작 12개 지형과 등장 캐릭터 세팅
             const stagesInfo = [
-                { id: 1, name: "1장: 카라쿠라 마을 (현실)", enemyName: "호로 (Hollow)", target: 3, speed: 0.05, dmg: 6, hp: 50, bgColor: 0x1a2b3c, floorColor: 0x223344, gridColor: 0x00dfff },
-                { id: 2, name: "2장: 소울소사이어티 입성", enemyName: "소치 호로", target: 3, speed: 0.06, dmg: 8, hp: 70, bgColor: 0x2c3e50, floorColor: 0x34495e, gridColor: 0xe74c3c },
-                { id: 3, name: "3장: 소울소사이어티 - 중앙 46실", enemyName: "상급 호로", target: 4, speed: 0.07, dmg: 10, hp: 90, bgColor: 0xecf0f1, floorColor: 0xbdc3c7, gridColor: 0x2980b9 },
-                { id: 4, name: "4장: 사신대 본부 (13반대)", enemyName: "변종 호로", target: 4, speed: 0.08, dmg: 12, hp: 110, bgColor: 0x27ae60, floorColor: 0x1e824c, gridColor: 0xf1c40f },
-                { id: 5, name: "5장: 세이레이테이", enemyName: "아란칼 수하", target: 4, speed: 0.08, dmg: 14, hp: 130, bgColor: 0x2980b9, floorColor: 0x1f618d, gridColor: 0xffffff },
-                { id: 6, name: "6장: 웨코문드 (虚圏)", enemyName: "길리안", target: 5, speed: 0.09, dmg: 16, hp: 160, bgColor: 0x111111, floorColor: 0x222222, gridColor: 0xaaaaaa },
-                { id: 7, name: "7장: 라스 노태스", enemyName: "에스파다 측근", target: 5, speed: 0.09, dmg: 18, hp: 190, bgColor: 0x34495e, floorColor: 0x2c3e50, gridColor: 0x9b59b6 },
-                { id: 8, name: "8장: 현세 결전지", enemyName: "아란칼 최정예", target: 5, speed: 0.10, dmg: 20, hp: 220, bgColor: 0x4a235a, floorColor: 0x512e5f, gridColor: 0xe67e22 },
-                { id: 9, name: "9장: 왕건 경궁 (霊王宮)", enemyName: "정예 침입자", target: 5, speed: 0.10, dmg: 22, hp: 250, bgColor: 0xd5f5e3, floorColor: 0xabebc6, gridColor: 0x27ae60 },
-                { id: 10, name: "10장: 유하바하 궁전", enemyName: "슈테른릿터", target: 6, speed: 0.11, dmg: 25, hp: 280, bgColor: 0x154360, floorColor: 0x1f618d, gridColor: 0xf39c12 },
-                { id: 11, name: "11장: 최종 결전지", enemyName: "최종 보스 호로", target: 1, speed: 0.12, dmg: 30, hp: 400, bgColor: 0x000000, floorColor: 0x111111, gridColor: 0xff0000 },
-                { id: 12, name: "12장: 평화로운 현세 (완결)", enemyName: "잔당 호로", target: 999, speed: 0.10, dmg: 20, hp: 200, bgColor: 0x5dade2, floorColor: 0x85c1e9, gridColor: 0xffffff }
+                { id: 1, name: "1장: 카라쿠라 마을", enemyName: "하급 호로", target: 3, speed: 0.05, dmg: 6, hp: 50, sky: 0x87ceeb, floor: 0x34495e, grid: 0x00dfff, type: 'hollow' },
+                { id: 2, name: "2장: 소울소사이어티 입성", enemyName: "영계 정찰 호로", target: 3, speed: 0.06, dmg: 8, hp: 70, sky: 0x2c3e50, floor: 0x5d6d7e, grid: 0xe74c3c, type: 'hollow' },
+                { id: 3, name: "3장: 중앙 46실", enemyName: "사수형 호로", target: 4, speed: 0.07, dmg: 10, hp: 90, sky: 0xebf5fb, floor: 0xa6acaf, grid: 0x2980b9, type: 'hollow' },
+                { id: 4, name: "4장: 사신대 본부 (13반대)", enemyName: "거대 길리안", target: 4, speed: 0.04, dmg: 14, hp: 130, sky: 0x27ae60, floor: 0x1e824c, grid: 0xf1c40f, type: 'gillian' },
+                { id: 5, name: "5장: 세이레이테이", enemyName: "경비 사신", target: 4, speed: 0.08, dmg: 15, hp: 150, sky: 0x2980b9, floor: 0x1f618d, grid: 0xffffff, type: 'shinigami' },
+                { id: 6, name: "6장: 웨코문드 (虚圏)", enemyName: "하급 아란칼", target: 5, speed: 0.09, dmg: 18, hp: 180, sky: 0x111111, floor: 0x2c3e50, grid: 0xbdc3c7, type: 'arrancar' },
+                { id: 7, name: "7장: 라스 노태스", enemyName: "아란칼 수하", target: 5, speed: 0.09, dmg: 20, hp: 210, sky: 0x212f3d, floor: 0x283747, grid: 0x9b59b6, type: 'arrancar' },
+                { id: 8, name: "8장: 현세 결전지", enemyName: "에스파다 측근", target: 5, speed: 0.10, dmg: 23, hp: 240, sky: 0x512e5f, floor: 0x4a235a, grid: 0xe67e22, type: 'arrancar' },
+                { id: 9, name: "9장: 왕건 경궁 (霊王宮)", enemyName: "영왕궁 침입자", target: 5, speed: 0.10, dmg: 25, hp: 270, sky: 0xe8f8f5, floor: 0xa3e4d7, grid: 0x27ae60, type: 'quincy' },
+                { id: 10, name: "10장: 유하바하 궁전", enemyName: "슈테른릿터", target: 6, speed: 0.11, dmg: 28, hp: 310, sky: 0x1b2631, floor: 0x212f3d, grid: 0xf39c12, type: 'quincy' },
+                { id: 11, name: "11장: 최종 결전지", enemyName: "최종 보스", target: 1, speed: 0.12, dmg: 35, hp: 450, sky: 0x000000, floor: 0x17202a, grid: 0xff0000, type: 'boss' },
+                { id: 12, name: "12장: 평화로운 현세", enemyName: "잔당 호로", target: 999, speed: 0.08, dmg: 15, hp: 150, sky: 0x85c1e9, floor: 0x2e86c1, grid: 0xffffff, type: 'hollow' }
             ];
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(stagesInfo[0].bgColor);
+            scene.background = new THREE.Color(stagesInfo[0].sky);
 
             const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -161,50 +158,24 @@
             const mapGroup = new THREE.Group();
             scene.add(mapGroup);
 
-            const floorMat = new THREE.MeshStandardMaterial({ color: stagesInfo[0].floorColor, roughness: 0.5 });
+            const floorMat = new THREE.MeshStandardMaterial({ color: stagesInfo[0].floor, roughness: 0.5 });
             const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), floorMat);
             floorMesh.rotation.x = -Math.PI / 2;
             floorMesh.receiveShadow = true;
             mapGroup.add(floorMesh);
 
-            let grid = new THREE.GridHelper(80, 40, stagesInfo[0].gridColor, 0x333333);
+            let grid = new THREE.GridHelper(80, 40, stagesInfo[0].grid, 0x333333);
             grid.position.y = 0.02;
             mapGroup.add(grid);
 
-            // 스테이지 변경 시 3D 맵 테마 리셋 함수
-            function updateMapTheme(stageData) {
-                scene.background = new THREE.Color(stageData.bgColor);
-                floorMat.color.setHex(stageData.floorColor);
-                floorMat.map = null; // 업로드된 통이미지 타일링 초기화
-                floorMat.needsUpdate = true;
-
+            function updateStageMap(stageData) {
+                scene.background = new THREE.Color(stageData.sky);
+                floorMat.color.setHex(stageData.floor);
                 mapGroup.remove(grid);
-                grid = new THREE.GridHelper(80, 40, stageData.gridColor, 0x444444);
+                grid = new THREE.GridHelper(80, 40, stageData.grid, 0x444444);
                 grid.position.y = 0.02;
                 mapGroup.add(grid);
             }
-
-            // 커스텀 이미지 업로드
-            const bgInput = document.getElementById('bg-file-input');
-            const btnBg = document.getElementById('btn-upload-bg');
-            btnBg.onclick = () => bgInput.click();
-
-            bgInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const textureLoader = new THREE.TextureLoader();
-                    textureLoader.load(event.target.result, (texture) => {
-                        scene.background = texture;
-                        floorMat.map = texture;
-                        floorMat.needsUpdate = true;
-                        showToast("🌄 커스텀 배경 적용 완료!");
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
 
             // 플레이어
             const playerGroup = new THREE.Group();
@@ -231,7 +202,6 @@
 
             characterContainer.add(buildDefaultCharacter());
 
-            // 날개 연출
             let iceWingsGroup = new THREE.Group();
             function createIceWings() {
                 iceWingsGroup.clear();
@@ -248,7 +218,7 @@
                 characterContainer.add(iceWingsGroup);
             }
 
-            // GLB 적용
+            // GLB 로딩
             const glbInput = document.getElementById('glb-file-input');
             const btnGlb = document.getElementById('btn-upload-glb');
             const heightSlider = document.getElementById('height-slider');
@@ -265,7 +235,7 @@
                 const file = e.target.files[0];
                 if (!file) return;
 
-                showToast("3D 모델 로딩 중...");
+                showToast("3D 모델 적용 중...");
                 const url = URL.createObjectURL(file);
                 const loader = new THREE.GLTFLoader();
 
@@ -287,74 +257,88 @@
                     loadedModel.traverse((child) => { if (child.isMesh) child.castShadow = true; });
                     characterContainer.add(loadedModel);
                     if (state.isAwakened) createIceWings();
-                    showToast("🎉 캐릭터 적용 완료!");
+                    showToast("🎉 커스텀 3D 모델 불러오기 성공!");
                 });
             });
 
-            // 👹 원작 스타일 3D 호로 생성
+            // 👹 원작 타입별 적 3D 모델링
             const monsters = [];
 
-            function createAnimeHollow() {
-                const hollowGroup = new THREE.Group();
+            function createEnemyMesh(type) {
+                const group = new THREE.Group();
 
-                // 검은 몸체
-                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.6 });
-                const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.35, 1.8, 10), bodyMat);
-                torso.position.y = 0.9;
-                hollowGroup.add(torso);
+                if (type === 'gillian') {
+                    // 거대 길리안
+                    const mat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+                    const body = new THREE.Mesh(new THREE.ConeGeometry(1.2, 5.0, 8), mat);
+                    body.position.y = 2.5;
+                    group.add(body);
 
-                for(let side of [-1, 1]) {
-                    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.8, 0.2), bodyMat);
-                    arm.position.set(side * 0.5, 1.1, 0);
-                    hollowGroup.add(arm);
+                    const mask = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.8, 6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    mask.rotation.x = -Math.PI / 2;
+                    mask.position.set(0, 4.2, 0.5);
+                    group.add(mask);
+                    return { group, radius: 2.2 };
+                } else if (type === 'arrancar') {
+                    // 아란칼
+                    const mat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.3 });
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 1.8, 8), mat);
+                    body.position.y = 0.9;
+                    group.add(body);
 
-                    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.6, 0.22), bodyMat);
-                    leg.position.set(side * 0.25, 0.3, 0);
-                    hollowGroup.add(leg);
+                    const maskHalf = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.4), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+                    maskHalf.position.set(0.2, 1.6, 0.2);
+                    group.add(maskHalf);
+                    return { group, radius: 1.3 };
+                } else if (type === 'quincy' || type === 'boss') {
+                    // 퀸시 / 보스
+                    const mat = new THREE.MeshStandardMaterial({ color: (type === 'boss' ? 0x900c3f : 0xffffff) });
+                    const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2.2, 0.6), mat);
+                    body.position.y = 1.1;
+                    group.add(body);
+                    return { group, radius: 1.5 };
+                } else {
+                    // 기본 호로 (검은 몸체 + 흰 가면 + 붉은 눈)
+                    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.6 });
+                    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.35, 1.8, 10), bodyMat);
+                    torso.position.y = 0.9;
+                    group.add(torso);
+
+                    const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.4, 8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+                    hole.rotation.x = Math.PI / 2;
+                    hole.position.set(0, 1.1, 0);
+                    group.add(hole);
+
+                    const maskMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
+                    const maskHead = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.75, 0.5), maskMat);
+                    maskHead.position.set(0, 1.95, 0.1);
+                    group.add(maskHead);
+
+                    for(let side of [-1, 1]) {
+                        const horn = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.6, 5), maskMat);
+                        horn.position.set(side * 0.28, 2.45, 0.1);
+                        horn.rotation.z = side * -0.3;
+                        group.add(horn);
+
+                        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+                        eye.position.set(side * 0.18, 2.0, 0.36);
+                        group.add(eye);
+                    }
+                    return { group, radius: 1.4 };
                 }
-
-                // 가슴 구멍 (Hole)
-                const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.4, 8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-                hole.rotation.x = Math.PI / 2;
-                hole.position.set(0, 1.1, 0);
-                hollowGroup.add(hole);
-
-                // 흰 가면
-                const maskMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
-                const maskHead = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.75, 0.5), maskMat);
-                maskHead.position.set(0, 1.95, 0.1);
-                hollowGroup.add(maskHead);
-
-                // 뿔
-                for(let side of [-1, 1]) {
-                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.6, 5), maskMat);
-                    horn.position.set(side * 0.28, 2.45, 0.1);
-                    horn.rotation.z = side * -0.3;
-                    hollowGroup.add(horn);
-                }
-
-                // 붉은 눈
-                const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-                for(let side of [-1, 1]) {
-                    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), eyeMat);
-                    eye.position.set(side * 0.18, 2.0, 0.36);
-                    hollowGroup.add(eye);
-                }
-
-                return { group: hollowGroup, radius: 1.4 };
             }
 
             function spawnMonster() {
                 const curStage = stagesInfo.find(s => s.id === state.stage) || stagesInfo[0];
                 if (monsters.length < 3) {
-                    const enemyData = createAnimeHollow();
+                    const enemyData = createEnemyMesh(curStage.type);
                     const mGroup = enemyData.group;
 
                     const angle = Math.random() * Math.PI * 2;
                     mGroup.position.set(
-                        playerGroup.position.x + Math.cos(angle) * 13,
+                        playerGroup.position.x + Math.cos(angle) * 14,
                         0,
-                        playerGroup.position.z + Math.sin(angle) * 13
+                        playerGroup.position.z + Math.sin(angle) * 14
                     );
                     
                     scene.add(mGroup);
@@ -464,7 +448,6 @@
                 setTimeout(() => toast.style.opacity = 0, 1800);
             }
 
-            // 퀘스트 완료 처리 및 맵 자동 스위칭
             function checkStageProgress() {
                 const curStage = stagesInfo.find(s => s.id === state.stage) || stagesInfo[0];
                 if (state.killCount >= curStage.target) {
@@ -473,12 +456,11 @@
                         state.killCount = 0;
                         const nextStage = stagesInfo.find(s => s.id === state.stage);
                         
-                        // 기존 적 제거 후 맵 테마 변경
                         monsters.forEach(m => scene.remove(m.mesh));
                         monsters.length = 0;
 
-                        updateMapTheme(nextStage);
-                        showToast(`🎉 STAGE CLEAR!\n${nextStage.name} 이동!`);
+                        updateStageMap(nextStage);
+                        showToast(`🎉 STAGE CLEAR!\n${nextStage.name} 진입!`);
                     }
                 }
                 updateUI();
@@ -520,7 +502,7 @@
             window.addEventListener('mousemove', onMove);
             window.addEventListener('mouseup', onEnd);
 
-            // 액션
+            // 액션 버튼
             document.getElementById('btn-attack').onclick = () => {
                 createSlashFX(playerGroup.position, playerGroup.rotation.y);
                 for(let i = monsters.length - 1; i >= 0; i--) {
@@ -600,7 +582,7 @@
                     playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                 }
 
-                // 빙룡 애니메이션
+                // 빙룡 투사체
                 for (let i = iceDragons.length - 1; i >= 0; i--) {
                     const drag = iceDragons[i];
                     drag.mesh.position.addScaledVector(drag.dir, drag.speed);
@@ -620,7 +602,7 @@
                     }
                 }
 
-                // 적 AI
+                // 적 추적 AI
                 monsters.forEach((m) => {
                     m.mesh.lookAt(playerGroup.position);
                     const dist = m.mesh.position.distanceTo(playerGroup.position);
