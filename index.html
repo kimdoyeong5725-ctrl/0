@@ -3,134 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bleach: Ultimate Story RPG</title>
+    <title>Bleach 3D: Toshiro Hitsugaya Ultimate RPG</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@700;900&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; touch-action: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Noto Sans KR', sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #030712; font-family: 'Noto Sans KR', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
-        /* STAGE SELECTOR TOP BAR */
-        #stage-bar { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(10, 15, 30, 0.9); padding: 6px 12px; border-radius: 20px; border: 1px solid #00f0ff; pointer-events: auto; z-index: 100; box-shadow: 0 0 15px rgba(0,240,255,0.3); }
-        .stage-btn { background: rgba(0,240,255,0.15); border: 1px solid #00f0ff; color: #00f0ff; padding: 8px 12px; font-size: 11px; font-weight: 800; border-radius: 12px; cursor: pointer; transition: 0.2s; }
-        .stage-btn.active { background: #00f0ff; color: #000; font-weight: 900; box-shadow: 0 0 10px #00f0ff; }
+        /* GLB UPLOAD BAR */
+        #glb-upload-bar { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(15, 23, 42, 0.95); padding: 6px 12px; border-radius: 20px; border: 1.5px solid #00f0ff; pointer-events: auto; box-shadow: 0 0 15px rgba(0,240,255,0.4); z-index: 100; }
+        .upload-btn { background: #0284c7; border: none; color: white; padding: 6px 12px; font-size: 11px; font-weight: 800; border-radius: 12px; cursor: pointer; }
+        .upload-btn input { display: none; }
 
-        /* HUD TOP LEFT */
-        #profile-card { position: absolute; top: 60px; left: 15px; width: 240px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(0, 240, 255, 0.4); border-radius: 12px; padding: 12px; pointer-events: auto; }
+        /* PROFILE HUD */
+        #profile-card { position: absolute; top: 55px; left: 15px; width: 250px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border: 1.5px solid rgba(0, 240, 255, 0.5); border-radius: 14px; padding: 12px; pointer-events: auto; }
         .card-header { display: flex; justify-content: space-between; font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 900; color: #00f0ff; margin-bottom: 4px; }
-        .bar-wrap { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden; position: relative; margin-top: 4px; }
+        .bar-wrap { width: 100%; height: 11px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; position: relative; margin-top: 4px; }
         .bar-inner { height: 100%; transition: width 0.15s ease-out; }
-        #hp-bar { background: linear-gradient(90deg, #ff0055, #ff5500); }
-        #mp-bar { background: linear-gradient(90deg, #00f0ff, #0077ff); }
-        #exp-bar { background: linear-gradient(90deg, #a855f7, #ec4899); }
-        .bar-label { position: absolute; width: 100%; text-align: center; font-size: 8px; font-weight: 800; top: -1px; text-shadow: 0 0 2px #000; }
+        #hp-bar { background: linear-gradient(90deg, #ff0055, #ff5500); box-shadow: 0 0 8px #ff0055; }
+        #mp-bar { background: linear-gradient(90deg, #00f0ff, #0077ff); box-shadow: 0 0 8px #00f0ff; }
+        .bar-label { position: absolute; width: 100%; text-align: center; font-size: 8px; font-weight: 900; top: 0px; text-shadow: 0 0 3px #000; }
 
-        /* QUEST HUD */
-        #quest-tracker { position: absolute; top: 60px; right: 15px; width: 200px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 215, 0, 0.5); border-radius: 12px; padding: 10px; font-size: 11px; pointer-events: auto; }
-        #quest-tracker h4 { color: #ffd700; font-family: 'Orbitron', sans-serif; margin-bottom: 2px; }
-
-        /* TOUCH JOYSTICK */
-        #joystick-zone { position: absolute; bottom: 30px; left: 30px; width: 130px; height: 130px; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(0, 240, 255, 0.4); border-radius: 65px; pointer-events: auto; }
-        #joystick-knob { position: absolute; top: 40px; left: 40px; width: 50px; height: 50px; background: #00f0ff; border-radius: 25px; opacity: 0.85; box-shadow: 0 0 12px #00f0ff; }
+        /* JOYSTICK */
+        #joystick-zone { position: absolute; bottom: 30px; left: 30px; width: 130px; height: 130px; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(0, 240, 255, 0.5); border-radius: 65px; pointer-events: auto; }
+        #joystick-knob { position: absolute; top: 40px; left: 40px; width: 50px; height: 50px; background: #00f0ff; border-radius: 25px; box-shadow: 0 0 15px #00f0ff; }
 
         /* SKILL BUTTONS */
-        .skill-bar { position: absolute; bottom: 25px; right: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; pointer-events: auto; }
-        .skill-btn { width: 68px; height: 68px; background: rgba(15, 23, 42, 0.9); border: 2px solid #00f0ff; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 11px; font-weight: 800; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+        .skill-bar { position: absolute; bottom: 25px; right: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; pointer-events: auto; }
+        .skill-btn { width: 72px; height: 72px; background: rgba(15, 23, 42, 0.95); border: 2px solid #00f0ff; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 11px; font-weight: 900; cursor: pointer; position: relative; overflow: hidden; box-shadow: 0 0 12px rgba(0,240,255,0.3); }
         .skill-btn:active { transform: scale(0.92); }
         .cd-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 0%; background: rgba(0,0,0,0.85); }
 
-        /* INTERACT BUTTON & MODAL */
-        #btn-interact { position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%); background: #00f0ff; color: #000; padding: 10px 24px; border-radius: 25px; font-size: 13px; font-weight: 900; opacity: 0; pointer-events: none; transition: 0.2s; box-shadow: 0 0 15px #00f0ff; }
-        #btn-interact.active { opacity: 1; pointer-events: auto; }
-
-        #btn-stat-toggle { position: absolute; top: 165px; left: 15px; padding: 8px 14px; background: rgba(0,240,255,0.2); border: 1px solid #00f0ff; color: #fff; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; pointer-events: auto; }
-
-        #stats-modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: rgba(15, 23, 42, 0.95); border: 2px solid #00f0ff; border-radius: 16px; padding: 18px; opacity: 0; pointer-events: none; transition: 0.2s; }
-        #stats-modal.active { opacity: 1; pointer-events: auto; }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; font-size: 13px; }
-        .stat-btn { width: 32px; height: 32px; background: #00f0ff; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; color: #000; }
+        /* BANKAI OVERLAY TEXT */
+        #bankai-text { position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%) scale(0.5); font-family: 'Orbitron', sans-serif; font-size: 42px; font-weight: 900; color: #00f0ff; text-shadow: 0 0 25px #00f0ff, 0 0 50px #0077ff; opacity: 0; transition: all 0.3s ease-out; pointer-events: none; }
+        #bankai-text.active { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
     </style>
 </head>
 <body>
     <div id="canvas-container"></div>
 
     <div id="ui-layer">
-        <div id="stage-bar">
-            <button class="stage-btn active" onclick="changeStage(0)">1. 현세</button>
-            <button class="stage-btn" onclick="changeStage(1)">2. 소울소사이어티</button>
-            <button class="stage-btn" onclick="changeStage(2)">3. 웨코문드</button>
-            <button class="stage-btn" onclick="changeStage(3)">4. 천년혈전</button>
+        <div id="glb-upload-bar">
+            <label class="upload-btn">📁 토실로 GLB 파일 로드<input type="file" accept=".glb,.gltf" onchange="loadToshiroGLB(event)"></label>
         </div>
 
         <div id="profile-card">
             <div class="card-header">
-                <span>⚡ 쿠로사키 이치고 LV. <span id="val-level">1</span></span>
+                <span>❄️ 히츠가야 토시로 LV. <span id="val-level">1</span></span>
                 <span style="color:#ffd700;">💰 <span id="val-gold">0</span></span>
             </div>
-            <div class="bar-wrap"><div id="hp-bar" class="bar-inner" style="width:100%;"></div><div id="txt-hp" class="bar-label">1500 / 1500</div></div>
-            <div class="bar-wrap"><div id="mp-bar" class="bar-inner" style="width:100%;"></div><div id="txt-mp" class="bar-label">400 / 400</div></div>
-            <div class="bar-wrap" style="height:4px; margin-top:4px;"><div id="exp-bar" class="bar-inner" style="width:0%;"></div></div>
+            <div class="bar-wrap"><div id="hp-bar" class="bar-inner" style="width:100%;"></div><div id="txt-hp" class="bar-label">2000 / 2000</div></div>
+            <div class="bar-wrap"><div id="mp-bar" class="bar-inner" style="width:100%;"></div><div id="txt-mp" class="bar-label">500 / 500</div></div>
         </div>
 
-        <button id="btn-stat-toggle" onclick="toggleStatsModal()">스탯 / 참백도 (C)</button>
-
-        <div id="quest-tracker">
-            <h4 id="stage-title">📜 현세 편: 호로 토벌</h4>
-            <p id="quest-desc">우라하라 NPC와 대화하세요.</p>
-            <p id="quest-progress" style="color:#00f0ff; font-weight:800; margin-top:2px;"></p>
-        </div>
-
-        <button id="btn-interact" onclick="checkNPCInteract()">💬 NPC 대화하기</button>
+        <div id="bankai-text">대홍련빙륜환 (大紅蓮氷輪丸)</div>
 
         <div id="joystick-zone">
             <div id="joystick-knob"></div>
         </div>
 
         <div class="skill-bar">
-            <div class="skill-btn" onclick="useSkill('Z')">월아천충<div id="cd-z" class="cd-overlay"></div></div>
-            <div class="skill-btn" onclick="useSkill('X')">만해<div id="cd-x" class="cd-overlay"></div></div>
-            <div class="skill-btn" onclick="useSkill('C')">검은 월아<div id="cd-c" class="cd-overlay"></div></div>
-            <div class="skill-btn" onclick="useSkill('V')">무월<div id="cd-v" class="cd-overlay"></div></div>
-        </div>
-
-        <div id="stats-modal">
-            <h3 style="color:#00f0ff; margin-bottom:10px;">능력치 강화 (포인트: <span id="val-stat-pts">0</span>)</h3>
-            <div class="stat-row"><span>⚔️ 공격력 (Melee): <b id="val-stat-str">1</b></span><button class="stat-btn" onclick="addStat('str')">+</button></div>
-            <div class="stat-row"><span>🛡️ 영압 (Def): <b id="val-stat-def">1</b></span><button class="stat-btn" onclick="addStat('def')">+</button></div>
-            <div class="stat-row"><span>🔥 참백도 (Reiryoku): <b id="val-stat-frt">1</b></span><button class="stat-btn" onclick="addStat('frt')">+</button></div>
-            <button onclick="toggleStatsModal()" style="width:100%; padding:10px; margin-top:10px; background:#ff0055; border:none; color:#fff; border-radius:8px; font-weight:bold;">닫기</button>
+            <div class="skill-btn" onclick="useSkill('Z')">군청빙전 [Z]<div id="cd-z" class="cd-overlay"></div></div>
+            <div class="skill-btn" onclick="useSkill('X')">육의빙결진 [X]<div id="cd-x" class="cd-overlay"></div></div>
+            <div class="skill-btn" onclick="useSkill('C')" style="border-color:#a855f7;">만해 [C]<div id="cd-c" class="cd-overlay"></div></div>
+            <div class="skill-btn" onclick="useSkill('V')" style="border-color:#ff0055;">천송빙화 [V]<div id="cd-v" class="cd-overlay"></div></div>
         </div>
     </div>
 
     <script>
-        // --- 스토리 데이터 ---
-        const STAGES = [
-            { name: "현세 편", title: "📜 현세: 호로 습격", color: 0x3d2817, fog: 0x0a101d, enemyName: "거대 호로 (Grand Fisher)", npcName: "우라하라 키스케" },
-            { name: "소울 소사이어티 편", title: "📜 소울소사이어티: 백도문", color: 0x4a4e5a, fog: 0x111827, enemyName: "자라키 켄파치 / 렌지", npcName: "시호인 요루이치" },
-            { name: "웨코문드 편", title: "📜 웨코문드: 에스파다", color: 0xdedede, fog: 0x1f2937, enemyName: "울키오라 쉬퍼 (Ulquiorra)", npcName: "쿠로츠치 마유리" },
-            { name: "천년혈전 편", title: "📜 천년혈전: 반덴라이히", color: 0x1c0f1d, fog: 0x05020a, enemyName: "유하바하 (Yhwach)", npcName: "효스베 이치베e" }
-        ];
-
-        let currentStageIdx = 0;
-
-        // --- Save System ---
-        const DEFAULT_STATE = { level: 1, exp: 0, maxExp: 100, gold: 0, statPoints: 0, str: 1, def: 1, frt: 1, hp: 1500, mp: 400, quest: { active: false, target: 3, current: 0, rewardGold: 600, rewardExp: 400 } };
-        let playerState = JSON.parse(localStorage.getItem('BLEACH_STORY_RPG')) || { ...DEFAULT_STATE };
-        function saveGame() { localStorage.setItem('BLEACH_STORY_RPG', JSON.stringify(playerState)); }
-
-        function getMaxHp() { return 1500 + (playerState.def - 1) * 250; }
-        function getMaxMp() { return 400 + (playerState.frt - 1) * 70; }
-        function getMeleeDmg() { return 100 + playerState.str * 30; }
-        function getSkillDmg() { return 180 + playerState.frt * 50; }
-
-        // --- Engine & Scene ---
+        // --- Game Engine Setup ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(STAGES[0].fog);
-        scene.fog = new THREE.FogExp2(STAGES[0].fog, 0.012);
+        scene.background = new THREE.Color(0x060d1a);
+        scene.fog = new THREE.FogExp2(0x060d1a, 0.01);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -138,110 +87,83 @@
         renderer.shadowMap.enabled = true;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const sun = new THREE.DirectionalLight(0xffeedd, 1.3);
-        sun.position.set(40, 70, 30); sun.castShadow = true;
-        scene.add(sun);
+        const gltfLoader = new THREE.GLTFLoader();
 
-        // 흙바닥 & 지형
-        const groundMat = new THREE.MeshStandardMaterial({ color: STAGES[0].color, roughness: 0.9 });
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), groundMat);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const dirLight = new THREE.DirectionalLight(0xa5f3fc, 1.4);
+        dirLight.position.set(30, 60, 20); dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // 흙/빙륜환 연출 필드 바닥
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), new THREE.MeshStandardMaterial({ color: 0x271f18, roughness: 0.9 }));
         ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
         scene.add(ground);
 
-        // --- 고퀄리티 플레이어 (쿠로사키 이치고 만해) ---
+        // --- 플레이어 (토시로 3D 모델) ---
         const playerGroup = new THREE.Group();
         scene.add(playerGroup);
 
-        function createIchigo() {
-            const p = new THREE.Group();
-            // 몸통 (검은 천쇄참월 사패장)
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.9, 3.2, 16), new THREE.MeshStandardMaterial({ color: 0x050505 }));
-            body.position.y = 1.6; body.castShadow = true; p.add(body);
+        let bankaiActive = false;
+        let iceWings = null;
 
-            // 주황색 머리
-            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 16), new THREE.MeshStandardMaterial({ color: 0xf97316 }));
-            hair.position.y = 3.6; p.add(hair);
+        function buildToshiroMesh() {
+            const t = new THREE.Group();
+            
+            // 검은 사패장
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.8, 2.8, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+            body.position.y = 1.4; body.castShadow = true; t.add(body);
 
-            // 천쇄참월 (검은 칠흑의 칠도가)
-            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.12, 4.2, 0.08), new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.95 }));
-            sword.position.set(1.1, 2.0, 0.3); sword.rotation.z = -Math.PI / 6; p.add(sword);
+            // 십번대 대장 백색 하오리
+            const haori = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 1.1, 2.2, 16, 1, true), new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide }));
+            haori.position.y = 1.5; t.add(haori);
 
-            // 검은 영압 오라 (Black Getsuga Aura)
-            const aura = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.1, 8, 24), new THREE.MeshBasicMaterial({ color: 0xff0033 }));
-            aura.rotation.x = Math.PI / 2; aura.position.y = 0.2; p.add(aura);
+            // 토시로은발 머리
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.65, 16, 16), new THREE.MeshStandardMaterial({ color: 0xe2e8f0 }));
+            hair.position.y = 3.1; t.add(hair);
 
-            return p;
+            // 얼음 참백도 (빙륜환)
+            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.1, 3.2, 0.08), new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.9 }));
+            sword.position.set(0.9, 1.8, 0.3); sword.rotation.z = -Math.PI / 6; t.add(sword);
+
+            // 만해 전용 얼음 날개 (대홍련빙륜환)
+            const wingShape = new THREE.ConeGeometry(2.2, 4.0, 4);
+            const wingMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.8, wireframe: true });
+            iceWings = new THREE.Mesh(wingShape, wingMat);
+            iceWings.rotation.x = Math.PI / 2; iceWings.position.set(0, 2.2, -0.8);
+            iceWings.visible = false;
+            t.add(iceWings);
+
+            return t;
         }
 
-        playerGroup.add(createIchigo());
+        playerGroup.add(buildToshiroMesh());
 
-        // --- NPC 모델 ---
-        const npcGroup = new THREE.Group();
-        npcGroup.position.set(0, 0, -18); scene.add(npcGroup);
-        const npcMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 3.6, 16), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
-        npcMesh.position.y = 1.8; npcGroup.add(npcMesh);
+        function loadToshiroGLB(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            gltfLoader.load(URL.createObjectURL(file), (gltf) => {
+                playerGroup.clear();
+                const m = gltf.scene;
+                m.scale.set(2.2, 2.2, 2.2);
+                playerGroup.add(m);
+                alert("토시로 GLB 모델 로드 완료!");
+            });
+        }
 
-        // --- 에피소드별 고퀄리티 보스 적 모델 생성 ---
+        // --- 적 (아란칼/호로 몬스터) ---
         const enemies = [];
-
-        function createBossModel(stageIdx) {
-            const boss = new THREE.Group();
-            if (stageIdx === 0) { // 1. 거대 호로
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.0, 4.5, 16), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-                body.position.y = 2.25; boss.add(body);
-                const mask = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-                mask.position.set(0, 4.5, 0.3); boss.add(mask);
-            } else if (stageIdx === 1) { // 2. 자라키 켄파치
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 3.8, 16), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-                body.position.y = 1.9; boss.add(body);
-                const hair = new THREE.Mesh(new THREE.ConeGeometry(1.2, 2.0, 8), new THREE.MeshStandardMaterial({ color: 0x000000 }));
-                hair.position.set(0, 4.8, 0); boss.add(hair);
-            } else if (stageIdx === 2) { // 3. 울키오라 (아란칼)
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 3.6, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-                body.position.y = 1.8; boss.add(body);
-                const wing = new THREE.Mesh(new THREE.BoxGeometry(4.5, 2.0, 0.1), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-                wing.position.set(0, 2.8, -0.5); boss.add(wing);
-            } else { // 4. 유하바하 (퀴시 황제)
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 4.2, 16), new THREE.MeshStandardMaterial({ color: 0x030712 }));
-                body.position.y = 2.1; boss.add(body);
-                const cape = new THREE.Mesh(new THREE.BoxGeometry(3.0, 4.0, 0.2), new THREE.MeshStandardMaterial({ color: 0x7f1d1d }));
-                cape.position.set(0, 2.2, -0.6); boss.add(cape);
-            }
-            return boss;
+        function createHollow(x, z) {
+            const g = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 0.9, 4.0, 16), new THREE.MeshStandardMaterial({ color: 0x1e1e24 }));
+            body.position.y = 2.0; g.add(body);
+            const mask = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            mask.position.set(0, 4.2, 0.2); g.add(mask);
+            g.position.set(x, 0, z); scene.add(g);
+            enemies.push({ group: g, hp: 800, maxHp: 800, alive: true, spawnX: x, spawnZ: z });
         }
+        createHollow(15, -12); createHollow(-18, -15); createHollow(18, 12);
 
-        function spawnEnemiesForStage(stageIdx) {
-            enemies.forEach(e => scene.remove(e.group));
-            enemies.length = 0;
-
-            const coords = [[18, -15], [-20, -18], [22, 12]];
-            coords.forEach(([x, z]) => {
-                const eGroup = new THREE.Group();
-                eGroup.add(createBossModel(stageIdx));
-                eGroup.position.set(x, 0, z);
-                scene.add(eGroup);
-                enemies.push({ group: eGroup, hp: 600 + stageIdx * 300, maxHp: 600 + stageIdx * 300, alive: true, spawnX: x, spawnZ: z });
-            });
-        }
-
-        spawnEnemiesForStage(0);
-
-        function changeStage(idx) {
-            currentStageIdx = idx;
-            document.querySelectorAll('.stage-btn').forEach((btn, i) => {
-                btn.classList.toggle('active', i === idx);
-            });
-            const st = STAGES[idx];
-            scene.background.setHex(st.fog);
-            scene.fog.color.setHex(st.fog);
-            groundMat.color.setHex(st.color);
-            document.getElementById('stage-title').innerText = st.title;
-            spawnEnemiesForStage(idx);
-            updateUI();
-        }
-
-        // --- 터치 조이스틱 로직 ---
+        // --- 터치 조이스틱 ---
         let joystickDir = { x: 0, z: 0 };
         const joyZone = document.getElementById('joystick-zone');
         const joyKnob = document.getElementById('joystick-knob');
@@ -256,109 +178,90 @@
 
         function updateJoystick(e) {
             const rect = joyZone.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            let dx = e.clientX - cx, dy = e.clientY - cy;
+            let dx = e.clientX - (rect.left + rect.width / 2);
+            let dy = e.clientY - (rect.top + rect.height / 2);
             const dist = Math.hypot(dx, dy), maxR = 45;
-
             if (dist > maxR) { dx = (dx / dist) * maxR; dy = (dy / dist) * maxR; }
             joyKnob.style.left = `${40 + dx}px`; joyKnob.style.top = `${40 + dy}px`;
             joystickDir.x = dx / maxR; joystickDir.z = dy / maxR;
         }
 
-        // --- 전투 및 스킬 ---
+        // --- 스킬 및 전투 로직 ---
+        let playerStats = { hp: 2000, maxHp: 2000, mp: 500, maxMp: 500 };
         const cd = { Z: 0, X: 0, C: 0, V: 0 };
-
-        function toggleStatsModal() { document.getElementById('stats-modal').classList.toggle('active'); }
-        function addStat(type) {
-            if (playerState.statPoints <= 0) return;
-            playerState.statPoints--; playerState[type]++; updateUI(); saveGame();
-        }
 
         function useSkill(type) {
             if (cd[type] > 0) return;
-            const mpCost = type === 'Z' ? 0 : (type === 'X' ? 45 : (type === 'C' ? 90 : 150));
-            if (playerState.mp < mpCost) return;
 
-            playerState.mp -= mpCost;
-            if (type === 'Z') { cd.Z = 0.5; attackEnemies(getMeleeDmg(), 6); }
-            else if (type === 'X') { cd.X = 3.0; attackEnemies(getSkillDmg() * 1.5, 9); }
-            else if (type === 'C') { cd.C = 6.0; attackEnemies(getSkillDmg() * 2.5, 14); }
-            else if (type === 'V') { cd.V = 10.0; attackEnemies(getSkillDmg() * 3.8, 20); }
+            if (type === 'Z') { // 군청빙전 (전방 빙결 파동)
+                cd.Z = 1.0; spawnIceEffect(playerGroup.position, 6, 0x00f0ff);
+                dealDamage(250, 7);
+            } else if (type === 'X') { // 육의빙결진 (범위 얼음 기둥)
+                if (playerStats.mp < 50) return;
+                playerStats.mp -= 50; cd.X = 3.5;
+                spawnIceSpike(playerGroup.position);
+                dealDamage(450, 10);
+            } else if (type === 'C') { // 대홍련빙륜환 (만해 변신)
+                if (playerStats.mp < 120) return;
+                playerStats.mp -= 120; cd.C = 12.0;
+                bankaiActive = true; if(iceWings) iceWings.visible = true;
+                const txt = document.getElementById('bankai-text');
+                txt.classList.add('active'); setTimeout(() => txt.classList.remove('active'), 2000);
+            } else if (type === 'V') { // 천송빙화 (거대 빙룡 낙하)
+                if (playerStats.mp < 200) return;
+                playerStats.mp -= 200; cd.V = 15.0;
+                spawnIceDragonEffect();
+                dealDamage(1000, 18);
+            }
             updateUI();
         }
 
-        function attackEnemies(dmg, range) {
+        function dealDamage(dmg, range) {
             enemies.forEach(e => {
-                if (!e.alive) return;
-                if (playerGroup.position.distanceTo(e.group.position) <= range) {
-                    e.hp -= dmg;
+                if (e.alive && playerGroup.position.distanceTo(e.group.position) <= range) {
+                    e.hp -= (bankaiActive ? dmg * 1.5 : dmg);
                     if (e.hp <= 0) {
                         e.alive = false; scene.remove(e.group);
-                        onEnemyKilled();
-                        setTimeout(() => {
-                            e.hp = e.maxHp; e.alive = true;
-                            e.group.position.set(e.spawnX, 0, e.spawnZ); scene.add(e.group);
-                        }, 5000);
+                        setTimeout(() => { e.hp = e.maxHp; e.alive = true; e.group.position.set(e.spawnX, 0, e.spawnZ); scene.add(e.group); }, 5000);
                     }
                 }
             });
         }
 
-        function onEnemyKilled() {
-            gainExp(70); playerState.gold += 180;
-            if (playerState.quest.active) {
-                playerState.quest.current++;
-                if (playerState.quest.current >= playerState.quest.target) {
-                    playerState.quest.active = false;
-                    gainExp(playerState.quest.rewardExp); playerState.gold += playerState.quest.rewardGold;
-                    alert(`🎉 [${STAGES[currentStageIdx].name}] 스토리 퀘스트 완료!`);
-                }
-            }
-            updateUI(); saveGame();
+        // --- 이펙트 구현 ---
+        function spawnIceEffect(pos, size, color) {
+            const p = new THREE.Mesh(new THREE.RingGeometry(0.1, size, 16), new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.8 }));
+            p.rotation.x = -Math.PI / 2; p.position.copy(pos); p.position.y = 0.1;
+            scene.add(p);
+            let s = 0.1;
+            const timer = setInterval(() => {
+                s += 0.5; p.scale.set(s, s, s); p.material.opacity -= 0.05;
+                if (p.material.opacity <= 0) { scene.remove(p); clearInterval(timer); }
+            }, 30);
         }
 
-        function gainExp(amt) {
-            playerState.exp += amt;
-            if (playerState.exp >= playerState.maxExp) {
-                playerState.exp -= playerState.maxExp;
-                playerState.level++; playerState.statPoints += 3;
-                playerState.maxExp = Math.floor(playerState.maxExp * 1.4);
-                playerState.hp = getMaxHp(); playerState.mp = getMaxMp();
-            }
+        function spawnIceSpike(pos) {
+            const spike = new THREE.Mesh(new THREE.ConeGeometry(3, 12, 6), new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true }));
+            spike.position.copy(pos); scene.add(spike);
+            setTimeout(() => scene.remove(spike), 800);
         }
 
-        function checkNPCInteract() {
-            if (playerGroup.position.distanceTo(npcGroup.position) < 6) {
-                if (!playerState.quest.active) {
-                    playerState.quest.active = true; playerState.quest.current = 0;
-                    alert(`📜 [${STAGES[currentStageIdx].npcName}] ${STAGES[currentStageIdx].enemyName} 3마리를 처치하세요!`);
-                    updateUI(); saveGame();
-                }
-            }
+        function spawnIceDragonEffect() {
+            const dragon = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 6, 20, 12), new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.9 }));
+            dragon.position.set(playerGroup.position.x, 20, playerGroup.position.z);
+            scene.add(dragon);
+            let y = 20;
+            const t = setInterval(() => {
+                y -= 2; dragon.position.y = y;
+                if (y <= 0) { scene.remove(dragon); spawnIceEffect(playerGroup.position, 16, 0x38bdf8); clearInterval(t); }
+            }, 20);
         }
 
         function updateUI() {
-            const maxHp = getMaxHp(), maxMp = getMaxMp();
-            document.getElementById('val-level').innerText = playerState.level;
-            document.getElementById('val-gold').innerText = playerState.gold;
-            document.getElementById('txt-hp').innerText = `${Math.ceil(playerState.hp)} / ${maxHp}`;
-            document.getElementById('hp-bar').style.width = `${(playerState.hp / maxHp) * 100}%`;
-            document.getElementById('txt-mp').innerText = `${Math.ceil(playerState.mp)} / ${maxMp}`;
-            document.getElementById('mp-bar').style.width = `${(playerState.mp / maxMp) * 100}%`;
-            document.getElementById('exp-bar').style.width = `${(playerState.exp / playerState.maxExp) * 100}%`;
-
-            document.getElementById('val-stat-pts').innerText = playerState.statPoints;
-            document.getElementById('val-stat-str').innerText = playerState.str;
-            document.getElementById('val-stat-def').innerText = playerState.def;
-            document.getElementById('val-stat-frt').innerText = playerState.frt;
-
-            const q = playerState.quest;
-            document.getElementById('quest-desc').innerText = q.active ? `보스 처치 (${q.current}/${q.target})` : `${STAGES[currentStageIdx].npcName} NPC 대화 수락`;
-            document.getElementById('quest-progress').innerText = q.active ? `보상: 💰${q.rewardGold} / EXP ${q.rewardExp}` : '';
-
-            const dist = playerGroup.position.distanceTo(npcGroup.position);
-            document.getElementById('btn-interact').classList.toggle('active', dist < 6);
+            document.getElementById('hp-bar').style.width = `${(playerStats.hp / playerStats.maxHp) * 100}%`;
+            document.getElementById('txt-hp').innerText = `${playerStats.hp} / ${playerStats.maxHp}`;
+            document.getElementById('mp-bar').style.width = `${(playerStats.mp / playerStats.maxMp) * 100}%`;
+            document.getElementById('txt-mp').innerText = `${Math.ceil(playerStats.mp)} / ${playerStats.maxMp}`;
         }
 
         // --- Loop ---
@@ -367,7 +270,6 @@
             requestAnimationFrame(animate);
             const delta = clock.getDelta();
 
-            // 터치 조이스틱 이동
             if (joystickDir.x !== 0 || joystickDir.z !== 0) {
                 const dir = new THREE.Vector3(joystickDir.x, 0, joystickDir.z).normalize();
                 playerGroup.position.x += dir.x * 16 * delta;
@@ -375,22 +277,19 @@
                 playerGroup.rotation.y = Math.atan2(dir.x, dir.z);
             }
 
-            // 스킬 쿨타임
             ['Z','X','C','V'].forEach(k => {
                 if (cd[k] > 0) {
                     cd[k] = Math.max(0, cd[k] - delta);
-                    const maxCd = k === 'Z' ? 0.5 : (k === 'X' ? 3.0 : (k === 'C' ? 6.0 : 10.0));
+                    const maxCd = k === 'Z' ? 1.0 : (k === 'X' ? 3.5 : (k === 'C' ? 12.0 : 15.0));
                     document.getElementById(`cd-${k.toLowerCase()}`).style.height = `${(cd[k] / maxCd) * 100}%`;
                 }
             });
 
-            // 마나 자동 회복
-            if (playerState.mp < getMaxMp()) {
-                playerState.mp = Math.min(getMaxMp(), playerState.mp + delta * 12);
+            if (playerStats.mp < playerStats.maxMp) {
+                playerStats.mp = Math.min(playerStats.maxMp, playerStats.mp + delta * 15);
                 updateUI();
             }
 
-            // 카메라 연동
             camera.position.set(playerGroup.position.x, playerGroup.position.y + 22, playerGroup.position.z + 26);
             camera.lookAt(playerGroup.position);
 
