@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ice Captain - 7 World Background Saga</title>
+    <title>Ice Captain - Dim Light Fix</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
@@ -14,60 +14,60 @@
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #050811; font-family: 'Segoe UI', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
-        /* HUD UI */
+        /* HUD UI (빛 번짐 차단) */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .panel-box { background: rgba(2, 8, 20, 0.92); backdrop-filter: blur(16px); border: 1.5px solid #70e4ff; border-radius: 14px; padding: 12px; width: 320px; pointer-events: auto; box-shadow: 0 0 35px rgba(0, 240, 255, 0.45); }
+        .panel-box { background: rgba(10, 15, 25, 0.95); border: 1px solid #3080a0; border-radius: 12px; padding: 12px; width: 300px; pointer-events: auto; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); }
         .gold-text { color: #ffd700; font-weight: bold; }
-        .bar-container { width: 100%; height: 10px; background: rgba(255, 255, 255, 0.12); border-radius: 5px; overflow: hidden; margin-top: 6px; }
-        .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #ff416c, #ff4b2b); transition: width 0.2s; }
-        .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #00b4db, #0083b0); transition: width 0.2s; }
-        .quest-box { margin-top: 8px; background: rgba(0, 240, 255, 0.15); border-left: 4px solid #70e4ff; padding: 6px 10px; font-size: 11px; font-weight: bold; line-height: 1.4; border-radius: 0 6px 6px 0; text-shadow: 0 0 8px #00f0ff; }
+        .bar-container { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+        .bar-fill-hp { width: 100%; height: 100%; background: #e63946; transition: width 0.2s; }
+        .bar-fill-mp { width: 100%; height: 100%; background: #0077b6; transition: width 0.2s; }
+        .quest-box { margin-top: 8px; background: rgba(0, 150, 200, 0.2); border-left: 3px solid #70e4ff; padding: 5px 8px; font-size: 11px; font-weight: bold; border-radius: 0 4px 4px 0; }
 
         /* 보스 HUD UI */
-        #boss-hud { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 60%; max-width: 520px; text-align: center; display: none; }
-        #boss-name { font-size: 16px; font-weight: 900; color: #ff3366; text-shadow: 0 0 12px #ff0055, 0 0 20px #ffffff; letter-spacing: 2px; margin-bottom: 4px; }
-        .boss-bar-bg { width: 100%; height: 20px; background: rgba(0,0,0,0.85); border: 2px solid #ff3366; border-radius: 10px; overflow: hidden; box-shadow: 0 0 30px rgba(255, 0, 85, 0.7); }
-        #boss-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0055, #ff7700, #ffee00); transition: width 0.15s ease-out; }
+        #boss-hud { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 60%; max-width: 480px; text-align: center; display: none; }
+        #boss-name { font-size: 15px; font-weight: 800; color: #ff4d6d; text-shadow: 0 2px 4px #000; letter-spacing: 1.5px; margin-bottom: 4px; }
+        .boss-bar-bg { width: 100%; height: 16px; background: rgba(0,0,0,0.9); border: 1px solid #ff4d6d; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8); }
+        #boss-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0055, #ff7700); transition: width 0.15s ease-out; }
 
         /* 콤보 UI */
         #combo-container { position: absolute; top: 25%; left: 35px; opacity: 0; transition: opacity 0.2s, transform 0.1s; transform: scale(1); pointer-events: none; }
-        #combo-count { font-size: 52px; font-weight: 900; color: #70e4ff; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ffaae5; font-style: italic; }
-        #combo-text { font-size: 14px; font-weight: bold; color: #ffffff; letter-spacing: 2px; }
+        #combo-count { font-size: 48px; font-weight: 900; color: #70e4ff; text-shadow: 0 2px 10px #000; font-style: italic; }
+        #combo-text { font-size: 13px; font-weight: bold; color: #ffffff; letter-spacing: 2px; }
 
         /* 데미지 폰트 */
         #damage-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
-        .damage-text { position: absolute; font-weight: 900; font-style: italic; transform: translate(-50%, -100%); animation: floatUp 0.8s ease-out forwards; text-shadow: 0 0 10px #000; }
-        .damage-normal { font-size: 24px; color: #ffffff; text-shadow: 0 0 8px #00f0ff; }
-        .damage-crit { font-size: 36px; color: #ffeb3b; text-shadow: 0 0 15px #ff5722, 0 0 25px #ffffff; }
+        .damage-text { position: absolute; font-weight: 900; font-style: italic; transform: translate(-50%, -100%); animation: floatUp 0.8s ease-out forwards; text-shadow: 0 2px 6px #000; }
+        .damage-normal { font-size: 22px; color: #ffffff; }
+        .damage-crit { font-size: 32px; color: #ffcc00; }
 
         @keyframes floatUp {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); }
-            30% { transform: translate(-50%, -100%) scale(1.3); }
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
+            30% { transform: translate(-50%, -100%) scale(1.1); }
             100% { opacity: 0; transform: translate(-50%, -180%) scale(1.0); }
         }
 
-        /* 조이스틱 및 컨트롤러 */
-        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(0, 240, 255, 0.08); border: 2px solid rgba(112, 228, 255, 0.5); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); }
-        #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #ffffff, #70e4ff); border-radius: 50%; box-shadow: 0 0 25px #00f0ff; }
+        /* 컨트롤러 UI */
+        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(112, 228, 255, 0.3); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; }
+        #joystick-handle { width: 45px; height: 45px; background: #70e4ff; border-radius: 50%; opacity: 0.8; }
 
         .action-area { position: absolute; bottom: 20px; right: 20px; width: 280px; height: 280px; pointer-events: none; }
-        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(5, 12, 28, 0.9); border: 1.5px solid #70e4ff; box-shadow: 0 0 22px rgba(0, 240, 255, 0.5); font-size: 11px; text-shadow: 0 0 8px #00f0ff; overflow: hidden; }
+        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(15, 25, 40, 0.85); border: 1px solid #457b9d; font-size: 11px; overflow: hidden; }
         .btn-action:active { transform: scale(0.9); }
         
-        .cooldown-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: 900; color: #00f0ff; opacity: 0; pointer-events: none; }
+        .cooldown-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: 900; color: #70e4ff; opacity: 0; pointer-events: none; }
 
-        #btn-attack { width: 85px; height: 85px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #ffffff, #0088ff); border-color: #ffffff; box-shadow: 0 0 32px #00f0ff; }
-        #btn-dodge { width: 50px; height: 50px; bottom: 5px; right: 105px; }
-        #btn-skill1 { width: 58px; height: 58px; bottom: 95px; right: 0; background: radial-gradient(circle, #f0f8ff, #00bfff); }
-        #btn-skill2 { width: 58px; height: 58px; bottom: 100px; right: 75px; background: radial-gradient(circle, #ffffff, #00ffff); }
-        #btn-ult { width: 70px; height: 70px; bottom: 165px; right: 15px; border-color: #ffffff; background: radial-gradient(circle, #ffffff, #e0aaff); box-shadow: 0 0 45px #ffffff; color: #10002b; font-size: 12px; }
+        #btn-attack { width: 80px; height: 80px; bottom: 0; right: 0; font-size: 15px; background: #1d3557; border-color: #a8dadc; }
+        #btn-dodge { width: 48px; height: 48px; bottom: 5px; right: 100px; }
+        #btn-skill1 { width: 55px; height: 55px; bottom: 90px; right: 0; background: #0077b6; }
+        #btn-skill2 { width: 55px; height: 55px; bottom: 95px; right: 70px; background: #023e8a; }
+        #btn-ult { width: 65px; height: 65px; bottom: 155px; right: 15px; border-color: #e0aaff; background: #3c096c; font-size: 11px; }
 
-        #toast-msg { position: absolute; top: 18%; width: 100%; text-align: center; color: #ffffff; font-size: 26px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 20; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ff70a6, 0 0 60px #ffffff; }
+        #toast-msg { position: absolute; top: 18%; width: 100%; text-align: center; color: #ffffff; font-size: 22px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 20; text-shadow: 0 2px 10px #000; }
     </style>
 </head>
 <body>
@@ -113,14 +113,15 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { stage: 1, gold: 0, level: 1, hp: 150, maxHp: 150, mp: 100, maxMp: 100, atk: 85, combo: 0, comboTimer: null, isHitStopped: false };
 
+            // 어둡고 차분한 배경 테마 색상으로 수정
             const STAGE_THEMES = {
-                1: { name: "1. 영혼의 마을 (튜토리얼)", color: 0xffa066, fog: 0.005, particles: 'sunset' },
-                2: { name: "2. 영혼 수련 마을", color: 0xffd1dc, fog: 0.006, particles: 'cherry' },
-                3: { name: "3. 영혼 기사단 본부", color: 0xd8e8f8, fog: 0.004, particles: 'snow' },
-                4: { name: "4. 하얀 사막 차원", color: 0x222233, fog: 0.003, particles: 'sand' },
-                5: { name: "5. 수정 궁전", color: 0x003366, fog: 0.003, particles: 'crystal' },
-                6: { name: "6. 최종 결전 도시", color: 0x550000, fog: 0.007, particles: 'fire' },
-                7: { name: "7. 엔딩 마을", color: 0xe0ffff, fog: 0.004, particles: 'cherry' }
+                1: { name: "1. 영혼의 마을 (튜토리얼)", color: 0x0d1117, fog: 0.015, particles: 'sunset' },
+                2: { name: "2. 영혼 수련 마을", color: 0x141118, fog: 0.015, particles: 'cherry' },
+                3: { name: "3. 영혼 기사단 본부", color: 0x101820, fog: 0.012, particles: 'snow' },
+                4: { name: "4. 하얀 사막 차원", color: 0x15151c, fog: 0.010, particles: 'sand' },
+                5: { name: "5. 수정 궁전", color: 0x05101a, fog: 0.012, particles: 'crystal' },
+                6: { name: "6. 최종 결전 도시", color: 0x1a0505, fog: 0.018, particles: 'fire' },
+                7: { name: "7. 엔딩 마을", color: 0x0a151d, fog: 0.012, particles: 'cherry' }
             };
 
             const cooldowns = {
@@ -151,23 +152,23 @@
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 const now = audioCtx.currentTime;
                 if (type === 'slash') {
-                    osc.type = 'triangle'; osc.frequency.setValueAtTime(900, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.15);
-                    gain.gain.setValueAtTime(0.35, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now); osc.stop(now + 0.15);
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+                    gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+                    osc.start(now); osc.stop(now + 0.12);
                 } else if (type === 'ult') {
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(110, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.75);
-                    gain.gain.setValueAtTime(0.65, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.75);
-                    osc.start(now); osc.stop(now + 0.75);
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.exponentialRampToValueAtTime(900, now + 0.6);
+                    gain.gain.setValueAtTime(0.4, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+                    osc.start(now); osc.stop(now + 0.6);
                 }
             }
 
-            function triggerHitStop(duration = 50) {
+            function triggerHitStop(duration = 40) {
                 state.isHitStopped = true;
                 setTimeout(() => { state.isHitStopped = false; }, duration);
             }
 
             function showDamageText(pos, dmgAmount, isCrit = false) {
-                const vector = pos.clone(); vector.y += 2.5; vector.project(camera);
+                const vector = pos.clone(); vector.y += 2.2; vector.project(camera);
                 const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
 
@@ -185,7 +186,7 @@
                 const comboEl = document.getElementById('combo-container');
                 document.getElementById('combo-count').innerText = state.combo;
                 comboEl.style.opacity = '1';
-                comboEl.style.transform = 'scale(1.25)';
+                comboEl.style.transform = 'scale(1.15)';
                 setTimeout(() => comboEl.style.transform = 'scale(1)', 100);
 
                 clearTimeout(state.comboTimer);
@@ -205,17 +206,18 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
+            // 포스트 프로세싱 (블룸 효과 강도를 1.3 -> 0.25 로 대폭 축소)
             const composer = new THREE.EffectComposer(renderer);
             composer.addPass(new THREE.RenderPass(scene, camera));
-            const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.3, 0.45, 0.15);
+            const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.25, 0.2, 0.8);
             composer.addPass(bloomPass);
 
-            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-            const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
-            mainLight.position.set(30, 50, 20);
+            // 빛 감쇄 (광원 조절)
+            scene.add(new THREE.AmbientLight(0x778899, 0.6)); 
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            mainLight.position.set(20, 40, 20);
             mainLight.castShadow = true;
             scene.add(mainLight);
 
@@ -223,16 +225,16 @@
                 const cv = document.createElement('canvas');
                 cv.width = 512; cv.height = 512;
                 const ctx = cv.getContext('2d');
-                ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 512, 512);
-                ctx.fillStyle = '#cc0022';
+                ctx.fillStyle = '#dcdcdc'; ctx.fillRect(0, 0, 512, 512);
+                ctx.fillStyle = '#a00000';
                 for(let i=0; i<4; i++) { ctx.fillRect(160 + i*50, 40, 25, 430); }
-                ctx.fillStyle = '#000000';
+                ctx.fillStyle = '#111111';
                 ctx.beginPath(); ctx.ellipse(170, 240, 50, 35, -0.2, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.ellipse(342, 240, 50, 35, 0.2, 0, Math.PI * 2); ctx.fill();
                 return new THREE.CanvasTexture(cv);
             }
 
-            const floorMat = new THREE.MeshPhysicalMaterial({ color: 0x111622, roughness: 0.3, metalness: 0.1 });
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a222d, roughness: 0.6, metalness: 0.1 });
             const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), floorMat);
             floorMesh.rotation.x = -Math.PI / 2;
             floorMesh.receiveShadow = true;
@@ -245,54 +247,47 @@
                 while(envGroup.children.length > 0) { envGroup.remove(envGroup.children[0]); }
 
                 if (stage === 1) { 
-                    floorMat.color.setHex(0x3a2e2b);
+                    floorMat.color.setHex(0x1e1b18);
                     for(let i=0; i<12; i++) {
                         const lamp = new THREE.Group();
-                        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 5), new THREE.MeshStandardMaterial({color: 0x222222}));
+                        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 5), new THREE.MeshStandardMaterial({color: 0x333333}));
                         pole.position.y = 2.5; lamp.add(pole);
-                        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.4), new THREE.MeshBasicMaterial({color: 0xffaa33}));
+                        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.3), new THREE.MeshStandardMaterial({color: 0xffaa33, emissive: 0xaa5500, emissiveIntensity: 0.5}));
                         bulb.position.y = 5.0; lamp.add(bulb);
                         lamp.position.set((i%2 === 0 ? -18 : 18), 0, -60 + i*10);
                         envGroup.add(lamp);
                     }
                 } else if (stage === 2) { 
-                    floorMat.color.setHex(0x2d3b2d);
+                    floorMat.color.setHex(0x182018);
                     for(let i=0; i<10; i++) {
-                        const lantern = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3.0, 1.2), new THREE.MeshStandardMaterial({color: 0x777777}));
+                        const lantern = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3.0, 1.2), new THREE.MeshStandardMaterial({color: 0x555555}));
                         lantern.position.set((i%2 === 0 ? -16 : 16), 1.5, -50 + i*12);
                         envGroup.add(lantern);
                     }
                 } else if (stage === 3) { 
-                    floorMat.color.setHex(0xaaaaaa);
-                    const wall = new THREE.Mesh(new THREE.BoxGeometry(120, 20, 4), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
+                    floorMat.color.setHex(0x2a3038);
+                    const wall = new THREE.Mesh(new THREE.BoxGeometry(120, 20, 4), new THREE.MeshStandardMaterial({color: 0x444455}));
                     wall.position.set(0, 10, -45); envGroup.add(wall);
                 } else if (stage === 4) { 
-                    floorMat.color.setHex(0xe8e8e8);
-                    const moon = new THREE.Mesh(new THREE.SphereGeometry(14, 32, 32), new THREE.MeshBasicMaterial({color: 0xffffff}));
+                    floorMat.color.setHex(0x333344);
+                    const moon = new THREE.Mesh(new THREE.SphereGeometry(12, 32, 32), new THREE.MeshBasicMaterial({color: 0xdddddd}));
                     moon.position.set(0, 25, -70); envGroup.add(moon);
-                    for(let i=0; i<8; i++) {
-                        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3.0), new THREE.MeshStandardMaterial({color: 0x111111}));
-                        rock.position.set((Math.random()-0.5)*60, 1.5, (Math.random()-0.5)*60); envGroup.add(rock);
-                    }
                 } else if (stage === 5) { 
-                    floorMat.color.setHex(0x00ffff); floorMat.roughness = 0.05;
+                    floorMat.color.setHex(0x0a2030);
                     for(let i=0; i<8; i++) {
-                        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.5, 0), new THREE.MeshStandardMaterial({color: 0x00f0ff, emissive: 0x0088ff, emissiveIntensity: 1.5}));
+                        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.0, 0), new THREE.MeshStandardMaterial({color: 0x0088aa, roughness: 0.2}));
                         crystal.scale.set(1, 4, 1);
-                        crystal.position.set((i%2 === 0 ? -20 : 20), 5, -40 + i*12); envGroup.add(crystal);
+                        crystal.position.set((i%2 === 0 ? -20 : 20), 4, -40 + i*12); envGroup.add(crystal);
                     }
                 } else if (stage === 6) { 
-                    floorMat.color.setHex(0x1a0505);
+                    floorMat.color.setHex(0x1a0a0a);
                     for(let i=0; i<7; i++) {
-                        const ruin = new THREE.Mesh(new THREE.BoxGeometry(8, 15 + Math.random()*15, 8), new THREE.MeshStandardMaterial({color: 0x221111}));
-                        ruin.rotation.z = (Math.random() - 0.5) * 0.3;
+                        const ruin = new THREE.Mesh(new THREE.BoxGeometry(8, 15 + Math.random()*10, 8), new THREE.MeshStandardMaterial({color: 0x221515}));
                         ruin.position.set((i%2 === 0 ? -25 : 25), 6, -50 + i*15); envGroup.add(ruin);
                     }
                 } else if (stage === 7) { 
-                    floorMat.color.setHex(0x354a21);
-                    const river = new THREE.Mesh(new THREE.PlaneGeometry(160, 12), new THREE.MeshBasicMaterial({color: 0x00aaff}));
-                    river.rotation.x = -Math.PI / 2; river.position.set(0, 0.05, -10); envGroup.add(river);
-                    const bridge = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 14), new THREE.MeshStandardMaterial({color: 0x8b4513}));
+                    floorMat.color.setHex(0x182818);
+                    const bridge = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 14), new THREE.MeshStandardMaterial({color: 0x5a3d28}));
                     bridge.position.set(0, 0.2, -10); envGroup.add(bridge);
                 }
             }
@@ -303,30 +298,29 @@
             function createParticles(stage) {
                 if(particleSystem) scene.remove(particleSystem);
                 const theme = STAGE_THEMES[stage];
-                const count = 1200;
+                const count = 600;
                 const geo = new THREE.BufferGeometry();
                 const pos = new Float32Array(count * 3);
                 for (let i = 0; i < count * 3; i += 3) {
-                    pos[i] = (Math.random() - 0.5) * 150; pos[i+1] = Math.random() * 50; pos[i+2] = (Math.random() - 0.5) * 150;
+                    pos[i] = (Math.random() - 0.5) * 120; pos[i+1] = Math.random() * 40; pos[i+2] = (Math.random() - 0.5) * 120;
                 }
                 geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-                let color = 0xffffff;
-                if(theme.particles === 'cherry') color = 0xffb7c5;
-                else if(theme.particles === 'sunset') color = 0xffaa44;
-                else if(theme.particles === 'fire') color = 0xff3300;
+                let color = 0x888888;
+                if(theme.particles === 'cherry') color = 0xdda0dd;
+                else if(theme.particles === 'sunset') color = 0xcc8844;
 
-                particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ color: color, size: 0.8, transparent: true, opacity: 0.8 }));
+                particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ color: color, size: 0.5, transparent: true, opacity: 0.5 }));
                 scene.add(particleSystem);
             }
             createParticles(1);
 
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
-            const playerBody = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x080c14 }));
+            const playerBody = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x151d2a }));
             playerBody.position.y = 0.6; playerGroup.add(playerBody);
-            const playerHead = new THREE.Mesh(new THREE.SphereGeometry(0.28), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+            const playerHead = new THREE.Mesh(new THREE.SphereGeometry(0.28), new THREE.MeshStandardMaterial({ color: 0xdac0a3 }));
             playerHead.position.y = 1.35; playerGroup.add(playerHead);
-            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.2, 0.06), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00f0ff, emissiveIntensity: 2.0 }));
+            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.2, 0.06), new THREE.MeshStandardMaterial({ color: 0xdddddd, emissive: 0x0088cc, emissiveIntensity: 0.5 }));
             sword.position.set(0.35, 0.9, 0.2); sword.rotation.x = Math.PI / 4; playerGroup.add(sword);
 
             const monsters = [];
@@ -335,18 +329,18 @@
             function createAdjustedHollowBoss() {
                 const group = new THREE.Group();
 
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 24, 24), new THREE.MeshStandardMaterial({ map: maskTex, roughness: 0.2 }));
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 24, 24), new THREE.MeshStandardMaterial({ map: maskTex, roughness: 0.4 }));
                 head.position.y = 2.1; head.rotation.y = Math.PI; group.add(head);
 
-                const eyeLight = new THREE.PointLight(0xff0033, 2.5, 6);
+                const eyeLight = new THREE.PointLight(0xff0033, 0.8, 4);
                 eyeLight.position.set(0, 2.1, 0.6); group.add(eyeLight);
 
                 for(let side = -1; side <= 1; side += 2) {
-                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.9, 6), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0xff0033 }));
+                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.9, 6), new THREE.MeshStandardMaterial({ color: 0x111111 }));
                     horn.position.set(side * 0.4, 2.7, 0); horn.rotation.z = -side * 0.4; group.add(horn);
                 }
 
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 1.6, 8), new THREE.MeshStandardMaterial({ color: 0x0a030d, emissive: 0x330011 }));
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 1.6, 8), new THREE.MeshStandardMaterial({ color: 0x110515 }));
                 body.position.y = 0.8; group.add(body);
 
                 group.position.set(0, 0, -18); scene.add(group);
@@ -357,10 +351,10 @@
             createAdjustedHollowBoss();
 
             const vfxList = [];
-            function spawnSlashVFX(scale = 1.0, color = 0x00f0ff) {
+            function spawnSlashVFX(scale = 1.0, color = 0x00aaff) {
                 const group = new THREE.Group();
-                const arcGeo = new THREE.RingGeometry(1.0 * scale, 2.5 * scale, 32, 1, 0, Math.PI * 0.75);
-                const arcMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending });
+                const arcGeo = new THREE.RingGeometry(1.0 * scale, 2.2 * scale, 32, 1, 0, Math.PI * 0.75);
+                const arcMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
                 const arcMesh = new THREE.Mesh(arcGeo, arcMat);
                 group.add(arcMesh);
                 group.position.copy(playerGroup.position);
@@ -368,7 +362,7 @@
                 group.rotation.x = Math.PI / 2;
                 group.rotation.z = playerGroup.rotation.y + Math.PI / 4;
                 scene.add(group);
-                vfxList.push({ mesh: group, type: 'fade', life: 0.2, maxLife: 0.2, scaleSpeed: 0.18 });
+                vfxList.push({ mesh: group, type: 'fade', life: 0.2, maxLife: 0.2, scaleSpeed: 0.15 });
             }
 
             function attackMonster(m, damageMultiplier = 1.0) {
@@ -376,7 +370,7 @@
                 const finalDmg = Math.round((state.atk * damageMultiplier) * (isCrit ? 1.85 : 1.0));
                 m.hp -= finalDmg;
                 showDamageText(m.mesh.position, finalDmg, isCrit);
-                triggerHitStop(isCrit ? 70 : 35);
+                triggerHitStop(isCrit ? 60 : 30);
                 addCombo();
                 if (m.isBoss) document.getElementById('boss-bar-fill').style.width = `${Math.max(0, (m.hp / m.maxHp)) * 100}%`;
                 if (m.hp <= 0) {
@@ -420,13 +414,13 @@
             }
 
             document.getElementById('btn-attack').onclick = () => {
-                playSound('slash'); spawnSlashVFX(1.0, 0x00f0ff);
+                playSound('slash'); spawnSlashVFX(1.0, 0x00aaff);
                 monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 5.5) attackMonster(m, 1.0); });
             };
 
             document.getElementById('btn-skill1').onclick = () => {
                 if (state.mp >= 20 && cooldowns.skill1.current <= 0) {
-                    state.mp -= 20; triggerCooldown('skill1'); playSound('slash'); spawnSlashVFX(1.6, 0x00aaff);
+                    state.mp -= 20; triggerCooldown('skill1'); playSound('slash'); spawnSlashVFX(1.5, 0x0077b6);
                     monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 8.5) attackMonster(m, 1.85); });
                     showToast("🐉 군구상빙륜환!"); updateUI();
                 }
@@ -434,7 +428,7 @@
 
             document.getElementById('btn-skill2').onclick = () => {
                 if (state.mp >= 30 && cooldowns.skill2.current <= 0) {
-                    state.mp -= 30; triggerCooldown('skill2'); playSound('slash'); spawnSlashVFX(2.2, 0xff00ff);
+                    state.mp -= 30; triggerCooldown('skill2'); playSound('slash'); spawnSlashVFX(2.0, 0x9d4edd);
                     monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 11.0) attackMonster(m, 2.6); });
                     showToast("💫 빙류성(氷流星) 연타!"); updateUI();
                 }
@@ -442,7 +436,7 @@
 
             document.getElementById('btn-ult').onclick = () => {
                 if (state.mp >= 40 && cooldowns.ult.current <= 0) {
-                    state.mp -= 40; triggerCooldown('ult'); playSound('ult'); spawnSlashVFX(3.0, 0xffffff);
+                    state.mp -= 40; triggerCooldown('ult'); playSound('ult'); spawnSlashVFX(2.8, 0x00f0ff);
                     monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 18.0) attackMonster(m, 5.0); });
                     showToast("❄️ 만해 [대홍련빙륜환] 각성!"); updateUI();
                 }
@@ -489,7 +483,7 @@
                     if(particleSystem) {
                         const pos = particleSystem.geometry.attributes.position.array;
                         for (let i = 1; i < pos.length; i += 3) {
-                            pos[i] -= 0.1; if (pos[i] < 0) pos[i] = 50;
+                            pos[i] -= 0.1; if (pos[i] < 0) pos[i] = 40;
                         }
                         particleSystem.geometry.attributes.position.needsUpdate = true;
                     }
@@ -506,7 +500,7 @@
 
                     monsters.forEach(m => {
                         m.mesh.rotation.y += 0.01;
-                        m.mesh.position.y = Math.sin(Date.now() * 0.003) * 0.3;
+                        m.mesh.position.y = Math.sin(Date.now() * 0.003) * 0.2;
                     });
                 }
 
