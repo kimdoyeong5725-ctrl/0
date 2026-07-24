@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ice Captain - Karakura & Seireitei Edition</title>
+    <title>Ice Captain - Bleach Story Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -84,7 +84,7 @@
                 </div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
                 <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="quest-box">📖 <span id="ui-stage-name">1. 카라쿠라 마을 (거대 호로)</span></div>
+                <div class="quest-box">📖 <span id="ui-stage-name">1. 카라쿠라 마을 (집 & 호로)</span></div>
             </div>
         </div>
 
@@ -114,11 +114,14 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { stage: 1, gold: 0, level: 1, hp: 150, maxHp: 150, mp: 100, maxMp: 100, atk: 85, combo: 0, comboTimer: null, isHitStopped: false };
 
+            // 설정하신 6개 스토리 구성
             const STAGE_THEMES = {
-                1: { name: "1. 카라쿠라 마을 (현세 결전)", boss: "메노스 그랑데", color: 0x0a0f1d, floor: 0x334155 },
-                2: { name: "2. 정령정 (호정 13대 수련)", boss: "총대장 야마모토겐류사이", color: 0x0a0f1d, floor: 0x1e293b },
-                3: { name: "3. 웨코문도 (아란칼 습격)", boss: "제 4에스파다 우르키오라", color: 0x0a0f1d, floor: 0x1e1b4b },
-                4: { name: "4. 쌍삭대 (아이젠 처단)", boss: "붕옥 융합 아이젠", color: 0x0a0f1d, floor: 0x2e103f }
+                1: { name: "1. 카라쿠라 마을 (집 & 호로)", boss: "거대 호로", color: 0x0a0f1d, floor: 0x334155 },
+                2: { name: "2. 소울 소사이어티 입구 (문지기 지단보 & 이치마루 긴)", boss: "3번대 대장 이치마루 긴", color: 0x0a0f1d, floor: 0x475569 },
+                3: { name: "3. 정령정 (호정 13대 대장들 & 흰 성벽)", boss: "6번대 대장 쿠치키 바쿠야", color: 0x0a0f1d, floor: 0x1e293b },
+                4: { name: "4. 쌍삭대 단두대 (아이젠 소스케)", boss: "배신자 아이젠 소스케", color: 0x0a0f1d, floor: 0x2e103f },
+                5: { name: "5. 웨코문도 라스 노체스 (아란칼 군단)", boss: "제 4에스파다 우르키오라", color: 0x0a0f1d, floor: 0x1e1b4b },
+                6: { name: "6. 천년혈전 (퀸시 군단 & 유하바하 성)", boss: "퀸시의 시조 유하바하", color: 0x0a0f1d, floor: 0x0f172a }
             };
 
             const cooldowns = {
@@ -230,34 +233,23 @@
             let npcGroup = new THREE.Group();
             scene.add(npcGroup);
 
-            // ==========================================
-            // GLB 모델 로더 인터페이스 (사용자 정의 모델 교체 가능)
-            // ==========================================
+            // GLB 모델 인터페이스
             window.loadCustomGLBModel = function(url, parentGroup, scale = 1, position = {x:0, y:0, z:0}) {
                 gltfLoader.load(url, (gltf) => {
                     const model = gltf.scene;
                     model.scale.set(scale, scale, scale);
                     model.position.set(position.x, position.y, position.z);
-                    
-                    // 기존 자체 조립 메시 제거 후 외부 GLB 모델로 교체
-                    while(parentGroup.children.length > 0) {
-                        parentGroup.remove(parentGroup.children[0]);
-                    }
+                    while(parentGroup.children.length > 0) { parentGroup.remove(parentGroup.children[0]); }
                     parentGroup.add(model);
-                    console.log("GLB Model Loaded Successfully:", url);
-                }, undefined, (error) => {
-                    console.error("GLB 모델을 로드하는 중 오류 발생:", error);
                 });
             };
 
-            // ==========================================
-            // 호정 13대 대장 / 대원 NPC 생성 함수
-            // ==========================================
+            // 정령정 호정 13대 대장 NPC 스폰
             function spawnGotei13NPCs() {
                 while(npcGroup.children.length > 0) { npcGroup.remove(npcGroup.children[0]); }
 
                 const captains = [
-                    { name: "1번대 대장 야마모토", color: 0xd90429, pos: [-12, 0, -18] },
+                    { name: "1번대 총대장 야마모토", color: 0xd90429, pos: [-12, 0, -18] },
                     { name: "6번대 대장 쿠치키 바쿠야", color: 0xf8fafc, pos: [12, 0, -18] },
                     { name: "11번대 대장 자라키 켄파치", color: 0xfb8500, pos: [-18, 0, -8] },
                     { name: "13번대 대장 우키타케", color: 0x38bdf8, pos: [18, 0, -8] }
@@ -265,7 +257,6 @@
 
                 captains.forEach(c => {
                     const npc = new THREE.Group();
-                    // 사패장 & 하오리
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 1.8, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
                     body.position.y = 0.9; npc.add(body);
                     const haori = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.0, 0.6), new THREE.MeshStandardMaterial({ color: c.color }));
@@ -273,7 +264,6 @@
                     const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
                     head.position.y = 2.0; npc.add(head);
 
-                    // 대장 영압 오라
                     const aura = new THREE.PointLight(c.color, 2, 6);
                     aura.position.y = 1.5; npc.add(aura);
 
@@ -282,64 +272,81 @@
                 });
             }
 
-            // ==========================================
-            // 카라쿠라 마을 & 정령정 맵 구축
-            // ==========================================
+            // 각 스테이지별 배경/환경 오브젝트 생성
             function buildEnvironmentObjects(stage) {
                 while(envGroup.children.length > 0) { envGroup.remove(envGroup.children[0]); }
                 while(npcGroup.children.length > 0) { npcGroup.remove(npcGroup.children[0]); }
                 floorMat.color.setHex(STAGE_THEMES[stage].floor);
 
                 if (stage === 1) { 
-                    // [카라쿠라 마을 맵] : 아스팔트 도로, 가로등, 아파트/상가 건물
-                    for(let i=0; i<12; i++) {
-                        const bldg = new THREE.Mesh(
-                            new THREE.BoxGeometry(8, 14 + Math.random()*10, 8), 
-                            new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.3 })
-                        );
+                    // 1. 카라쿠라 마을 (주택, 도로, 가로등)
+                    for(let i=0; i<10; i++) {
+                        const house = new THREE.Mesh(new THREE.BoxGeometry(7, 8, 7), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+                        const roof = new THREE.Mesh(new THREE.ConeGeometry(5.5, 3, 4), new THREE.MeshStandardMaterial({ color: 0x991b1b }));
+                        roof.position.y = 5.5; roof.rotation.y = Math.PI / 4;
+                        
                         const side = (i % 2 === 0 ? 1 : -1);
-                        bldg.position.set(side * 24, bldg.geometry.parameters.height/2, -28 + i*6);
-                        envGroup.add(bldg);
-
-                        // 가로등
-                        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 6), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
-                        pole.position.set(side * 16, 3, -25 + i*6);
-                        const light = new THREE.PointLight(0xffb703, 1.5, 8);
-                        light.position.set(side * 16, 5.8, -25 + i*6);
-                        envGroup.add(pole); envGroup.add(light);
+                        const houseGroup = new THREE.Group();
+                        houseGroup.add(house); houseGroup.add(roof);
+                        houseGroup.position.set(side * 22, 4, -26 + i*6);
+                        envGroup.add(houseGroup);
                     }
                 } else if (stage === 2) { 
-                    // [정령정 맵] : 기와지붕 전통 성벽, 정원, 호정 13대 대장 NPC 배치
-                    spawnGotei13NPCs();
+                    // 2. 소울 소사이어티 입구 (문지기 지단보 & 거대 백도문 Gate)
+                    const gateFrame = new THREE.Mesh(new THREE.BoxGeometry(20, 14, 3), new THREE.MeshStandardMaterial({ color: 0x334155 }));
+                    gateFrame.position.set(0, 7, -22); envGroup.add(gateFrame);
 
-                    // 정령정 동서남북 성벽 및 기와 문
+                    const gateDoor = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 1), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
+                    gateDoor.position.set(0, 6, -21.5); envGroup.add(gateDoor);
+
+                    // 문지기 지단보 석상 연출
+                    const jidanbo = new THREE.Mesh(new THREE.BoxGeometry(4, 8, 3), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+                    jidanbo.position.set(-14, 4, -18); envGroup.add(jidanbo);
+                } else if (stage === 3) { 
+                    // 3. 정령정 (호정 13대 대장들 & 흰 성벽)
+                    spawnGotei13NPCs();
                     for(let i=0; i<8; i++) {
-                        const wall = new THREE.Mesh(new THREE.BoxGeometry(12, 7, 2), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
-                        const roof = new THREE.Mesh(new THREE.ConeGeometry(8, 2, 4), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-                        roof.position.y = 4.5; roof.rotation.y = Math.PI / 4;
+                        const wall = new THREE.Mesh(new THREE.BoxGeometry(12, 8, 2), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
+                        const roof = new THREE.Mesh(new THREE.ConeGeometry(8, 2, 4), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+                        roof.position.y = 5.0; roof.rotation.y = Math.PI / 4;
                         
                         const side = (i % 2 === 0 ? 1 : -1);
                         const wallGroup = new THREE.Group();
                         wallGroup.add(wall); wallGroup.add(roof);
-                        wallGroup.position.set(side * 22, 3.5, -28 + i*7);
+                        wallGroup.position.set(side * 22, 4, -28 + i*7);
                         envGroup.add(wallGroup);
                     }
-                } else if (stage === 3) { // 웨코문도
-                    for(let i=0; i<12; i++) {
-                        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0 + Math.random()*1.5), new THREE.MeshStandardMaterial({ color: 0x64748b }));
-                        rock.position.set((Math.random()-0.5)*40, 1.0, -28 + Math.random()*50);
-                        envGroup.add(rock);
-                    }
-                } else if (stage === 4) { // 쌍삭대
-                    const altar = new THREE.Mesh(new THREE.BoxGeometry(18, 2, 18), new THREE.MeshStandardMaterial({ color: 0x475569 }));
+                } else if (stage === 4) { 
+                    // 4. 쌍삭대 단두대 (처형대 제단 & 거대 단두대 기둥)
+                    const altar = new THREE.Mesh(new THREE.BoxGeometry(20, 2, 20), new THREE.MeshStandardMaterial({ color: 0x334155 }));
                     altar.position.set(0, 1, -12); envGroup.add(altar);
+
+                    const executionPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 16, 16), new THREE.MeshStandardMaterial({ color: 0xfb8500, emissive: 0xd90429, emissiveIntensity: 0.3 }));
+                    executionPillar.position.set(0, 9, -15); envGroup.add(executionPillar);
+                } else if (stage === 5) { 
+                    // 5. 웨코문도 라스 노체스 (아란칼 모래 사막 & 흰 기둥)
+                    for(let i=0; i<10; i++) {
+                        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 16, 16), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
+                        const side = (i % 2 === 0 ? 1 : -1);
+                        pillar.position.set(side * 18, 8, -25 + (i*5));
+                        envGroup.add(pillar);
+                    }
+                } else if (stage === 6) { 
+                    // 6. 천년혈전 (퀸시 유하바하 성 바르벨트 얼음 결정)
+                    for(let i=0; i<12; i++) {
+                        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.5), new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.8 }));
+                        crystal.scale.set(1, 4, 1);
+                        const side = (i % 2 === 0 ? 1 : -1);
+                        crystal.position.set(side * 16, 5, -24 + i*4.5);
+                        envGroup.add(crystal);
+                    }
                 }
             }
 
             buildEnvironmentObjects(1);
 
             // ==========================================
-            // 보스 캐릭터 생성
+            // 보스 생성 시스템
             // ==========================================
             const monsters = [];
 
@@ -347,36 +354,50 @@
                 const group = new THREE.Group();
                 const theme = STAGE_THEMES[stage];
 
-                if (stage === 1) { // 메노스 그랑데
+                if (stage === 1) { // 거대 호로
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 3.0, 12, 16), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 }));
                     body.position.y = 6; group.add(body);
                     const mask = new THREE.Mesh(new THREE.ConeGeometry(1.5, 3.5, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 }));
                     mask.rotation.x = Math.PI; mask.position.set(0, 11, 0.8); group.add(mask);
                     const eye = new THREE.PointLight(0xff0000, 3, 10); eye.position.set(0, 10, 1.5); group.add(eye);
-                } else if (stage === 2) { // 야마모토 총대장
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.7, 2.2, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-                    body.position.y = 1.1; group.add(body);
-                    const haori = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-                    haori.position.set(0, 1.2, 0); group.add(haori);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.4; group.add(head);
-                    const aura = new THREE.PointLight(0xd90429, 3, 8); aura.position.y = 2.0; group.add(aura);
-                } else if (stage === 3) { // 우르키오라
-                    const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 2.2, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 }));
-                    coat.position.y = 1.1; group.add(coat);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.3; group.add(head);
-                    const aura = new THREE.PointLight(0x00ff88, 3, 8); aura.position.y = 2.0; group.add(aura);
-                } else if (stage === 4) { // 아이젠
+                } else if (stage === 2) { // 이치마루 긴
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+                    body.position.y = 1.0; group.add(body);
+                    const haori = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.2, 0.5), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    haori.position.set(0, 1.1, 0); group.add(haori);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.2; group.add(head);
+                    const aura = new THREE.PointLight(0x00b4d8, 2, 8); aura.position.y = 1.8; group.add(aura);
+                } else if (stage === 3) { // 쿠치키 바쿠야
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+                    body.position.y = 1.0; group.add(body);
+                    const scarf = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.4, 0.6), new THREE.MeshStandardMaterial({ color: 0x38bdf8 }));
+                    scarf.position.set(0, 1.8, 0); group.add(scarf);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.2; group.add(head);
+                    const aura = new THREE.PointLight(0xf72585, 3, 8); aura.position.y = 2.0; group.add(aura);
+                } else if (stage === 4) { // 배신자 아이젠 소스케
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0x3b0764, emissiveIntensity: 0.4 }));
                     body.position.y = 1.0; group.add(body);
                     const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
                     head.position.y = 2.2; group.add(head);
                     const aura = new THREE.PointLight(0xa855f7, 3, 10); aura.position.y = 2.0; group.add(aura);
+                } else if (stage === 5) { // 우르키오라
+                    const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 2.2, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 }));
+                    coat.position.y = 1.1; group.add(coat);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.3; group.add(head);
+                    const aura = new THREE.PointLight(0x00ff88, 3, 8); aura.position.y = 2.0; group.add(aura);
+                } else if (stage === 6) { // 유하바하
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 2.4, 12), new THREE.MeshStandardMaterial({ color: 0x020617, emissive: 0xd90429, emissiveIntensity: 0.6 }));
+                    body.position.y = 1.2; group.add(body);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.5; group.add(head);
+                    const aura = new THREE.PointLight(0xd90429, 3, 10); aura.position.y = 2.0; group.add(aura);
                 }
 
                 group.position.set(0, 0, -12); scene.add(group);
-                monsters.push({ mesh: group, hp: 2000 + stage*1000, maxHp: 2000 + stage*1000, isBoss: true });
+                monsters.push({ mesh: group, hp: 1800 + stage*800, maxHp: 1800 + stage*800, isBoss: true });
                 document.getElementById('boss-hud').style.display = 'block';
                 document.getElementById('boss-name').innerText = `⚠️ BOSS: ${theme.boss}`;
             }
@@ -384,7 +405,7 @@
             createBossForStage(1);
 
             // ==========================================
-            // 플레이어 (토시로) 디테일 캐릭터
+            // 플레이어 (토시로)
             // ==========================================
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
@@ -413,10 +434,6 @@
             const swordGuard = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.04, 0.2), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
             swordGuard.position.y = 0.02; swordGroup.add(swordGuard);
             swordGroup.position.set(0.35, 0.8, 0.2); swordGroup.rotation.x = Math.PI / 4; playerGroup.add(swordGroup);
-
-            /* 외부 GLB 파일이 있으실 경우 주석 해제 후 호출하시기 바랍니다:
-               loadCustomGLBModel('models/toshiro.glb', playerGroup, 1.0);
-            */
 
             // 스킬 VFX
             const vfxList = [];
@@ -463,20 +480,23 @@
                     scene.remove(m.mesh);
                     const idx = monsters.indexOf(m);
                     if (idx > -1) monsters.splice(idx, 1);
-                    state.gold += 2500;
+                    state.gold += 3000;
                     setTimeout(nextStage, 1800);
                 }
             }
 
             function nextStage() {
-                state.stage++;
-                if(state.stage > 4) state.stage = 1;
+                if (state.stage === 6) {
+                    showToast("🎉 축하합니다! 모든 블리치 스토리 결전 완결 (ALL CLEAR)!");
+                    state.stage = 1;
+                } else {
+                    state.stage++;
+                }
+
                 const theme = STAGE_THEMES[state.stage];
-                
                 buildEnvironmentObjects(state.stage);
-                
                 document.getElementById('ui-stage-name').innerText = theme.name;
-                showToast(`STAGE CLEAR! -> ${theme.name}`);
+                showToast(`NEXT STAGE ➔ ${theme.name}`);
 
                 playerGroup.position.set(0,0,0);
                 createBossForStage(state.stage);
@@ -534,7 +554,7 @@
                 }
             };
 
-            // 조이스틱 모바일/마우스 대응 조작
+            // 조이스틱
             let moveVector = { x: 0, z: 0 };
             const joyArea = document.getElementById('joystick-area');
             const joyHandle = document.getElementById('joystick-handle');
