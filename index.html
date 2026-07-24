@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>블리치: 차원 레거시 Pro</title>
+    <title>블리치: 차원 레거시 Ultimate</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -46,6 +46,7 @@
         .damage-popup { position: absolute; color: #fff; font-weight: 900; font-size: 18px; pointer-events: none; z-index: 150; transform: translate(-50%, -50%); animation: popupAnim 0.5s ease-out forwards; }
         .crit-popup { color: #00e5ff !important; font-size: 26px !important; text-shadow: 0 0 12px #00e5ff; }
         .bankai-popup { color: #ffd700 !important; font-size: 28px !important; text-shadow: 0 0 20px #ffaa00; }
+        .freeze-popup { color: #88ffffff !important; font-size: 24px !important; text-shadow: 0 0 15px #00e5ff; }
         
         @keyframes popupAnim { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); } 30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) translateY(-40px); } }
 
@@ -81,7 +82,7 @@
         </div>
         <div class="right-info">
             <div class="lvl-tag" id="player-lvl">LV. 1</div>
-            <div class="char-tag" id="chapter-tag">CH.1 소울소사이어티</div>
+            <div class="char-tag" id="chapter-tag">CH.1 광활한 소울소사이어티</div>
             <button id="glb-btn-top" onclick="triggerFileUpload()">📂 내 GLB 파일 불러오기</button>
         </div>
     </div>
@@ -92,8 +93,8 @@
     </div>
 
     <div id="zoom-controls">
-        <div class="zoom-btn" onclick="adjustZoom(-10)">+</div>
-        <div class="zoom-btn" onclick="adjustZoom(10)">-</div>
+        <div class="zoom-btn" onclick="adjustZoom(-12)">+</div>
+        <div class="zoom-btn" onclick="adjustZoom(12)">-</div>
     </div>
 
     <div id="canvas3d-container"></div>
@@ -107,7 +108,7 @@
         
         <div id="status-board">
             <div class="log-title">📜 [차원 필드 기록]</div>
-            <div id="log-content">모든 시스템 업데이트 완료!</div>
+            <div id="log-content">초대형 맵 & 결빙 스킬 업데이트 완료!</div>
         </div>
 
         <div id="action-grid">
@@ -115,21 +116,21 @@
             <button id="btn-z" class="action-btn">🐉 [Z] 거대 빙룡천상</button>
             <button id="btn-x" class="action-btn">🧊 [X] 대형 빙주 폭발</button>
             <button id="btn-c" class="action-btn">❄️ [C] 초거대 백화장</button>
-            <button id="btn-v" class="action-btn">🌌 [V] 대홍련빙륜환</button>
+            <button id="btn-v" class="action-btn">🌌 [V] 대홍련빙륜환 (빙결)</button>
         </div>
     </div>
 </div>
 
 <script>
 let gameInstance = null;
-const MAP_WIDTH = 100;
-const MAP_LENGTH = 280;
+// 🗺️ 2.5배 확대된 대형 맵 규격
+const MAP_WIDTH = 250;
+const MAP_LENGTH = 600;
 
-// 퀘스트 데이터 베이스
 const QUEST_LIST = [
-    { ch: 1, title: "📜 [CH.1] 호로 습격 저지", targetType: 'HOLLOW', count: 3, desc: "하급 호로 3마리 처치", nextCh: 2 },
-    { ch: 2, title: "📜 [CH.2] 아란칼 침공 차단", targetType: 'ARRANCAR', count: 3, desc: "아란칼 3마리 처치", nextCh: 3 },
-    { ch: 3, title: "📜 [CH.3] 슈테른릿터 토벌", targetType: 'QUINCY_BOSS', count: 1, desc: "최종 보스 처치", nextCh: null }
+    { ch: 1, title: "📜 [CH.1] 호로 습격 저지", targetType: 'HOLLOW', count: 3, desc: "하급 호로 3마리 처치" },
+    { ch: 2, title: "📜 [CH.2] 아란칼 침공 차단", targetType: 'ARRANCAR', count: 3, desc: "아란칼 3마리 처치" },
+    { ch: 3, title: "📜 [CH.3] 슈테른릿터 토벌", targetType: 'QUINCY_BOSS', count: 1, desc: "최종 보스 처치" }
 ];
 
 function triggerFileUpload() {
@@ -138,7 +139,7 @@ function triggerFileUpload() {
     input.onchange = (e) => {
         const file = e.target.files[0];
         if(file && gameInstance) {
-            const url = URL.createObjectURL(file);
+            const url = URL.URL.createObjectURL(file);
             gameInstance.player.loadCustomModel(url);
         }
     };
@@ -147,7 +148,7 @@ function triggerFileUpload() {
 
 function adjustZoom(amount) {
     if(gameInstance) {
-        gameInstance.cameraZoom = Math.max(30, Math.min(120, gameInstance.cameraZoom + amount));
+        gameInstance.cameraZoom = Math.max(40, Math.min(180, gameInstance.cameraZoom + amount));
     }
 }
 
@@ -160,7 +161,7 @@ class Game {
         this.currentQuestIdx = 0;
         this.questKillCount = 0;
         this.chapter = 1;
-        this.cameraZoom = 65; // 시점 zoom 거리
+        this.cameraZoom = 90;
         this.comboCount = 0; this.comboTimer = null;
         this.clock = new THREE.Clock();
 
@@ -169,7 +170,6 @@ class Game {
         this.player = new Player(this);
         
         this.enemies = []; this.particles = []; this.fxObjects = [];
-        this.spawnMapObjects();
         this.spawnEnemies();
         
         this.keys = { up: false, down: false, left: false, right: false };
@@ -178,84 +178,78 @@ class Game {
 
     initThree() {
         this.scene = new THREE.Scene(); 
-        this.scene.background = new THREE.Color(0x0a0e1a);
-        this.scene.fog = new THREE.FogExp2(0x0a0e1a, 0.004);
+        this.scene.background = new THREE.Color(0x060a14);
+        this.scene.fog = new THREE.FogExp2(0x060a14, 0.002);
         
-        this.camera = new THREE.PerspectiveCamera(45, this.container.clientWidth / this.container.clientHeight, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(45, this.container.clientWidth / this.container.clientHeight, 0.1, 2000);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
         this.renderer.shadowMap.enabled = true;
         this.container.appendChild(this.renderer.domElement);
         
-        this.mainLight = new THREE.DirectionalLight(0xffffff, 2.2);
-        this.mainLight.position.set(40, 80, 40);
+        this.mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
+        this.mainLight.position.set(80, 150, 80);
         this.scene.add(this.mainLight);
-        this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        this.scene.add(new THREE.AmbientLight(0xffffff, 0.9));
     }
 
-    // 🗺️ 디테일해진 입체 지형 & 구조물
     initWorld() {
         if(this.mapGroup) this.scene.remove(this.mapGroup);
         this.mapGroup = new THREE.Group();
 
-        // 메인 바닥 (고품질 테마)
+        // 메인 지형
         const floorGeo = new THREE.PlaneGeometry(MAP_WIDTH, MAP_LENGTH);
-        const floorMat = new THREE.MeshStandardMaterial({ color: this.chapter === 1 ? 0x1e2838 : 0x2b1e2e, roughness: 0.6 });
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x162030, roughness: 0.6 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, -MAP_LENGTH/2 + 20);
+        floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, -MAP_LENGTH/2 + 30);
         this.mapGroup.add(floor);
 
-        // 신사 기둥 및 입체 장애물 배치
-        for(let i=0; i<12; i++) {
+        // 그리드 맵 라인
+        const grid = new THREE.GridHelper(MAP_LENGTH, 60, 0x00e5ff, 0x112233);
+        grid.position.set(0, 0.2, -MAP_LENGTH/2 + 30);
+        this.mapGroup.add(grid);
+
+        // 광활한 맵 보조 건축물 구조체
+        for(let i=0; i<30; i++) {
             const pillar = new THREE.Mesh(
-                new THREE.BoxGeometry(6, 30, 6),
-                new THREE.MeshStandardMaterial({ color: 0x111822 })
+                new THREE.BoxGeometry(10, 45, 10),
+                new THREE.MeshStandardMaterial({ color: 0x0c1420 })
             );
-            pillar.position.set((i%2 === 0 ? 1 : -1) * (MAP_WIDTH/2 - 8), 15, -i * 22);
+            pillar.position.set((i%2 === 0 ? 1 : -1) * (MAP_WIDTH/2 - 12), 22.5, -i * 20);
             this.mapGroup.add(pillar);
         }
 
-        // 🚪 차원 이동 포탈 (챕터 이동용)
-        const portalGeo = new THREE.TorusGeometry(10, 1.5, 16, 32);
+        // 포탈
+        const portalGeo = new THREE.TorusGeometry(18, 2.5, 16, 32);
         const portalMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff, wireframe: true });
         this.portal = new THREE.Mesh(portalGeo, portalMat);
-        this.portal.position.set(0, 12, -MAP_LENGTH + 40);
+        this.portal.position.set(0, 20, -MAP_LENGTH + 60);
         this.mapGroup.add(this.portal);
 
         this.scene.add(this.mapGroup);
     }
 
-    spawnMapObjects() {
-        // 배경 입체 블록들
-        for(let i=0; i<15; i++) {
-            const box = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), new THREE.MeshStandardMaterial({ color: 0x182433 }));
-            box.position.set((Math.random()-0.5)*(MAP_WIDTH-20), 4, -Math.random()*MAP_LENGTH + 20);
-            this.mapGroup.add(box);
-        }
-    }
-
-    // 👹 고퀄리티 적 생성
     spawnEnemies() {
         this.enemies.forEach(e => this.scene.remove(e.mesh));
         this.enemies = [];
 
         const q = QUEST_LIST[this.currentQuestIdx];
-        let count = q.count + 2;
+        let count = q.count + 3;
 
         for(let i=0; i<count; i++) {
             const mob = new AdvancedEnemy(this, q.targetType);
-            mob.mesh.position.set((Math.random()-0.5)*(MAP_WIDTH-30), 0, -30 - (i*40));
+            mob.mesh.position.set((Math.random()-0.5)*(MAP_WIDTH-50), 0, -60 - (i*80));
             this.enemies.push(mob);
         }
     }
 
-    addParticles(pos, color, count = 15, scaleMult = 4.0) {
+    addParticles(pos, color, count = 20, scaleMult = 5.0) {
         for(let i=0; i<count; i++) {
             const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.9 });
-            const p = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scaleMult, 0.4 * scaleMult, 0.4 * scaleMult), mat);
+            const p = new THREE.Mesh(new THREE.BoxGeometry(0.5 * scaleMult, 0.5 * scaleMult, 0.5 * scaleMult), mat);
             p.position.copy(pos);
-            p.userData = { vx: (Math.random() - 0.5) * 1.0, vy: (Math.random() * 0.6 + 0.2), vz: (Math.random() - 0.5) * 1.0, life: 1.0 };
+            p.userData = { vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() * 0.8 + 0.3), vz: (Math.random() - 0.5) * 1.5, life: 1.0 };
             this.scene.add(p); this.particles.push(p);
         }
     }
@@ -278,7 +272,6 @@ class Game {
             if(fx.life <= 0) { this.scene.remove(fx.mesh); this.fxObjects.splice(i, 1); }
         }
 
-        // 포탈 회전 애니메이션
         if(this.portal) this.portal.rotation.z += 0.03;
     }
 
@@ -287,7 +280,7 @@ class Game {
         let targetY = this.player.mesh.position.y + (this.cameraZoom * 0.7);
         let targetZ = this.player.mesh.position.z + this.cameraZoom;
         this.camera.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.15);
-        this.camera.lookAt(this.player.mesh.position.x, this.player.mesh.position.y + 8, this.player.mesh.position.z);
+        this.camera.lookAt(this.player.mesh.position.x, this.player.mesh.position.y + 10, this.player.mesh.position.z);
     }
 
     addCombo() {
@@ -298,7 +291,6 @@ class Game {
         this.comboTimer = setTimeout(() => { this.comboCount = 0; el.classList.remove('active'); }, 2000);
     }
 
-    // 📜 퀘스트 카운트 및 챕터 진입 검사
     onEnemyKilled(type) {
         const q = QUEST_LIST[this.currentQuestIdx];
         if(q && q.targetType === type) {
@@ -308,7 +300,7 @@ class Game {
                 if(this.currentQuestIdx < QUEST_LIST.length - 1) {
                     this.currentQuestIdx++;
                     this.questKillCount = 0;
-                    this.log(`📜 다음 퀘스트로 갱신되었습니다.`);
+                    this.log(`📜 다음 퀘스트로 자동 갱신되었습니다.`);
                 }
             }
             this.updateUI();
@@ -316,13 +308,13 @@ class Game {
     }
 
     checkPortalEntry() {
-        if(this.portal && this.player.mesh.position.distanceTo(this.portal.position) < 12.0) {
+        if(this.portal && this.player.mesh.position.distanceTo(this.portal.position) < 20.0) {
             this.chapter++;
             this.player.mesh.position.set(0, 0, 0);
             this.initWorld();
             this.spawnEnemies();
-            this.log(`🌌 <b>[차원 이동]</b> 챕터 ${this.chapter} 영역에 진입했습니다!`);
-            document.getElementById('chapter-tag').innerText = `CH.${this.chapter} 차원 필드`;
+            this.log(`🌌 <b>[차원 이동]</b> 챕터 ${this.chapter} 심층부에 진입했습니다!`);
+            document.getElementById('chapter-tag').innerText = `CH.${this.chapter} 차원 심층부`;
         }
     }
 
@@ -342,18 +334,18 @@ class Game {
             document.getElementById('quest-title').innerText = q.title;
             document.getElementById('quest-desc').innerText = `${q.desc} (${this.questKillCount}/${q.count})`;
         } else {
-            document.getElementById('quest-desc').innerText = `모든 퀘스트를 완료했습니다!`;
+            document.getElementById('quest-desc').innerText = `모든 차원 퀘스트를 클리어했습니다!`;
         }
     }
 
     popText(pos, text, type = 'NORMAL') {
         const p = pos.clone().project(this.camera);
         const pop = document.createElement('div');
-        pop.className = "damage-popup " + (type === 'CRIT' ? "crit-popup" : (type === 'BANKAI' ? "bankai-popup" : ""));
+        pop.className = "damage-popup " + (type === 'CRIT' ? "crit-popup" : (type === 'BANKAI' ? "bankai-popup" : (type === 'FREEZE' ? "freeze-popup" : "")));
         pop.innerText = text; 
         pop.style.left = ((p.x * .5 + .5) * this.container.clientWidth) + "px"; 
         pop.style.top = ((-(p.y * .5) + .5) * this.container.clientHeight) + "px";
-        this.container.appendChild(pop); setTimeout(() => pop.remove(), 600);
+        this.container.appendChild(pop); setTimeout(() => pop.remove(), 650);
     }
 
     initEvents() {
@@ -367,10 +359,7 @@ class Game {
         setKey('dpad-up', 'up', true); setKey('dpad-down', 'down', true);
         setKey('dpad-left', 'left', true); setKey('dpad-right', 'right', true);
         
-        // 🔍 마우스 휠 줌인/줌아웃
-        this.container.addEventListener('wheel', (e) => {
-            adjustZoom(e.deltaY > 0 ? 8 : -8);
-        });
+        this.container.addEventListener('wheel', (e) => { adjustZoom(e.deltaY > 0 ? 10 : -10); });
 
         document.getElementById('btn-atk').addEventListener('click', () => this.player.attack());
         document.getElementById('btn-z').addEventListener('click', () => this.player.skillZ());
@@ -383,7 +372,7 @@ class Game {
 class Player {
     constructor(game) {
         this.game = game; this.level = 1; this.exp = 0; this.maxExp = 100;
-        this.hp = 300; this.maxHp = 300; this.atk = 120; this.speed = 0.65;
+        this.hp = 300; this.maxHp = 300; this.atk = 130; this.speed = 0.8;
         this.isBankai = false;
         
         this.mesh = new THREE.Group();
@@ -391,14 +380,21 @@ class Player {
         this.buildToshiroModel();
     }
 
+    // 🛠️ 땅 묻힘 방지 정밀 피봇 계산 알고리즘
     loadCustomModel(url) {
         if(this.model) this.mesh.remove(this.model);
         const loader = new THREE.GLTFLoader();
         loader.load(url, (gltf) => {
             this.model = gltf.scene; 
+            
+            // 바운딩 박스를 계산하여 최하단 Y축 지점이 Ground(Y=0) 위에 딱 맞도록 조정
+            const box = new THREE.Box3().setFromObject(this.model);
+            const minY = box.min.y;
+            this.model.position.y = -minY; // 땅 위로 딱 올림!
+
             this.model.scale.set(20.0, 20.0, 20.0);
             this.mesh.add(this.model);
-            this.game.log(`✨ 내 GLB 캐릭터 모델링이 적용되었습니다!`);
+            this.game.log(`✨ GLB 모델 피봇 정밀 보정 후 탑재 완료!`);
         }, undefined, () => this.buildToshiroModel());
     }
 
@@ -409,7 +405,7 @@ class Player {
         const hair = new THREE.Mesh(new THREE.ConeGeometry(8.5, 10, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
         hair.position.set(0, 31, -0.5);
         const body = new THREE.Mesh(new THREE.CylinderGeometry(4, 6.5, 20), new THREE.MeshStandardMaterial({ color: 0x0a0a0f }));
-        body.position.y = 13;
+        body.position.y = 10;
         
         group.add(head, hair, body);
         this.mesh.add(group);
@@ -420,107 +416,123 @@ class Player {
         this.exp += amt;
         if(this.exp >= this.maxExp) {
             this.level++; this.exp = 0; this.maxExp += 60;
-            this.atk += 35; this.maxHp += 100; this.hp = this.maxHp;
+            this.atk += 40; this.maxHp += 120; this.hp = this.maxHp;
             this.game.popText(this.mesh.position, `⭐ LEVEL UP! (LV.${this.level})`, 'BANKAI');
         }
         this.game.updateUI();
     }
 
     attack() {
-        const frontPos = this.mesh.position.clone().add(new THREE.Vector3(0, 10, -18).applyQuaternion(this.mesh.quaternion));
-        this.game.addParticles(frontPos, 0x00e5ff, 20, 6.0);
+        const frontPos = this.mesh.position.clone().add(new THREE.Vector3(0, 10, -22).applyQuaternion(this.mesh.quaternion));
+        this.game.addParticles(frontPos, 0x00e5ff, 25, 6.0);
         
-        let targets = this.game.enemies.filter(e => e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 28.0);
+        let targets = this.game.enemies.filter(e => e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 32.0);
         if (targets.length > 0) this.game.addCombo();
+        
         targets.forEach(e => {
             let dmg = this.atk * (this.isBankai ? 2.5 : 1.0);
+            
+            // ❄️ 만해 공격 시 적을 얼어붙게 함!
+            if(this.isBankai) {
+                e.freeze(2.0);
+                this.game.popText(e.mesh.position, `❄️ FREEZE! -${Math.round(dmg)}`, 'FREEZE');
+            } else {
+                this.game.popText(e.mesh.position, `⚔️ -${Math.round(dmg)}`, 'NORMAL');
+            }
             e.takeDamage(dmg);
-            this.game.popText(e.mesh.position, `⚔️ -${Math.round(dmg)}`, this.isBankai ? 'CRIT' : 'NORMAL');
         });
+        
         this.game.mp = Math.min(100, this.game.mp + 20);
         this.game.updateUI();
     }
 
+    // 🐉 초화려 [Z] 스킬
     skillZ() {
-        this.game.log(`🐉 <b>[Z] 거대 빙룡천상!</b>`);
-        const dragon = new THREE.Mesh(new THREE.ConeGeometry(12, 35, 8), new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.85, wireframe: true }));
+        this.game.log(`🐉 <b>[Z] 초거대 빙룡천상!</b>`);
+        const dragon = new THREE.Mesh(new THREE.ConeGeometry(15, 45, 8), new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.85, wireframe: true }));
         dragon.rotation.x = -Math.PI / 2;
-        dragon.position.copy(this.mesh.position).add(new THREE.Vector3(0, 15, -20).applyQuaternion(this.mesh.quaternion));
+        dragon.position.copy(this.mesh.position).add(new THREE.Vector3(0, 20, -25).applyQuaternion(this.mesh.quaternion));
         
         this.game.addFXObject(dragon, (m, life) => {
-            m.position.add(new THREE.Vector3(0, 0, -3.5).applyQuaternion(this.mesh.quaternion));
-            m.rotation.z += 0.25;
-            this.game.addParticles(m.position, 0x88ccff, 4, 6.0);
+            m.position.add(new THREE.Vector3(0, 0, -4.5).applyQuaternion(this.mesh.quaternion));
+            m.rotation.z += 0.35;
+            this.game.addParticles(m.position, 0x00e5ff, 6, 8.0);
         });
 
         this.game.enemies.forEach(e => {
-            if(e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 55.0) {
-                e.takeDamage(this.atk * 2.5);
-                this.game.popText(e.mesh.position, `🐉 빙룡 -${Math.round(this.atk * 2.5)}`, 'CRIT');
+            if(e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 70.0) {
+                if(this.isBankai) e.freeze(2.5);
+                e.takeDamage(this.atk * 2.8);
+                this.game.popText(e.mesh.position, `🐉 빙룡 -${Math.round(this.atk * 2.8)}`, 'CRIT');
             }
         });
         this.game.addCombo();
     }
 
+    // 🧊 초화려 [X] 스킬
     skillX() {
         this.game.log(`🧊 <b>[X] 대형 빙주 폭발!</b>`);
-        for(let i=0; i<8; i++) {
-            const pillar = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 10.0, 50.0, 6), new THREE.MeshStandardMaterial({ color: 0xaaddff, transparent: true, opacity: 0.8 }));
-            let offset = new THREE.Vector3((Math.random()-0.5)*40, 25, -20 - Math.random()*40).applyQuaternion(this.mesh.quaternion);
+        for(let i=0; i<12; i++) {
+            const pillar = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 12.0, 60.0, 8), new THREE.MeshStandardMaterial({ color: 0xaaddff, transparent: true, opacity: 0.85 }));
+            let offset = new THREE.Vector3((Math.random()-0.5)*60, 30, -30 - Math.random()*50).applyQuaternion(this.mesh.quaternion);
             pillar.position.copy(this.mesh.position).add(offset);
             
             this.game.addFXObject(pillar, (m, life) => {
                 m.scale.y = life;
-                this.game.addParticles(m.position, 0x00e5ff, 3, 7.0);
+                this.game.addParticles(m.position, 0x00e5ff, 4, 8.0);
             });
         }
 
         this.game.enemies.forEach(e => {
-            if(e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 45.0) {
-                e.takeDamage(this.atk * 3.0);
-                this.game.popText(e.mesh.position, `💥 빙주 -${Math.round(this.atk * 3.0)}`, 'CRIT');
+            if(e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 60.0) {
+                if(this.isBankai) e.freeze(2.5);
+                e.takeDamage(this.atk * 3.2);
+                this.game.popText(e.mesh.position, `💥 빙주 -${Math.round(this.atk * 3.2)}`, 'CRIT');
             }
         });
         this.game.addCombo();
     }
 
+    // ❄️ 초화려 [C] 스킬
     skillC() {
-        this.game.log(`❄️ <b>[C] 초거대 빙천백화장!</b>`);
-        const flower = new THREE.Mesh(new THREE.TorusGeometry(35.0, 3.0, 8, 32), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+        this.game.log(`❄️ <b>[C] 초거대 백화장!</b>`);
+        const flower = new THREE.Mesh(new THREE.TorusGeometry(45.0, 4.0, 8, 32), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
         flower.rotation.x = Math.PI / 2;
-        flower.position.copy(this.mesh.position).add(new THREE.Vector3(0, 2.0, -35.0).applyQuaternion(this.mesh.quaternion));
+        flower.position.copy(this.mesh.position).add(new THREE.Vector3(0, 2.0, -45.0).applyQuaternion(this.mesh.quaternion));
 
         this.game.addFXObject(flower, (m, life) => {
-            m.scale.multiplyScalar(1.03);
-            this.game.addParticles(m.position, 0xffffff, 10, 8.0);
+            m.scale.multiplyScalar(1.04);
+            this.game.addParticles(m.position, 0xffffff, 15, 10.0);
         });
 
         this.game.enemies.forEach(e => {
-            if(e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 60.0) {
-                e.takeDamage(this.atk * 4.2);
-                this.game.popText(e.mesh.position, `❄️ 백화장 -${Math.round(this.atk * 4.2)}`, 'BANKAI');
+            if(e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 80.0) {
+                if(this.isBankai) e.freeze(3.0);
+                e.takeDamage(this.atk * 4.5);
+                this.game.popText(e.mesh.position, `❄️ 백화장 -${Math.round(this.atk * 4.5)}`, 'BANKAI');
             }
         });
         this.game.addCombo();
     }
 
+    // 🌌 만해 [V] 개방 (모든 공격 결빙 특수효과 부여)
     skillV() {
         if(this.game.mp < 100) return;
         this.game.mp = 0; this.isBankai = true;
-        this.game.log(`🌌 <span style='color:#ffd700;font-weight:900;'>[V] 만해 개방: "대홍련빙륜환"!</span>`);
+        this.game.log(`🌌 <span style='color:#ffd700;font-weight:900;'>[V] 만해: "대홍련빙륜환" 개방 (공격 시 적 결빙)!</span>`);
         
-        const wingL = new THREE.Mesh(new THREE.BoxGeometry(35.0, 2.0, 10.0), new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.85 }));
-        wingL.position.set(-18.0, 25.0, -5.0); wingL.rotation.z = 0.35;
-        const wingR = wingL.clone(); wingR.position.x = 18.0; wingR.rotation.z = -0.35;
+        const wingL = new THREE.Mesh(new THREE.BoxGeometry(45.0, 3.0, 12.0), new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.85 }));
+        wingL.position.set(-22.0, 30.0, -5.0); wingL.rotation.z = 0.35;
+        const wingR = wingL.clone(); wingR.position.x = 22.0; wingR.rotation.z = -0.35;
         
         this.mesh.add(wingL, wingR);
-        this.game.popText(this.mesh.position, `❄️ 만해 개방!`, 'BANKAI');
+        this.game.popText(this.mesh.position, `❄️ 만해: 빙결 영역!`, 'BANKAI');
 
         setTimeout(() => {
             this.mesh.remove(wingL, wingR);
             this.isBankai = false;
             this.game.updateUI();
-        }, 15000);
+        }, 16000);
         this.game.updateUI();
     }
 
@@ -534,20 +546,22 @@ class Player {
             let nextX = this.mesh.position.x + (dx/mag) * this.speed;
             let nextZ = this.mesh.position.z + (dz/mag) * this.speed;
             
-            if (Math.abs(nextX) < MAP_WIDTH / 2 - 5.0) this.mesh.position.x = nextX;
-            if (nextZ > -MAP_LENGTH + 20 && nextZ < 20) this.mesh.position.z = nextZ;
+            if (Math.abs(nextX) < MAP_WIDTH / 2 - 10.0) this.mesh.position.x = nextX;
+            if (nextZ > -MAP_LENGTH + 40 && nextZ < 30) this.mesh.position.z = nextZ;
             this.mesh.rotation.y = Math.atan2(dx, dz);
         }
     }
 }
 
-// 👹 디테일해진 고퀄리티 적 클래스
 class AdvancedEnemy {
     constructor(game, type) {
         this.game = game; this.type = type;
         this.isBoss = (type === 'QUINCY_BOSS');
-        this.hp = this.isBoss ? 2000 : 450; this.maxHp = this.hp;
-        this.speed = this.isBoss ? 0.22 : 0.28;
+        this.hp = this.isBoss ? 2500 : 500; this.maxHp = this.hp;
+        this.speed = this.isBoss ? 0.25 : 0.32;
+        
+        this.isFrozen = false;
+        this.freezeTimer = null;
         
         this.mesh = new THREE.Group();
         this.buildEnemyModel();
@@ -555,27 +569,46 @@ class AdvancedEnemy {
     }
 
     buildEnemyModel() {
-        let scale = this.isBoss ? 3.5 : 2.2;
+        let scale = this.isBoss ? 4.0 : 2.5;
         
-        // 머리 (호로 가면 연출)
         const head = new THREE.Mesh(
             new THREE.BoxGeometry(3*scale, 3*scale, 3*scale),
             new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })
         );
         head.position.y = 10 * scale;
 
-        // 붉은 눈빛
         const eye = new THREE.Mesh(new THREE.BoxGeometry(2*scale, 0.5*scale, 0.5*scale), new THREE.MeshBasicMaterial({ color: 0xff1744 }));
         eye.position.set(0, 10 * scale, 1.5 * scale);
 
-        // 몸통 및 관절
         const body = new THREE.Mesh(
             new THREE.CylinderGeometry(1.5*scale, 2.5*scale, 8*scale),
             new THREE.MeshStandardMaterial({ color: this.isBoss ? 0xaa0022 : 0x112233 })
         );
         body.position.y = 5 * scale;
 
-        this.mesh.add(head, eye, body);
+        // ❄️ 결빙 얼음 감옥 감싸기 메시
+        const iceCube = new THREE.Mesh(
+            new THREE.BoxGeometry(4*scale, 12*scale, 4*scale),
+            new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5, wireframe: true })
+        );
+        iceCube.position.y = 6 * scale;
+        iceCube.name = "iceBlock";
+        iceCube.visible = false;
+
+        this.mesh.add(head, eye, body, iceCube);
+    }
+
+    // 🧊 얼음 상태 세팅 함수
+    freeze(duration) {
+        this.isFrozen = true;
+        const ice = this.mesh.getObjectByName("iceBlock");
+        if(ice) ice.visible = true;
+
+        clearTimeout(this.freezeTimer);
+        this.freezeTimer = setTimeout(() => {
+            this.isFrozen = false;
+            if(ice) ice.visible = false;
+        }, duration * 1000);
     }
 
     takeDamage(amt) {
@@ -583,23 +616,24 @@ class AdvancedEnemy {
         if(this.hp <= 0) {
             this.game.addParticles(this.mesh.position, 0xff1744, 30, 8.0);
             this.mesh.position.y = -300;
-            this.game.player.addExp(this.isBoss ? 250 : 60);
+            this.game.player.addExp(this.isBoss ? 300 : 70);
             this.game.onEnemyKilled(this.type);
         }
     }
 
     update() {
-        if(this.hp <= 0) return;
+        if(this.hp <= 0 || this.isFrozen) return; // 얼어붙으면 스톱!
+        
         const pPos = this.game.player.mesh.position;
         const dist = this.mesh.position.distanceTo(pPos);
 
-        if (dist < 60.0) {
+        if (dist < 80.0) {
             let dir = new THREE.Vector3().subVectors(pPos, this.mesh.position).normalize();
             this.mesh.position.addScaledVector(dir, this.speed);
             this.mesh.rotation.y = Math.atan2(dir.x, dir.z);
 
-            if(dist < (this.isBoss ? 15.0 : 8.0)) {
-                this.game.player.hp = Math.max(0, this.game.player.hp - (this.isBoss ? 0.35 : 0.15));
+            if(dist < (this.isBoss ? 18.0 : 10.0)) {
+                this.game.player.hp = Math.max(0, this.game.player.hp - (this.isBoss ? 0.4 : 0.18));
                 this.game.updateUI();
             }
         }
