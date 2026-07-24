@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ice Captain - Bleach Story Edition</title>
+    <title>Ice Captain - Bleach Story Edition System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
@@ -34,6 +33,7 @@
         #boss-name { font-size: 16px; font-weight: 900; color: #ff2a6d; text-shadow: 0 0 10px #ff2a6d, 0 0 20px #000; letter-spacing: 2px; margin-bottom: 4px; }
         .boss-bar-bg { width: 100%; height: 18px; background: rgba(0,0,0,0.85); border: 2px solid #ff2a6d; border-radius: 9px; overflow: hidden; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8); }
         #boss-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff2a6d, #ffb703); transition: width 0.15s ease-out; }
+        #boss-skill-text { font-size: 12px; color: #ffd700; font-weight: bold; margin-top: 4px; text-shadow: 0 0 8px #000; }
 
         /* 콤보 UI */
         #combo-container { position: absolute; top: 22%; left: 30px; opacity: 0; transition: opacity 0.2s, transform 0.1s; transform: scale(1); pointer-events: none; }
@@ -45,6 +45,7 @@
         .damage-text { position: absolute; font-weight: 900; font-style: italic; transform: translate(-50%, -100%); animation: floatUp 0.8s ease-out forwards; text-shadow: 0 2px 8px #000; }
         .damage-normal { font-size: 24px; color: #ffffff; text-shadow: 0 0 8px #00b4d8; }
         .damage-crit { font-size: 36px; color: #ffb703; text-shadow: 0 0 12px #fb8500, 0 0 20px #fff; }
+        .damage-boss { font-size: 28px; color: #ff2a6d; text-shadow: 0 0 10px #d90429; }
 
         @keyframes floatUp {
             0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); }
@@ -89,8 +90,9 @@
         </div>
 
         <div id="boss-hud">
-            <div id="boss-name">⚠️ BOSS: 거대 호로</div>
+            <div id="boss-name">⚠️ BOSS: 거대 호로 (피시본)</div>
             <div class="boss-bar-bg"><div id="boss-bar-fill"></div></div>
+            <div id="boss-skill-text">패턴 대기 중...</div>
         </div>
 
         <div id="combo-container">
@@ -112,16 +114,15 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            const state = { stage: 1, gold: 0, level: 1, hp: 150, maxHp: 150, mp: 100, maxMp: 100, atk: 85, combo: 0, comboTimer: null, isHitStopped: false };
+            const state = { stage: 1, gold: 0, level: 1, hp: 300, maxHp: 300, mp: 100, maxMp: 100, atk: 95, combo: 0, comboTimer: null, isHitStopped: false };
 
-            // 설정하신 6개 스토리 구성
             const STAGE_THEMES = {
-                1: { name: "1. 카라쿠라 마을 (집 & 호로)", boss: "거대 호로", color: 0x0a0f1d, floor: 0x334155 },
-                2: { name: "2. 소울 소사이어티 입구 (문지기 지단보 & 이치마루 긴)", boss: "3번대 대장 이치마루 긴", color: 0x0a0f1d, floor: 0x475569 },
-                3: { name: "3. 정령정 (호정 13대 대장들 & 흰 성벽)", boss: "6번대 대장 쿠치키 바쿠야", color: 0x0a0f1d, floor: 0x1e293b },
+                1: { name: "1. 카라쿠라 마을 (호로: 피시본/그랜드 피셔)", boss: "거대 호로 (피시본)", color: 0x0a0f1d, floor: 0x334155 },
+                2: { name: "2. 소울 소사이어티 입구 (지단보 & 이치마루 긴)", boss: "3번대 대장 이치마루 긴", color: 0x0a0f1d, floor: 0x475569 },
+                3: { name: "3. 정령정 (호정 13대 대장들)", boss: "6번대 대장 쿠치키 바쿠야", color: 0x0a0f1d, floor: 0x1e293b },
                 4: { name: "4. 쌍삭대 단두대 (아이젠 소스케)", boss: "배신자 아이젠 소스케", color: 0x0a0f1d, floor: 0x2e103f },
-                5: { name: "5. 웨코문도 라스 노체스 (아란칼 군단)", boss: "제 4에스파다 우르키오라", color: 0x0a0f1d, floor: 0x1e1b4b },
-                6: { name: "6. 천년혈전 (퀸시 군단 & 유하바하 성)", boss: "퀸시의 시조 유하바하", color: 0x0a0f1d, floor: 0x0f172a }
+                5: { name: "5. 웨코문도 라스 노체스 (아란칼/에스파다)", boss: "제 4에스파다 우르키오라", color: 0x0a0f1d, floor: 0x1e1b4b },
+                6: { name: "6. 천년혈전 (퀸시/슈테른릿터/유하바하)", boss: "퀸시의 시조 유하바하", color: 0x0a0f1d, floor: 0x0f172a }
             };
 
             const cooldowns = {
@@ -131,14 +132,8 @@
                 ult: { max: 12, current: 0, el: document.getElementById('cd-ult') }
             };
 
-            const gltfLoader = new THREE.GLTFLoader();
-
             function triggerCooldown(key) {
-                const cd = cooldowns[key];
-                cd.current = cd.max;
-                cd.el.style.opacity = '1';
-                cd.el.innerText = cd.current;
-
+                const cd = cooldowns[key]; cd.current = cd.max; cd.el.style.opacity = '1'; cd.el.innerText = cd.current;
                 const timer = setInterval(() => {
                     cd.current -= 1;
                     if (cd.current <= 0) { clearInterval(timer); cd.el.style.opacity = '0'; } 
@@ -149,8 +144,7 @@
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             function playSound(type) {
                 if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 const now = audioCtx.currentTime;
                 if (type === 'slash') {
@@ -169,14 +163,14 @@
                 setTimeout(() => { state.isHitStopped = false; }, duration);
             }
 
-            function showDamageText(pos, dmgAmount, isCrit = false) {
+            function showDamageText(pos, dmgAmount, type = 'normal') {
                 const vector = pos.clone(); vector.y += 2.5; vector.project(camera);
                 const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
 
                 const dmgEl = document.createElement('div');
-                dmgEl.className = `damage-text ${isCrit ? 'damage-crit' : 'damage-normal'}`;
-                dmgEl.innerText = isCrit ? `CRITICAL! ${dmgAmount}` : dmgAmount;
+                dmgEl.className = `damage-text ${type === 'crit' ? 'damage-crit' : (type === 'boss' ? 'damage-boss' : 'damage-normal')}`;
+                dmgEl.innerText = type === 'crit' ? `CRITICAL! ${dmgAmount}` : (type === 'boss' ? `PLAYER HIT! -${dmgAmount}` : dmgAmount);
                 dmgEl.style.left = `${x}px`; dmgEl.style.top = `${y}px`;
 
                 document.getElementById('damage-container').appendChild(dmgEl);
@@ -187,8 +181,7 @@
                 state.combo++;
                 const comboEl = document.getElementById('combo-container');
                 document.getElementById('combo-count').innerText = state.combo;
-                comboEl.style.opacity = '1';
-                comboEl.style.transform = 'scale(1.2)';
+                comboEl.style.opacity = '1'; comboEl.style.transform = 'scale(1.2)';
                 setTimeout(() => comboEl.style.transform = 'scale(1)', 100);
 
                 clearTimeout(state.comboTimer);
@@ -201,8 +194,7 @@
             scene.fog = new THREE.FogExp2(0x0a0f1d, 0.012);
 
             const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            let targetOffset = new THREE.Vector3(0, 8.5, 10.5);
-            let cameraOffset = targetOffset.clone();
+            let cameraOffset = new THREE.Vector3(0, 8.5, 10.5);
 
             const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -217,128 +209,40 @@
 
             scene.add(new THREE.AmbientLight(0xffffff, 1.2)); 
             const mainLight = new THREE.DirectionalLight(0xffffff, 1.3);
-            mainLight.position.set(15, 30, 15);
-            mainLight.castShadow = true;
-            scene.add(mainLight);
+            mainLight.position.set(15, 30, 15); mainLight.castShadow = true; scene.add(mainLight);
 
             const floorMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5, metalness: 0.2 });
             const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), floorMat);
-            floorMesh.rotation.x = -Math.PI / 2;
-            floorMesh.receiveShadow = true;
-            scene.add(floorMesh);
+            floorMesh.rotation.x = -Math.PI / 2; floorMesh.receiveShadow = true; scene.add(floorMesh);
 
-            let envGroup = new THREE.Group();
-            scene.add(envGroup);
+            let envGroup = new THREE.Group(); scene.add(envGroup);
 
-            let npcGroup = new THREE.Group();
-            scene.add(npcGroup);
-
-            // GLB 모델 인터페이스
-            window.loadCustomGLBModel = function(url, parentGroup, scale = 1, position = {x:0, y:0, z:0}) {
-                gltfLoader.load(url, (gltf) => {
-                    const model = gltf.scene;
-                    model.scale.set(scale, scale, scale);
-                    model.position.set(position.x, position.y, position.z);
-                    while(parentGroup.children.length > 0) { parentGroup.remove(parentGroup.children[0]); }
-                    parentGroup.add(model);
-                });
-            };
-
-            // 정령정 호정 13대 대장 NPC 스폰
-            function spawnGotei13NPCs() {
-                while(npcGroup.children.length > 0) { npcGroup.remove(npcGroup.children[0]); }
-
-                const captains = [
-                    { name: "1번대 총대장 야마모토", color: 0xd90429, pos: [-12, 0, -18] },
-                    { name: "6번대 대장 쿠치키 바쿠야", color: 0xf8fafc, pos: [12, 0, -18] },
-                    { name: "11번대 대장 자라키 켄파치", color: 0xfb8500, pos: [-18, 0, -8] },
-                    { name: "13번대 대장 우키타케", color: 0x38bdf8, pos: [18, 0, -8] }
-                ];
-
-                captains.forEach(c => {
-                    const npc = new THREE.Group();
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.5, 1.8, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-                    body.position.y = 0.9; npc.add(body);
-                    const haori = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.0, 0.6), new THREE.MeshStandardMaterial({ color: c.color }));
-                    haori.position.set(0, 1.1, 0); npc.add(haori);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.0; npc.add(head);
-
-                    const aura = new THREE.PointLight(c.color, 2, 6);
-                    aura.position.y = 1.5; npc.add(aura);
-
-                    npc.position.set(c.pos[0], c.pos[1], c.pos[2]);
-                    npcGroup.add(npc);
-                });
-            }
-
-            // 각 스테이지별 배경/환경 오브젝트 생성
             function buildEnvironmentObjects(stage) {
                 while(envGroup.children.length > 0) { envGroup.remove(envGroup.children[0]); }
-                while(npcGroup.children.length > 0) { npcGroup.remove(npcGroup.children[0]); }
                 floorMat.color.setHex(STAGE_THEMES[stage].floor);
 
                 if (stage === 1) { 
-                    // 1. 카라쿠라 마을 (주택, 도로, 가로등)
-                    for(let i=0; i<10; i++) {
+                    for(let i=0; i<8; i++) {
                         const house = new THREE.Mesh(new THREE.BoxGeometry(7, 8, 7), new THREE.MeshStandardMaterial({ color: 0x64748b }));
                         const roof = new THREE.Mesh(new THREE.ConeGeometry(5.5, 3, 4), new THREE.MeshStandardMaterial({ color: 0x991b1b }));
                         roof.position.y = 5.5; roof.rotation.y = Math.PI / 4;
-                        
-                        const side = (i % 2 === 0 ? 1 : -1);
-                        const houseGroup = new THREE.Group();
-                        houseGroup.add(house); houseGroup.add(roof);
-                        houseGroup.position.set(side * 22, 4, -26 + i*6);
-                        envGroup.add(houseGroup);
-                    }
-                } else if (stage === 2) { 
-                    // 2. 소울 소사이어티 입구 (문지기 지단보 & 거대 백도문 Gate)
-                    const gateFrame = new THREE.Mesh(new THREE.BoxGeometry(20, 14, 3), new THREE.MeshStandardMaterial({ color: 0x334155 }));
-                    gateFrame.position.set(0, 7, -22); envGroup.add(gateFrame);
-
-                    const gateDoor = new THREE.Mesh(new THREE.BoxGeometry(16, 12, 1), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
-                    gateDoor.position.set(0, 6, -21.5); envGroup.add(gateDoor);
-
-                    // 문지기 지단보 석상 연출
-                    const jidanbo = new THREE.Mesh(new THREE.BoxGeometry(4, 8, 3), new THREE.MeshStandardMaterial({ color: 0x475569 }));
-                    jidanbo.position.set(-14, 4, -18); envGroup.add(jidanbo);
-                } else if (stage === 3) { 
-                    // 3. 정령정 (호정 13대 대장들 & 흰 성벽)
-                    spawnGotei13NPCs();
-                    for(let i=0; i<8; i++) {
-                        const wall = new THREE.Mesh(new THREE.BoxGeometry(12, 8, 2), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
-                        const roof = new THREE.Mesh(new THREE.ConeGeometry(8, 2, 4), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-                        roof.position.y = 5.0; roof.rotation.y = Math.PI / 4;
-                        
-                        const side = (i % 2 === 0 ? 1 : -1);
-                        const wallGroup = new THREE.Group();
-                        wallGroup.add(wall); wallGroup.add(roof);
-                        wallGroup.position.set(side * 22, 4, -28 + i*7);
-                        envGroup.add(wallGroup);
+                        const houseGroup = new THREE.Group(); houseGroup.add(house); houseGroup.add(roof);
+                        houseGroup.position.set((i % 2 === 0 ? 1 : -1) * 22, 4, -26 + i*6); envGroup.add(houseGroup);
                     }
                 } else if (stage === 4) { 
-                    // 4. 쌍삭대 단두대 (처형대 제단 & 거대 단두대 기둥)
                     const altar = new THREE.Mesh(new THREE.BoxGeometry(20, 2, 20), new THREE.MeshStandardMaterial({ color: 0x334155 }));
                     altar.position.set(0, 1, -12); envGroup.add(altar);
-
                     const executionPillar = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 16, 16), new THREE.MeshStandardMaterial({ color: 0xfb8500, emissive: 0xd90429, emissiveIntensity: 0.3 }));
                     executionPillar.position.set(0, 9, -15); envGroup.add(executionPillar);
                 } else if (stage === 5) { 
-                    // 5. 웨코문도 라스 노체스 (아란칼 모래 사막 & 흰 기둥)
                     for(let i=0; i<10; i++) {
                         const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 16, 16), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
-                        const side = (i % 2 === 0 ? 1 : -1);
-                        pillar.position.set(side * 18, 8, -25 + (i*5));
-                        envGroup.add(pillar);
+                        pillar.position.set((i % 2 === 0 ? 1 : -1) * 18, 8, -25 + (i*5)); envGroup.add(pillar);
                     }
                 } else if (stage === 6) { 
-                    // 6. 천년혈전 (퀸시 유하바하 성 바르벨트 얼음 결정)
                     for(let i=0; i<12; i++) {
                         const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.5), new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.8 }));
-                        crystal.scale.set(1, 4, 1);
-                        const side = (i % 2 === 0 ? 1 : -1);
-                        crystal.position.set(side * 16, 5, -24 + i*4.5);
-                        envGroup.add(crystal);
+                        crystal.scale.set(1, 4, 1); crystal.position.set((i % 2 === 0 ? 1 : -1) * 16, 5, -24 + i*4.5); envGroup.add(crystal);
                     }
                 }
             }
@@ -346,142 +250,156 @@
             buildEnvironmentObjects(1);
 
             // ==========================================
-            // 보스 생성 시스템
+            // 체계화된 보스 AI 및 스킬 시스템
             // ==========================================
             const monsters = [];
 
             function createBossForStage(stage) {
                 const group = new THREE.Group();
                 const theme = STAGE_THEMES[stage];
+                let bossData = { mesh: group, hp: 2000 + stage*1000, maxHp: 2000 + stage*1000, isBoss: true, skillTimer: 0, isShielded: false };
 
-                if (stage === 1) { // 거대 호로
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 3.0, 12, 16), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 }));
+                if (stage === 1) { // 호로: 피시본
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 3.0, 12, 16), new THREE.MeshStandardMaterial({ color: 0x050505 }));
                     body.position.y = 6; group.add(body);
-                    const mask = new THREE.Mesh(new THREE.ConeGeometry(1.5, 3.5, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 }));
+                    const mask = new THREE.Mesh(new THREE.ConeGeometry(1.5, 3.5, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
                     mask.rotation.x = Math.PI; mask.position.set(0, 11, 0.8); group.add(mask);
-                    const eye = new THREE.PointLight(0xff0000, 3, 10); eye.position.set(0, 10, 1.5); group.add(eye);
+                    bossData.pattern = "호로_피시본";
                 } else if (stage === 2) { // 이치마루 긴
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
                     body.position.y = 1.0; group.add(body);
                     const haori = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.2, 0.5), new THREE.MeshStandardMaterial({ color: 0xffffff }));
                     haori.position.set(0, 1.1, 0); group.add(haori);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.2; group.add(head);
-                    const aura = new THREE.PointLight(0x00b4d8, 2, 8); aura.position.y = 1.8; group.add(aura);
-                } else if (stage === 3) { // 쿠치키 바쿠야
+                    bossData.pattern = "이치마루긴";
+                } else if (stage === 3) { // 바쿠야
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
                     body.position.y = 1.0; group.add(body);
                     const scarf = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.4, 0.6), new THREE.MeshStandardMaterial({ color: 0x38bdf8 }));
                     scarf.position.set(0, 1.8, 0); group.add(scarf);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.2; group.add(head);
-                    const aura = new THREE.PointLight(0xf72585, 3, 8); aura.position.y = 2.0; group.add(aura);
-                } else if (stage === 4) { // 배신자 아이젠 소스케
+                    bossData.pattern = "바쿠야";
+                } else if (stage === 4) { // 아이젠
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0x3b0764, emissiveIntensity: 0.4 }));
                     body.position.y = 1.0; group.add(body);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.2; group.add(head);
-                    const aura = new THREE.PointLight(0xa855f7, 3, 10); aura.position.y = 2.0; group.add(aura);
+                    bossData.pattern = "아이젠";
                 } else if (stage === 5) { // 우르키오라
-                    const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 2.2, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 }));
+                    const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 2.2, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
                     coat.position.y = 1.1; group.add(coat);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.3; group.add(head);
-                    const aura = new THREE.PointLight(0x00ff88, 3, 8); aura.position.y = 2.0; group.add(aura);
+                    bossData.pattern = "우르키오라";
                 } else if (stage === 6) { // 유하바하
                     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 2.4, 12), new THREE.MeshStandardMaterial({ color: 0x020617, emissive: 0xd90429, emissiveIntensity: 0.6 }));
                     body.position.y = 1.2; group.add(body);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                    head.position.y = 2.5; group.add(head);
-                    const aura = new THREE.PointLight(0xd90429, 3, 10); aura.position.y = 2.0; group.add(aura);
+                    bossData.pattern = "유하바하";
                 }
 
                 group.position.set(0, 0, -12); scene.add(group);
-                monsters.push({ mesh: group, hp: 1800 + stage*800, maxHp: 1800 + stage*800, isBoss: true });
+                monsters.push(bossData);
                 document.getElementById('boss-hud').style.display = 'block';
                 document.getElementById('boss-name').innerText = `⚠️ BOSS: ${theme.boss}`;
+                document.getElementById('boss-bar-fill').style.width = '100%';
             }
 
             createBossForStage(1);
 
+            // 보스 스킬 구현
+            function triggerBossSkill(boss) {
+                const skillText = document.getElementById('boss-skill-text');
+                const dist = boss.mesh.position.distanceTo(playerGroup.position);
+
+                if (boss.pattern === "호로_피시본") {
+                    skillText.innerText = "⚡ 호로: 빠른 돌진 & 발톱 베기!";
+                    boss.mesh.position.lerp(playerGroup.position, 0.6);
+                    if (dist < 4.0) damagePlayer(25);
+                } else if (boss.pattern === "이치마루긴") {
+                    skillText.innerText = "🗡️ 이치마루 긴: 신살창 고속 찌르기!";
+                    spawnBossBeam(boss.mesh.position, playerGroup.position, 0x00b4d8);
+                    if (dist < 8.0) damagePlayer(35);
+                } else if (boss.pattern === "바쿠야") {
+                    skillText.innerText = "🌸 천본앵 흩날리기 (광범위 공격)!";
+                    spawnBossAoE(boss.mesh.position, 0xf72585);
+                    if (dist < 9.0) damagePlayer(40);
+                } else if (boss.pattern === "아이젠") {
+                    skillText.innerText = "🔮 파도 90 [흑관] 발동!";
+                    spawnBossAoE(playerGroup.position, 0x3b0764);
+                    damagePlayer(50);
+                } else if (boss.pattern === "우르키오라") {
+                    skillText.innerText = "🔥 에스파다: 세로(Cero) 레이저 포격!";
+                    spawnBossBeam(boss.mesh.position, playerGroup.position, 0x00ff88);
+                    damagePlayer(60);
+                } else if (boss.pattern === "유하바하") {
+                    skillText.innerText = "👁️ 올마이티(The Almighty) 미래 개변!";
+                    boss.isShielded = true;
+                    spawnBossAoE(boss.mesh.position, 0xd90429);
+                    setTimeout(() => { boss.isShielded = false; }, 3000);
+                    damagePlayer(75);
+                }
+            }
+
+            function damagePlayer(amount) {
+                state.hp = Math.max(0, state.hp - amount);
+                showDamageText(playerGroup.position, amount, 'boss');
+                updateUI();
+                if (state.hp <= 0) {
+                    showToast("💀 전투에서 패배하였습니다. 부활합니다!");
+                    state.hp = state.maxHp;
+                    updateUI();
+                }
+            }
+
+            // 시각 효과 함수
+            function spawnBossBeam(from, to, colorHex) {
+                const geom = new THREE.CylinderGeometry(0.3, 0.3, from.distanceTo(to), 8);
+                const mat = new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.9 });
+                const beam = new THREE.Mesh(geom, mat);
+                beam.position.copy(from.clone().add(to).multiplyScalar(0.5));
+                beam.lookAt(to); beam.rotation.x += Math.PI / 2; scene.add(beam);
+                setTimeout(() => scene.remove(beam), 400);
+            }
+
+            function spawnBossAoE(pos, colorHex) {
+                const geom = new THREE.RingGeometry(0.5, 6.0, 32);
+                const mat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+                const aoe = new THREE.Mesh(geom, mat);
+                aoe.position.copy(pos); aoe.rotation.x = -Math.PI / 2; scene.add(aoe);
+                setTimeout(() => scene.remove(aoe), 600);
+            }
+
             // ==========================================
             // 플레이어 (토시로)
             // ==========================================
-            const playerGroup = new THREE.Group();
-            scene.add(playerGroup);
+            const playerGroup = new THREE.Group(); scene.add(playerGroup);
 
-            const pBody = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.38, 1.2, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 }));
+            const pBody = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.38, 1.2, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
             pBody.position.y = 0.6; playerGroup.add(pBody);
-            const pHaori = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.8, 0.5), new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 }));
+            const pHaori = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.8, 0.5), new THREE.MeshStandardMaterial({ color: 0x10b981 }));
             pHaori.position.set(0, 0.9, 0); playerGroup.add(pHaori);
-
             const pHead = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
             pHead.position.y = 1.35; playerGroup.add(pHead);
-            
-            const hairGroup = new THREE.Group();
-            for(let i=0; i<7; i++) {
-                const hairSpike = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.45, 6), new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.2 }));
-                hairSpike.rotation.x = -Math.PI / 4 + (Math.random()*0.2);
-                hairSpike.rotation.z = (i - 3) * 0.25;
-                hairSpike.position.set((i - 3) * 0.08, 1.55, -0.05);
-                hairGroup.add(hairSpike);
-            }
-            playerGroup.add(hairGroup);
 
-            const swordGroup = new THREE.Group();
-            const swordBlade = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.4, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00b4d8, emissiveIntensity: 1.5 }));
-            swordBlade.position.y = 0.7; swordGroup.add(swordBlade);
-            const swordGuard = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.04, 0.2), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
-            swordGuard.position.y = 0.02; swordGroup.add(swordGuard);
-            swordGroup.position.set(0.35, 0.8, 0.2); swordGroup.rotation.x = Math.PI / 4; playerGroup.add(swordGroup);
-
-            // 스킬 VFX
             const vfxList = [];
             function spawnSlashVFX(scale = 1.0, color = 0x00f0ff, type = 'slash') {
                 const group = new THREE.Group();
+                const arcGeo = new THREE.RingGeometry(1.2 * scale, 2.6 * scale, 32, 1, 0, Math.PI * 0.85);
+                const arcMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+                const arcMesh = new THREE.Mesh(arcGeo, arcMat); group.add(arcMesh);
 
-                if (type === 'slash') {
-                    const arcGeo = new THREE.RingGeometry(1.2 * scale, 2.6 * scale, 32, 1, 0, Math.PI * 0.85);
-                    const arcMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending });
-                    const arcMesh = new THREE.Mesh(arcGeo, arcMat);
-                    group.add(arcMesh);
-                } else if (type === 'dragon') {
-                    for(let i=0; i<3; i++) {
-                        const ring = new THREE.Mesh(new THREE.TorusGeometry((1.5 + i*0.8)*scale, 0.15, 16, 32), new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }));
-                        ring.rotation.x = Math.PI / 3;
-                        ring.position.z = -i * 2;
-                        group.add(ring);
-                    }
-                } else if (type === 'meteor') {
-                    const sphere = new THREE.Mesh(new THREE.SphereGeometry(2.5 * scale, 16, 16), new THREE.MeshBasicMaterial({ color: color, wireframe: true, transparent: true, opacity: 0.8 }));
-                    group.add(sphere);
-                } else if (type === 'ult') {
-                    const octa = new THREE.Mesh(new THREE.OctahedronGeometry(4.0 * scale, 2), new THREE.MeshBasicMaterial({ color: 0x90e0ef, wireframe: true, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending }));
-                    group.add(octa);
-                }
-
-                group.position.copy(playerGroup.position);
-                group.position.y += 0.8;
-                group.rotation.x = Math.PI / 2;
-                group.rotation.z = playerGroup.rotation.y + Math.PI / 4;
+                group.position.copy(playerGroup.position); group.position.y += 0.8;
+                group.rotation.x = Math.PI / 2; group.rotation.z = playerGroup.rotation.y + Math.PI / 4;
                 scene.add(group);
-                vfxList.push({ mesh: group, type: 'fade', life: 0.25, maxLife: 0.25, scaleSpeed: 0.2 });
+                vfxList.push({ mesh: group, life: 0.25, maxLife: 0.25, scaleSpeed: 0.2 });
             }
 
             function attackMonster(m, damageMultiplier = 1.0) {
+                if (m.isShielded) { showToast("🛡️ [블루트] 보스가 모든 피해를 방어했습니다!"); return; }
                 const isCrit = Math.random() < 0.35;
                 const finalDmg = Math.round((state.atk * damageMultiplier) * (isCrit ? 1.85 : 1.0));
                 m.hp -= finalDmg;
-                showDamageText(m.mesh.position, finalDmg, isCrit);
-                triggerHitStop(isCrit ? 60 : 30);
-                addCombo();
+                showDamageText(m.mesh.position, finalDmg, isCrit ? 'crit' : 'normal');
+                triggerHitStop(isCrit ? 60 : 30); addCombo();
                 if (m.isBoss) document.getElementById('boss-bar-fill').style.width = `${Math.max(0, (m.hp / m.maxHp)) * 100}%`;
                 if (m.hp <= 0) {
                     scene.remove(m.mesh);
-                    const idx = monsters.indexOf(m);
-                    if (idx > -1) monsters.splice(idx, 1);
-                    state.gold += 3000;
-                    setTimeout(nextStage, 1800);
+                    const idx = monsters.indexOf(m); if (idx > -1) monsters.splice(idx, 1);
+                    state.gold += 3000; setTimeout(nextStage, 1800);
                 }
             }
 
@@ -489,15 +407,12 @@
                 if (state.stage === 6) {
                     showToast("🎉 축하합니다! 모든 블리치 스토리 결전 완결 (ALL CLEAR)!");
                     state.stage = 1;
-                } else {
-                    state.stage++;
-                }
+                } else { state.stage++; }
 
                 const theme = STAGE_THEMES[state.stage];
                 buildEnvironmentObjects(state.stage);
                 document.getElementById('ui-stage-name').innerText = theme.name;
                 showToast(`NEXT STAGE ➔ ${theme.name}`);
-
                 playerGroup.position.set(0,0,0);
                 createBossForStage(state.stage);
             }
@@ -515,12 +430,11 @@
                 document.getElementById('ui-mp-fill').style.width = `${(state.mp / state.maxMp) * 100}%`;
             }
 
-            // 스킬 버튼 이벤트
+            // 버튼 이벤트
             document.getElementById('btn-attack').onclick = () => {
                 playSound('slash'); spawnSlashVFX(1.0, 0x00f0ff, 'slash');
                 monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 5.0) attackMonster(m, 1.0); });
             };
-
             document.getElementById('btn-skill1').onclick = () => {
                 if (state.mp >= 20 && cooldowns.skill1.current <= 0) {
                     state.mp -= 20; triggerCooldown('skill1'); playSound('slash'); spawnSlashVFX(1.6, 0x48cae4, 'dragon');
@@ -528,7 +442,6 @@
                     showToast("🐉 군구상빙륜환!"); updateUI();
                 }
             };
-
             document.getElementById('btn-skill2').onclick = () => {
                 if (state.mp >= 30 && cooldowns.skill2.current <= 0) {
                     state.mp -= 30; triggerCooldown('skill2'); playSound('slash'); spawnSlashVFX(2.2, 0x7209b7, 'meteor');
@@ -536,7 +449,6 @@
                     showToast("💫 빙류성(氷流星) 연타!"); updateUI();
                 }
             };
-
             document.getElementById('btn-ult').onclick = () => {
                 if (state.mp >= 40 && cooldowns.ult.current <= 0) {
                     state.mp -= 40; triggerCooldown('ult'); playSound('ult'); spawnSlashVFX(3.2, 0xf72585, 'ult');
@@ -544,7 +456,6 @@
                     showToast("❄️ 만해 [대홍련빙륜환] 각성!"); updateUI();
                 }
             };
-
             document.getElementById('btn-dodge').onclick = () => {
                 if (cooldowns.dodge.current <= 0) {
                     triggerCooldown('dodge');
@@ -585,35 +496,32 @@
                     }
 
                     for(let i = vfxList.length - 1; i >= 0; i--) {
-                        const v = vfxList[i];
-                        v.life -= 0.016;
-                        if(v.type === 'fade') {
-                            v.mesh.scale.addScalar(v.scaleSpeed);
-                            v.mesh.children[0].material.opacity = v.life / v.maxLife;
-                        }
+                        const v = vfxList[i]; v.life -= 0.016;
+                        v.mesh.scale.addScalar(v.scaleSpeed);
+                        v.mesh.children[0].material.opacity = v.life / v.maxLife;
                         if(v.life <= 0) { scene.remove(v.mesh); vfxList.splice(i, 1); }
                     }
 
+                    // 보스 AI 루프
                     monsters.forEach(m => {
                         m.mesh.rotation.y += 0.01;
-                        m.mesh.position.y = Math.sin(Date.now() * 0.003) * 0.15;
+                        m.skillTimer += 0.016;
+                        if (m.skillTimer >= 3.5) { // 3.5초마다 보스 패턴 발동
+                            m.skillTimer = 0;
+                            triggerBossSkill(m);
+                        }
                     });
                 }
 
-                cameraOffset.lerp(targetOffset, 0.08);
                 camera.position.set(playerGroup.position.x + cameraOffset.x, playerGroup.position.y + cameraOffset.y, playerGroup.position.z + cameraOffset.z);
                 camera.lookAt(playerGroup.position);
                 composer.render();
             }
 
-            updateUI();
-            animate();
-
+            updateUI(); animate();
             window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                composer.setSize(window.innerWidth, window.innerHeight);
+                camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight);
             });
         });
     </script>
