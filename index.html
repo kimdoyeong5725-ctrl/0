@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ice Captain - Fixed Brightness & Rich Map</title>
+    <title>Ice Captain - Detailed Characters & Compact Map</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
@@ -14,7 +14,7 @@
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #0d1117; font-family: 'Segoe UI', sans-serif; color: #fff; }
+        body { width: 100vw; height: 100vh; overflow: hidden; background: #0b0f19; font-family: 'Segoe UI', sans-serif; color: #fff; }
 
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
@@ -78,7 +78,7 @@
         <div id="top-hud">
             <div class="panel-box">
                 <div style="display:flex; justify-content:space-between;">
-                    <span>❄️ 토시로 <b id="ui-level" style="color:#90e0ef;">Lv.1</b></span>
+                    <span>❄️ 히츠가야 토시로 <b id="ui-level" style="color:#90e0ef;">Lv.1</b></span>
                     <span class="gold-text">💰 <b id="ui-gold">0</b></span>
                 </div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
@@ -113,15 +113,14 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { stage: 1, gold: 0, level: 1, hp: 150, maxHp: 150, mp: 100, maxMp: 100, atk: 85, combo: 0, comboTimer: null, isHitStopped: false };
 
-            // 눈이 부시지 않도록 어둡고 묵직한 톤으로 배경색 완전 통일/고정
             const STAGE_THEMES = {
-                1: { name: "1. 현세 (거대 호로 & 메노스)", boss: "메노스 그랑데", color: 0x0f172a, floor: 0x1e293b },
-                2: { name: "2. 웨코문도 (아란칼 군단)", boss: "아란칼 3선발", color: 0x0f172a, floor: 0x334155 },
-                3: { name: "3. 라스 노체스 (에스파다)", boss: "제 4에스파다 우르키오라", color: 0x0f172a, floor: 0x1e293b },
-                4: { name: "4. 쌍삭대 (아이젠 소스케)", boss: "붕옥 융합 아이젠", color: 0x0f172a, floor: 0x1e293b },
-                5: { name: "5. 정령정 (호정 13대 수련)", boss: "총대장 야마모토", color: 0x0f172a, floor: 0x1e293b },
-                6: { name: "6. 반덴라이히 (퀸시 성십자기사단)", boss: "성십자기사단 슈테른리터", color: 0x0f172a, floor: 0x1e1b4b },
-                7: { name: "7. 영왕궁 (최종 결전)", boss: "유하바하 (전지전능)", color: 0x0f172a, floor: 0x2e103f }
+                1: { name: "1. 현세 (거대 호로 & 메노스)", boss: "메노스 그랑데", color: 0x0a0f1d, floor: 0x1e293b },
+                2: { name: "2. 웨코문도 (아란칼 군단)", boss: "아란칼 3선발", color: 0x0a0f1d, floor: 0x334155 },
+                3: { name: "3. 라스 노체스 (에스파다)", boss: "제 4에스파다 우르키오라", color: 0x0a0f1d, floor: 0x1e293b },
+                4: { name: "4. 쌍삭대 (아이젠 소스케)", boss: "붕옥 융합 아이젠", color: 0x0a0f1d, floor: 0x1e293b },
+                5: { name: "5. 정령정 (호정 13대 수련)", boss: "총대장 야마모토", color: 0x0a0f1d, floor: 0x1e293b },
+                6: { name: "6. 반덴라이히 (퀸시 성십자기사단)", boss: "성십자기사단 슈테른리터", color: 0x0a0f1d, floor: 0x1e1b4b },
+                7: { name: "7. 영왕궁 (최종 결전)", boss: "유하바하 (전지전능)", color: 0x0a0f1d, floor: 0x2e103f }
             };
 
             const cooldowns = {
@@ -195,11 +194,12 @@
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0f172a);
-            scene.fog = new THREE.FogExp2(0x0f172a, 0.008);
+            scene.background = new THREE.Color(0x0a0f1d);
+            scene.fog = new THREE.FogExp2(0x0a0f1d, 0.012);
 
+            // 카메라 시점을 더 밀착하여 컴팩트하고 몰입감 있게 조정
             const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            let targetOffset = new THREE.Vector3(0, 11, 14);
+            let targetOffset = new THREE.Vector3(0, 8.5, 10.5);
             let cameraOffset = targetOffset.clone();
 
             const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -208,22 +208,20 @@
             renderer.shadowMap.enabled = true;
             container.appendChild(renderer.domElement);
 
-            // 포스트 프로세싱 (눈부심 방지용 블룸 수치 차분하게 조정)
             const composer = new THREE.EffectComposer(renderer);
             composer.addPass(new THREE.RenderPass(scene, camera));
-            const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.35, 0.2, 0.5);
+            const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.4, 0.3, 0.4);
             composer.addPass(bloomPass);
 
-            // 광원 조절
-            scene.add(new THREE.AmbientLight(0xffffff, 0.9)); 
-            const mainLight = new THREE.DirectionalLight(0xffffff, 1.1);
-            mainLight.position.set(25, 45, 20);
+            scene.add(new THREE.AmbientLight(0xffffff, 1.0)); 
+            const mainLight = new THREE.DirectionalLight(0xffffff, 1.3);
+            mainLight.position.set(15, 30, 15);
             mainLight.castShadow = true;
             scene.add(mainLight);
 
-            // 바닥재
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.1 });
-            const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), floorMat);
+            // 맵 크기 축소 (60x60 범위의 컴팩트한 아레나형 맵)
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.2 });
+            const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), floorMat);
             floorMesh.rotation.x = -Math.PI / 2;
             floorMesh.receiveShadow = true;
             scene.add(floorMesh);
@@ -231,60 +229,54 @@
             let envGroup = new THREE.Group();
             scene.add(envGroup);
 
-            // 맵 지형지물 대폭 확장 (더 이상 횡하지 않도록 세밀하게 배치)
+            // 축소된 맵 크기에 딱 맞춘 밀도 있는 지형 구조물 배치
             function buildEnvironmentObjects(stage) {
                 while(envGroup.children.length > 0) { envGroup.remove(envGroup.children[0]); }
                 floorMat.color.setHex(STAGE_THEMES[stage].floor);
 
-                if (stage === 1) { // 현세: 건물 빌딩 숲 + 가로등 + 도로 구조물
-                    for(let i=0; i<24; i++) {
-                        const bldg = new THREE.Mesh(new THREE.BoxGeometry(8 + Math.random()*4, 15 + Math.random()*20, 8 + Math.random()*4), new THREE.MeshStandardMaterial({color: 0x334155}));
+                if (stage === 1) { // 현세 빌딩
+                    for(let i=0; i<10; i++) {
+                        const bldg = new THREE.Mesh(new THREE.BoxGeometry(6, 12 + Math.random()*8, 6), new THREE.MeshStandardMaterial({color: 0x334155, roughness: 0.3}));
                         const side = (i % 2 === 0 ? 1 : -1);
-                        bldg.position.set(side * (18 + Math.random()*25), bldg.geometry.parameters.height/2, -60 + i*5);
+                        bldg.position.set(side * 20, bldg.geometry.parameters.height/2, -22 + i*5);
                         envGroup.add(bldg);
                     }
-                } else if (stage === 2) { // 웨코문도: 석화 나무 숲 & 암석 지대
-                    for(let i=0; i<30; i++) {
-                        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(2.0 + Math.random()*3.5), new THREE.MeshStandardMaterial({color: 0x64748b}));
-                        rock.position.set((Math.random()-0.5)*75, 1.5, -60 + Math.random()*120);
+                } else if (stage === 2) { // 웨코문도 암석
+                    for(let i=0; i<12; i++) {
+                        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8 + Math.random()*1.5), new THREE.MeshStandardMaterial({color: 0x64748b}));
+                        rock.position.set((Math.random()-0.5)*38, 1.0, -25 + Math.random()*45);
                         envGroup.add(rock);
                     }
-                } else if (stage === 3) { // 라스 노체스: 웅장한 흰색 신전 기둥 회랑
-                    for(let i=0; i<20; i++) {
-                        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 22, 16), new THREE.MeshStandardMaterial({color: 0xe2e8f0}));
+                } else if (stage === 3) { // 라스노체스 기둥
+                    for(let i=0; i<10; i++) {
+                        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 16, 16), new THREE.MeshStandardMaterial({color: 0xe2e8f0}));
                         const side = (i % 2 === 0 ? 1 : -1);
-                        pillar.position.set(side * 18, 11, -65 + (i*6.5));
+                        pillar.position.set(side * 16, 8, -25 + (i*5));
                         envGroup.add(pillar);
                     }
-                } else if (stage === 4) { // 쌍삭대: 대형 처형 제단 및 주위 횃불 구조물
-                    const altar = new THREE.Mesh(new THREE.BoxGeometry(20, 3, 20), new THREE.MeshStandardMaterial({color: 0x475569}));
-                    altar.position.set(0, 1.5, -25); envGroup.add(altar);
-                    for(let i=0; i<12; i++) {
-                        const p = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 12), new THREE.MeshStandardMaterial({color: 0x334155}));
-                        const angle = (i / 12) * Math.PI * 2;
-                        p.position.set(Math.cos(angle)*28, 6, -25 + Math.sin(angle)*28);
-                        envGroup.add(p);
-                    }
-                } else if (stage === 5) { // 정령정: 사신 기와 대문 및 담장 숲
-                    for(let i=0; i<16; i++) {
-                        const wall = new THREE.Mesh(new THREE.BoxGeometry(14, 8, 3), new THREE.MeshStandardMaterial({color: 0x334155}));
+                } else if (stage === 4) { // 쌍삭대 제단
+                    const altar = new THREE.Mesh(new THREE.BoxGeometry(14, 2, 14), new THREE.MeshStandardMaterial({color: 0x475569}));
+                    altar.position.set(0, 1, -12); envGroup.add(altar);
+                } else if (stage === 5) { // 정령정
+                    for(let i=0; i<8; i++) {
+                        const wall = new THREE.Mesh(new THREE.BoxGeometry(10, 6, 2), new THREE.MeshStandardMaterial({color: 0x334155}));
                         const side = (i % 2 === 0 ? 1 : -1);
-                        wall.position.set(side * (16 + (i%3)*4), 4, -60 + i*8);
+                        wall.position.set(side * 15, 3, -22 + i*6);
                         envGroup.add(wall);
                     }
-                } else if (stage === 6) { // 반덴라이히: 퀸시 신성 결정 군집
-                    for(let i=0; i<24; i++) {
-                        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.5 + Math.random()*2), new THREE.MeshStandardMaterial({color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.5}));
-                        crystal.scale.set(1, 4, 1);
+                } else if (stage === 6) { // 반덴라이히 결정
+                    for(let i=0; i<12; i++) {
+                        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.0), new THREE.MeshStandardMaterial({color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.6}));
+                        crystal.scale.set(1, 3.5, 1);
                         const side = (i % 2 === 0 ? 1 : -1);
-                        crystal.position.set(side * (15 + Math.random()*15), 5, -60 + i*5);
+                        crystal.position.set(side * 14, 4, -24 + i*4.5);
                         envGroup.add(crystal);
                     }
-                } else if (stage === 7) { // 영왕궁: 신성한 대형 부유석 & 거대 차문
-                    for(let i=0; i<18; i++) {
-                        const floatRock = new THREE.Mesh(new THREE.BoxGeometry(8, 4, 8), new THREE.MeshStandardMaterial({color: 0x6b21a8, emissive: 0x3b0764, emissiveIntensity: 0.4}));
+                } else if (stage === 7) { // 영왕궁
+                    for(let i=0; i<8; i++) {
+                        const floatRock = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 6), new THREE.MeshStandardMaterial({color: 0x6b21a8, emissive: 0x3b0764, emissiveIntensity: 0.5}));
                         const side = (i % 2 === 0 ? 1 : -1);
-                        floatRock.position.set(side * (16 + Math.random()*12), 4 + (i%5)*2, -60 + i*7);
+                        floatRock.position.set(side * 15, 3 + (i%3)*2, -22 + i*6);
                         envGroup.add(floatRock);
                     }
                 }
@@ -292,7 +284,7 @@
 
             buildEnvironmentObjects(1);
 
-            // 적 모델링 연출
+            // 정교하고 입체감 있는 보스 디테일 구현
             const monsters = [];
 
             function createBossForStage(stage) {
@@ -300,43 +292,57 @@
                 const theme = STAGE_THEMES[stage];
 
                 if (stage === 1) { // 메노스 그랑데
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 2.5, 12), new THREE.MeshStandardMaterial({ color: 0x050505 }));
-                    body.position.y = 6; group.add(body);
-                    const mask = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-                    mask.rotation.x = Math.PI; mask.position.set(0, 11, 0.5); group.add(mask);
-                    const eye = new THREE.PointLight(0xff0000, 2, 8); eye.position.set(0, 10, 1.2); group.add(eye);
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 2.5, 10, 16), new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 }));
+                    body.position.y = 5; group.add(body);
+                    const mask = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.2 }));
+                    mask.rotation.x = Math.PI; mask.position.set(0, 9.5, 0.6); group.add(mask);
+                    const eye = new THREE.PointLight(0xff0000, 3, 8); eye.position.set(0, 8.8, 1.2); group.add(eye);
                 } else if (stage === 2 || stage === 3) { // 아란칼 / 에스파다
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 2.2), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
-                    body.position.y = 1.1; group.add(body);
-                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.45), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 2.2, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 }));
+                    coat.position.y = 1.1; group.add(coat);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
                     head.position.y = 2.3; group.add(head);
-                    const maskPiece = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.2), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    const hair = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0x000000 }));
+                    hair.position.set(0, 2.6, -0.1); group.add(hair);
+                    const maskPiece = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.35, 0.15), new THREE.MeshStandardMaterial({ color: 0xffffff }));
                     maskPiece.position.set(0.2, 2.4, 0.3); group.add(maskPiece);
-                    const aura = new THREE.PointLight(stage === 3 ? 0x00ff88 : 0x0088ff, 2, 8); aura.position.y = 2.0; group.add(aura);
+                    const aura = new THREE.PointLight(stage === 3 ? 0x00ff88 : 0x0088ff, 2.5, 8); aura.position.y = 2.0; group.add(aura);
                 } else if (stage === 4) { // 아이젠 소스케
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 2.0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x3b0764, emissiveIntensity: 0.5 }));
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0x3b0764, emissiveIntensity: 0.4 }));
                     body.position.y = 1.0; group.add(body);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.2; group.add(head);
                     for(let i=-1; i<=1; i+=2) {
                         const wing = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.5, 1.2), new THREE.MeshStandardMaterial({ color: 0xe9d5ff, emissive: 0xa855f7, emissiveIntensity: 0.8 }));
                         wing.position.set(i*0.8, 1.8, -0.2); wing.rotation.z = i*0.5; group.add(wing);
                     }
-                } else if (stage === 5) { // 호정 13대 사신
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 2.0), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+                } else if (stage === 5) { // 호정 13대 총대장
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.7, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
                     body.position.y = 1.0; group.add(body);
                     const haori = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.6), new THREE.MeshStandardMaterial({ color: 0xffffff }));
                     haori.position.set(0, 1.2, 0); group.add(haori);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.2; group.add(head);
+                    const beard = new THREE.Mesh(new THREE.ConeGeometry(0.3, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+                    beard.position.set(0, 1.6, 0.3); group.add(beard);
                 } else if (stage === 6) { // 퀸시
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2.0), new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.3 }));
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 2.0, 12), new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.4 }));
                     body.position.y = 1.0; group.add(body);
-                    const cross = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.1), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.2; group.add(head);
+                    const cross = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 0.1), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
                     cross.position.set(0, 2.2, -0.3); group.add(cross);
                 } else if (stage === 7) { // 유하바하
-                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.9, 2.4), new THREE.MeshStandardMaterial({ color: 0x020617, emissive: 0xd90429, emissiveIntensity: 0.6 }));
+                    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 2.4, 12), new THREE.MeshStandardMaterial({ color: 0x020617, emissive: 0xd90429, emissiveIntensity: 0.6 }));
                     body.position.y = 1.2; group.add(body);
+                    const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+                    head.position.y = 2.5; group.add(head);
+                    const mustache = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 0.2), new THREE.MeshStandardMaterial({ color: 0x000000 }));
+                    mustache.position.set(0, 2.4, 0.35); group.add(mustache);
                     const aura = new THREE.PointLight(0xd90429, 3, 8); aura.position.y = 2.0; group.add(aura);
                 }
 
-                group.position.set(0, 0, -18); scene.add(group);
+                group.position.set(0, 0, -12); scene.add(group);
                 monsters.push({ mesh: group, hp: 2000 + stage*800, maxHp: 2000 + stage*800, isBoss: true });
                 document.getElementById('boss-hud').style.display = 'block';
                 document.getElementById('boss-name').innerText = `⚠️ BOSS: ${theme.boss}`;
@@ -344,7 +350,39 @@
 
             createBossForStage(1);
 
-            // 화려한 스킬 이펙트 (VFX)
+            // 실제 토시로 스타일 캐릭터 디테일 생성 (은발, 머리카락 결, 사패장, 대홍련 빙륜환 얼음 날개)
+            const playerGroup = new THREE.Group();
+            scene.add(playerGroup);
+
+            // 신체 & 옷
+            const pBody = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.38, 1.2, 12), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 }));
+            pBody.position.y = 0.6; playerGroup.add(pBody);
+            const pHaori = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.8, 0.5), new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 })); // 녹색 띠/목도리 디테일
+            pHaori.position.set(0, 0.9, 0); playerGroup.add(pHaori);
+
+            // 얼굴 & 은발 머리카락
+            const pHead = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+            pHead.position.y = 1.35; playerGroup.add(pHead);
+            
+            const hairGroup = new THREE.Group();
+            for(let i=0; i<7; i++) {
+                const hairSpike = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.45, 6), new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.2 }));
+                hairSpike.rotation.x = -Math.PI / 4 + (Math.random()*0.2);
+                hairSpike.rotation.z = (i - 3) * 0.25;
+                hairSpike.position.set((i - 3) * 0.08, 1.55, -0.05);
+                hairGroup.add(hairSpike);
+            }
+            playerGroup.add(hairGroup);
+
+            // 참백도 (빙륜환)
+            const swordGroup = new THREE.Group();
+            const swordBlade = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.4, 0.05), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00b4d8, emissiveIntensity: 1.5 }));
+            swordBlade.position.y = 0.7; swordGroup.add(swordBlade);
+            const swordGuard = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.04, 0.2), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
+            swordGuard.position.y = 0.02; swordGroup.add(swordGuard);
+            swordGroup.position.set(0.35, 0.8, 0.2); swordGroup.rotation.x = Math.PI / 4; playerGroup.add(swordGroup);
+
+            // 스킬 VFX
             const vfxList = [];
             function spawnSlashVFX(scale = 1.0, color = 0x00f0ff, type = 'slash') {
                 const group = new THREE.Group();
@@ -376,16 +414,6 @@
                 scene.add(group);
                 vfxList.push({ mesh: group, type: 'fade', life: 0.25, maxLife: 0.25, scaleSpeed: 0.2 });
             }
-
-            // 플레이어 모델링
-            const playerGroup = new THREE.Group();
-            scene.add(playerGroup);
-            const playerBody = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-            playerBody.position.y = 0.6; playerGroup.add(playerBody);
-            const playerHead = new THREE.Mesh(new THREE.SphereGeometry(0.28), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-            playerHead.position.y = 1.35; playerGroup.add(playerHead);
-            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.3, 0.06), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00b4d8, emissiveIntensity: 1.5 }));
-            sword.position.set(0.35, 0.9, 0.2); sword.rotation.x = Math.PI / 4; playerGroup.add(sword);
 
             function attackMonster(m, damageMultiplier = 1.0) {
                 const isCrit = Math.random() < 0.35;
@@ -431,16 +459,16 @@
                 document.getElementById('ui-mp-fill').style.width = `${(state.mp / state.maxMp) * 100}%`;
             }
 
-            // 스킬 동작
+            // 스킬 클릭
             document.getElementById('btn-attack').onclick = () => {
                 playSound('slash'); spawnSlashVFX(1.0, 0x00f0ff, 'slash');
-                monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 5.5) attackMonster(m, 1.0); });
+                monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 5.0) attackMonster(m, 1.0); });
             };
 
             document.getElementById('btn-skill1').onclick = () => {
                 if (state.mp >= 20 && cooldowns.skill1.current <= 0) {
                     state.mp -= 20; triggerCooldown('skill1'); playSound('slash'); spawnSlashVFX(1.6, 0x48cae4, 'dragon');
-                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 8.5) attackMonster(m, 1.85); });
+                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 7.5) attackMonster(m, 1.85); });
                     showToast("🐉 군구상빙륜환!"); updateUI();
                 }
             };
@@ -448,7 +476,7 @@
             document.getElementById('btn-skill2').onclick = () => {
                 if (state.mp >= 30 && cooldowns.skill2.current <= 0) {
                     state.mp -= 30; triggerCooldown('skill2'); playSound('slash'); spawnSlashVFX(2.2, 0x7209b7, 'meteor');
-                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 11.0) attackMonster(m, 2.6); });
+                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 10.0) attackMonster(m, 2.6); });
                     showToast("💫 빙류성(氷流星) 연타!"); updateUI();
                 }
             };
@@ -456,7 +484,7 @@
             document.getElementById('btn-ult').onclick = () => {
                 if (state.mp >= 40 && cooldowns.ult.current <= 0) {
                     state.mp -= 40; triggerCooldown('ult'); playSound('ult'); spawnSlashVFX(3.2, 0xf72585, 'ult');
-                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 18.0) attackMonster(m, 5.0); });
+                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 15.0) attackMonster(m, 5.0); });
                     showToast("❄️ 만해 [대홍련빙륜환] 각성!"); updateUI();
                 }
             };
@@ -464,8 +492,8 @@
             document.getElementById('btn-dodge').onclick = () => {
                 if (cooldowns.dodge.current <= 0) {
                     triggerCooldown('dodge');
-                    playerGroup.position.x += -Math.sin(playerGroup.rotation.y) * 5.5;
-                    playerGroup.position.z += -Math.cos(playerGroup.rotation.y) * 5.5;
+                    playerGroup.position.x += -Math.sin(playerGroup.rotation.y) * 4.5;
+                    playerGroup.position.z += -Math.cos(playerGroup.rotation.y) * 4.5;
                     showToast("⚡ 순보!");
                 }
             };
@@ -495,8 +523,8 @@
                 requestAnimationFrame(animate);
                 if (!state.isHitStopped) {
                     if (moveVector.x !== 0 || moveVector.z !== 0) {
-                        playerGroup.position.x += moveVector.x * 0.16;
-                        playerGroup.position.z += moveVector.z * 0.16;
+                        playerGroup.position.x += moveVector.x * 0.15;
+                        playerGroup.position.z += moveVector.z * 0.15;
                         playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                     }
 
@@ -512,7 +540,7 @@
 
                     monsters.forEach(m => {
                         m.mesh.rotation.y += 0.01;
-                        m.mesh.position.y = Math.sin(Date.now() * 0.003) * 0.2;
+                        m.mesh.position.y = Math.sin(Date.now() * 0.003) * 0.15;
                     });
                 }
 
