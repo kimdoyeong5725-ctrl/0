@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bleach: 7 Worlds Saga & Adjusted Scale</title>
+    <title>Ice Captain - 7 World Background Saga</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
@@ -19,6 +19,7 @@
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
+        /* HUD UI */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
         .panel-box { background: rgba(2, 8, 20, 0.92); backdrop-filter: blur(16px); border: 1.5px solid #70e4ff; border-radius: 14px; padding: 12px; width: 320px; pointer-events: auto; box-shadow: 0 0 35px rgba(0, 240, 255, 0.45); }
         .gold-text { color: #ffd700; font-weight: bold; }
@@ -27,15 +28,18 @@
         .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #00b4db, #0083b0); transition: width 0.2s; }
         .quest-box { margin-top: 8px; background: rgba(0, 240, 255, 0.15); border-left: 4px solid #70e4ff; padding: 6px 10px; font-size: 11px; font-weight: bold; line-height: 1.4; border-radius: 0 6px 6px 0; text-shadow: 0 0 8px #00f0ff; }
 
+        /* 보스 HUD UI */
         #boss-hud { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 60%; max-width: 520px; text-align: center; display: none; }
         #boss-name { font-size: 16px; font-weight: 900; color: #ff3366; text-shadow: 0 0 12px #ff0055, 0 0 20px #ffffff; letter-spacing: 2px; margin-bottom: 4px; }
         .boss-bar-bg { width: 100%; height: 20px; background: rgba(0,0,0,0.85); border: 2px solid #ff3366; border-radius: 10px; overflow: hidden; box-shadow: 0 0 30px rgba(255, 0, 85, 0.7); }
         #boss-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0055, #ff7700, #ffee00); transition: width 0.15s ease-out; }
 
+        /* 콤보 UI */
         #combo-container { position: absolute; top: 25%; left: 35px; opacity: 0; transition: opacity 0.2s, transform 0.1s; transform: scale(1); pointer-events: none; }
         #combo-count { font-size: 52px; font-weight: 900; color: #70e4ff; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ffaae5; font-style: italic; }
         #combo-text { font-size: 14px; font-weight: bold; color: #ffffff; letter-spacing: 2px; }
 
+        /* 데미지 폰트 */
         #damage-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
         .damage-text { position: absolute; font-weight: 900; font-style: italic; transform: translate(-50%, -100%); animation: floatUp 0.8s ease-out forwards; text-shadow: 0 0 10px #000; }
         .damage-normal { font-size: 24px; color: #ffffff; text-shadow: 0 0 8px #00f0ff; }
@@ -47,10 +51,10 @@
             100% { opacity: 0; transform: translate(-50%, -180%) scale(1.0); }
         }
 
+        /* 조이스틱 및 컨트롤러 */
         #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(0, 240, 255, 0.08); border: 2px solid rgba(112, 228, 255, 0.5); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); }
         #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #ffffff, #70e4ff); border-radius: 50%; box-shadow: 0 0 25px #00f0ff; }
 
-        /* UI 버튼 배치 (스킬 2 추가) */
         .action-area { position: absolute; bottom: 20px; right: 20px; width: 280px; height: 280px; pointer-events: none; }
         .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(5, 12, 28, 0.9); border: 1.5px solid #70e4ff; box-shadow: 0 0 22px rgba(0, 240, 255, 0.5); font-size: 11px; text-shadow: 0 0 8px #00f0ff; overflow: hidden; }
         .btn-action:active { transform: scale(0.9); }
@@ -60,7 +64,7 @@
         #btn-attack { width: 85px; height: 85px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #ffffff, #0088ff); border-color: #ffffff; box-shadow: 0 0 32px #00f0ff; }
         #btn-dodge { width: 50px; height: 50px; bottom: 5px; right: 105px; }
         #btn-skill1 { width: 58px; height: 58px; bottom: 95px; right: 0; background: radial-gradient(circle, #f0f8ff, #00bfff); }
-        #btn-skill2 { width: 58px; height: 58px; bottom: 100px; right: 75px; background: radial-gradient(circle, #ffffff, #00ffff); } /* 신규 스킬2 버튼 */
+        #btn-skill2 { width: 58px; height: 58px; bottom: 100px; right: 75px; background: radial-gradient(circle, #ffffff, #00ffff); }
         #btn-ult { width: 70px; height: 70px; bottom: 165px; right: 15px; border-color: #ffffff; background: radial-gradient(circle, #ffffff, #e0aaff); box-shadow: 0 0 45px #ffffff; color: #10002b; font-size: 12px; }
 
         #toast-msg { position: absolute; top: 18%; width: 100%; text-align: center; color: #ffffff; font-size: 26px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 20; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ff70a6, 0 0 60px #ffffff; }
@@ -99,7 +103,8 @@
         <div class="action-area">
             <div id="btn-dodge" class="btn-action">순보<div id="cd-dodge" class="cooldown-mask"></div></div>
             <div id="btn-skill1" class="btn-action">군구상<div id="cd-skill1" class="cooldown-mask"></div></div>
-            <div id="btn-skill2" class="btn-action">빙류성<div id="cd-skill2" class="cooldown-mask"></div></div> <div id="btn-ult" class="btn-action">만해각성<div id="cd-ult" class="cooldown-mask"></div></div>
+            <div id="btn-skill2" class="btn-action">빙류성<div id="cd-skill2" class="cooldown-mask"></div></div>
+            <div id="btn-ult" class="btn-action">만해각성<div id="cd-ult" class="cooldown-mask"></div></div>
             <div id="btn-attack" class="btn-action">참격</div>
         </div>
     </div>
@@ -121,7 +126,7 @@
             const cooldowns = {
                 dodge: { max: 2, current: 0, el: document.getElementById('cd-dodge') },
                 skill1: { max: 4, current: 0, el: document.getElementById('cd-skill1') },
-                skill2: { max: 6, current: 0, el: document.getElementById('cd-skill2') }, // 스킬2 쿨타임
+                skill2: { max: 6, current: 0, el: document.getElementById('cd-skill2') },
                 ult: { max: 12, current: 0, el: document.getElementById('cd-ult') }
             };
 
@@ -214,7 +219,6 @@
             mainLight.castShadow = true;
             scene.add(mainLight);
 
-            // 호로 가면 Canvas 텍스처
             function createHollowMaskTexture() {
                 const cv = document.createElement('canvas');
                 cv.width = 512; cv.height = 512;
@@ -228,21 +232,19 @@
                 return new THREE.CanvasTexture(cv);
             }
 
-            // 바닥 지형
             const floorMat = new THREE.MeshPhysicalMaterial({ color: 0x111622, roughness: 0.3, metalness: 0.1 });
             const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), floorMat);
             floorMesh.rotation.x = -Math.PI / 2;
             floorMesh.receiveShadow = true;
             scene.add(floorMesh);
 
-            // 배경 환경 오브젝트 그룹
             let envGroup = new THREE.Group();
             scene.add(envGroup);
 
             function buildEnvironmentObjects(stage) {
                 while(envGroup.children.length > 0) { envGroup.remove(envGroup.children[0]); }
 
-                if (stage === 1) { // 영혼의 마을 (가로등)
+                if (stage === 1) { 
                     floorMat.color.setHex(0x3a2e2b);
                     for(let i=0; i<12; i++) {
                         const lamp = new THREE.Group();
@@ -253,18 +255,18 @@
                         lamp.position.set((i%2 === 0 ? -18 : 18), 0, -60 + i*10);
                         envGroup.add(lamp);
                     }
-                } else if (stage === 2) { // 영혼 수련 마을 (석등)
+                } else if (stage === 2) { 
                     floorMat.color.setHex(0x2d3b2d);
                     for(let i=0; i<10; i++) {
                         const lantern = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3.0, 1.2), new THREE.MeshStandardMaterial({color: 0x777777}));
                         lantern.position.set((i%2 === 0 ? -16 : 16), 1.5, -50 + i*12);
                         envGroup.add(lantern);
                     }
-                } else if (stage === 3) { // 영혼 기사단 본부 (거대 흰 성벽)
+                } else if (stage === 3) { 
                     floorMat.color.setHex(0xaaaaaa);
                     const wall = new THREE.Mesh(new THREE.BoxGeometry(120, 20, 4), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
                     wall.position.set(0, 10, -45); envGroup.add(wall);
-                } else if (stage === 4) { // 하얀 사막 차원 (끝없는 흰 모래 & 거대한 달)
+                } else if (stage === 4) { 
                     floorMat.color.setHex(0xe8e8e8);
                     const moon = new THREE.Mesh(new THREE.SphereGeometry(14, 32, 32), new THREE.MeshBasicMaterial({color: 0xffffff}));
                     moon.position.set(0, 25, -70); envGroup.add(moon);
@@ -272,21 +274,21 @@
                         const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3.0), new THREE.MeshStandardMaterial({color: 0x111111}));
                         rock.position.set((Math.random()-0.5)*60, 1.5, (Math.random()-0.5)*60); envGroup.add(rock);
                     }
-                } else if (stage === 5) { // 수정 궁전 (푸른 수정 기둥)
+                } else if (stage === 5) { 
                     floorMat.color.setHex(0x00ffff); floorMat.roughness = 0.05;
                     for(let i=0; i<8; i++) {
                         const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.5, 0), new THREE.MeshStandardMaterial({color: 0x00f0ff, emissive: 0x0088ff, emissiveIntensity: 1.5}));
                         crystal.scale.set(1, 4, 1);
                         crystal.position.set((i%2 === 0 ? -20 : 20), 5, -40 + i*12); envGroup.add(crystal);
                     }
-                } else if (stage === 6) { // 최종 결전 도시 (무너진 건물 잔해)
+                } else if (stage === 6) { 
                     floorMat.color.setHex(0x1a0505);
                     for(let i=0; i<7; i++) {
                         const ruin = new THREE.Mesh(new THREE.BoxGeometry(8, 15 + Math.random()*15, 8), new THREE.MeshStandardMaterial({color: 0x221111}));
                         ruin.rotation.z = (Math.random() - 0.5) * 0.3;
                         ruin.position.set((i%2 === 0 ? -25 : 25), 6, -50 + i*15); envGroup.add(ruin);
                     }
-                } else if (stage === 7) { // 엔딩 마을 (다리와 강 연출)
+                } else if (stage === 7) { 
                     floorMat.color.setHex(0x354a21);
                     const river = new THREE.Mesh(new THREE.PlaneGeometry(160, 12), new THREE.MeshBasicMaterial({color: 0x00aaff}));
                     river.rotation.x = -Math.PI / 2; river.position.set(0, 0.05, -10); envGroup.add(river);
@@ -297,7 +299,6 @@
 
             buildEnvironmentObjects(1);
 
-            // 파티클
             let particleSystem;
             function createParticles(stage) {
                 if(particleSystem) scene.remove(particleSystem);
@@ -319,7 +320,6 @@
             }
             createParticles(1);
 
-            // 플레이어 모델
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
             const playerBody = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x080c14 }));
@@ -332,25 +332,20 @@
             const monsters = [];
             const maskTex = createHollowMaskTexture();
 
-            // 적당한 크기로 조정된 호로 보스 생성 함수 (기존 대비 약 50% 축소)
             function createAdjustedHollowBoss() {
                 const group = new THREE.Group();
 
-                // 호로 가면 머리 (크기 축소: 반경 0.7)
                 const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 24, 24), new THREE.MeshStandardMaterial({ map: maskTex, roughness: 0.2 }));
                 head.position.y = 2.1; head.rotation.y = Math.PI; group.add(head);
 
-                // 붉은 안광
                 const eyeLight = new THREE.PointLight(0xff0033, 2.5, 6);
                 eyeLight.position.set(0, 2.1, 0.6); group.add(eyeLight);
 
-                // 악마 뿔
                 for(let side = -1; side <= 1; side += 2) {
                     const horn = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.9, 6), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0xff0033 }));
                     horn.position.set(side * 0.4, 2.7, 0); horn.rotation.z = -side * 0.4; group.add(horn);
                 }
 
-                // 신체 (높이 1.6)
                 const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 1.6, 8), new THREE.MeshStandardMaterial({ color: 0x0a030d, emissive: 0x330011 }));
                 body.position.y = 0.8; group.add(body);
 
@@ -424,7 +419,6 @@
                 document.getElementById('ui-mp-fill').style.width = `${(state.mp / state.maxMp) * 100}%`;
             }
 
-            // 스킬 이벤트 연결
             document.getElementById('btn-attack').onclick = () => {
                 playSound('slash'); spawnSlashVFX(1.0, 0x00f0ff);
                 monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 5.5) attackMonster(m, 1.0); });
@@ -438,7 +432,6 @@
                 }
             };
 
-            // 신규 추가된 [스킬 2: 빙류성]
             document.getElementById('btn-skill2').onclick = () => {
                 if (state.mp >= 30 && cooldowns.skill2.current <= 0) {
                     state.mp -= 30; triggerCooldown('skill2'); playSound('slash'); spawnSlashVFX(2.2, 0xff00ff);
@@ -464,7 +457,6 @@
                 }
             };
 
-            // 조이스틱
             let moveVector = { x: 0, z: 0 };
             const joyArea = document.getElementById('joystick-area');
             const joyHandle = document.getElementById('joystick-handle');
