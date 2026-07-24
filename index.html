@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ice Captain - 7 World Background Saga</title>
+    <title>Bleach: 7 Worlds Saga & Adjusted Scale</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
@@ -19,7 +19,6 @@
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
 
-        /* HUD UI */
         #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
         .panel-box { background: rgba(2, 8, 20, 0.92); backdrop-filter: blur(16px); border: 1.5px solid #70e4ff; border-radius: 14px; padding: 12px; width: 320px; pointer-events: auto; box-shadow: 0 0 35px rgba(0, 240, 255, 0.45); }
         .gold-text { color: #ffd700; font-weight: bold; }
@@ -28,18 +27,15 @@
         .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #00b4db, #0083b0); transition: width 0.2s; }
         .quest-box { margin-top: 8px; background: rgba(0, 240, 255, 0.15); border-left: 4px solid #70e4ff; padding: 6px 10px; font-size: 11px; font-weight: bold; line-height: 1.4; border-radius: 0 6px 6px 0; text-shadow: 0 0 8px #00f0ff; }
 
-        /* 보스 HUD UI */
         #boss-hud { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 60%; max-width: 520px; text-align: center; display: none; }
         #boss-name { font-size: 16px; font-weight: 900; color: #ff3366; text-shadow: 0 0 12px #ff0055, 0 0 20px #ffffff; letter-spacing: 2px; margin-bottom: 4px; }
         .boss-bar-bg { width: 100%; height: 20px; background: rgba(0,0,0,0.85); border: 2px solid #ff3366; border-radius: 10px; overflow: hidden; box-shadow: 0 0 30px rgba(255, 0, 85, 0.7); }
         #boss-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0055, #ff7700, #ffee00); transition: width 0.15s ease-out; }
 
-        /* 콤보 UI */
         #combo-container { position: absolute; top: 25%; left: 35px; opacity: 0; transition: opacity 0.2s, transform 0.1s; transform: scale(1); pointer-events: none; }
         #combo-count { font-size: 52px; font-weight: 900; color: #70e4ff; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ffaae5; font-style: italic; }
         #combo-text { font-size: 14px; font-weight: bold; color: #ffffff; letter-spacing: 2px; }
 
-        /* 데미지 폰트 */
         #damage-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
         .damage-text { position: absolute; font-weight: 900; font-style: italic; transform: translate(-50%, -100%); animation: floatUp 0.8s ease-out forwards; text-shadow: 0 0 10px #000; }
         .damage-normal { font-size: 24px; color: #ffffff; text-shadow: 0 0 8px #00f0ff; }
@@ -51,11 +47,11 @@
             100% { opacity: 0; transform: translate(-50%, -180%) scale(1.0); }
         }
 
-        /* 컨트롤러 UI */
         #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(0, 240, 255, 0.08); border: 2px solid rgba(112, 228, 255, 0.5); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); }
         #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #ffffff, #70e4ff); border-radius: 50%; box-shadow: 0 0 25px #00f0ff; }
 
-        .action-area { position: absolute; bottom: 20px; right: 20px; width: 240px; height: 240px; pointer-events: none; }
+        /* UI 버튼 배치 (스킬 2 추가) */
+        .action-area { position: absolute; bottom: 20px; right: 20px; width: 280px; height: 280px; pointer-events: none; }
         .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(5, 12, 28, 0.9); border: 1.5px solid #70e4ff; box-shadow: 0 0 22px rgba(0, 240, 255, 0.5); font-size: 11px; text-shadow: 0 0 8px #00f0ff; overflow: hidden; }
         .btn-action:active { transform: scale(0.9); }
         
@@ -63,8 +59,9 @@
 
         #btn-attack { width: 85px; height: 85px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #ffffff, #0088ff); border-color: #ffffff; box-shadow: 0 0 32px #00f0ff; }
         #btn-dodge { width: 50px; height: 50px; bottom: 5px; right: 105px; }
-        #btn-skill1 { width: 60px; height: 60px; bottom: 100px; right: 0; background: radial-gradient(circle, #f0f8ff, #00bfff); }
-        #btn-ult { width: 75px; height: 75px; bottom: 160px; right: 20px; border-color: #ffffff; background: radial-gradient(circle, #ffffff, #e0aaff); box-shadow: 0 0 45px #ffffff; color: #10002b; font-size: 13px; }
+        #btn-skill1 { width: 58px; height: 58px; bottom: 95px; right: 0; background: radial-gradient(circle, #f0f8ff, #00bfff); }
+        #btn-skill2 { width: 58px; height: 58px; bottom: 100px; right: 75px; background: radial-gradient(circle, #ffffff, #00ffff); } /* 신규 스킬2 버튼 */
+        #btn-ult { width: 70px; height: 70px; bottom: 165px; right: 15px; border-color: #ffffff; background: radial-gradient(circle, #ffffff, #e0aaff); box-shadow: 0 0 45px #ffffff; color: #10002b; font-size: 12px; }
 
         #toast-msg { position: absolute; top: 18%; width: 100%; text-align: center; color: #ffffff; font-size: 26px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 20; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ff70a6, 0 0 60px #ffffff; }
     </style>
@@ -82,106 +79,12 @@
                 </div>
                 <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
                 <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="quest-box">📖 <span id="ui-stage-name">튜토리얼: 영혼의 마을</span></div>
+                <div class="quest-box">📖 <span id="ui-stage-name">1. 영혼의 마을 (튜토리얼)</span></div>
             </div>
         </div>
 
         <div id="boss-hud">
-            <div id="boss-name">⚠️ BOSS: 대홍련 빙룡 마신 (Ice Dragon Overlord)각 레벨마다 요청하신 시각적 요소(벚꽃길, 하얀 사막, 수정 궁전, 최종 결전 도시의 번개 효과 등)가 배경에 명확히 구성되도록 Nine.js 코드를 업데이트했습니다.
-
-레벨(STAGE 1~7)이 변경될 때마다 조명색, 파티클(눈, 벚꽃), 배경 산맥의 형태가 테마에 맞춰 완전히 바뀝니다.
-
-```html
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bleach: Ice Captain - 7 Worlds saga</title>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js)"></script>
-    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js)"></script>
-
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
-        body { width: 100vw; height: 100vh; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; color: #fff; }
-
-        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
-
-        /* HUD UI */
-        #top-hud { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .panel-box { background: rgba(2, 8, 20, 0.92); backdrop-filter: blur(16px); border: 1.5px solid #70e4ff; border-radius: 14px; padding: 12px; width: 320px; pointer-events: auto; box-shadow: 0 0 35px rgba(0, 240, 255, 0.45); }
-        .gold-text { color: #ffd700; font-weight: bold; }
-        .bar-container { width: 100%; height: 10px; background: rgba(255, 255, 255, 0.12); border-radius: 5px; overflow: hidden; margin-top: 6px; }
-        .bar-fill-hp { width: 100%; height: 100%; background: linear-gradient(90deg, #ff416c, #ff4b2b); transition: width 0.2s; }
-        .bar-fill-mp { width: 100%; height: 100%; background: linear-gradient(90deg, #00b4db, #0083b0); transition: width 0.2s; }
-        .quest-box { margin-top: 8px; background: rgba(0, 240, 255, 0.15); border-left: 4px solid #70e4ff; padding: 6px 10px; font-size: 11px; font-weight: bold; line-height: 1.4; border-radius: 0 6px 6px 0; text-shadow: 0 0 8px #00f0ff; }
-
-        /* 보스 HUD UI */
-        #boss-hud { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 60%; max-width: 520px; text-align: center; display: none; }
-        #boss-name { font-size: 16px; font-weight: 900; color: #ff3366; text-shadow: 0 0 12px #ff0055, 0 0 20px #ffffff; letter-spacing: 2px; margin-bottom: 4px; }
-        .boss-bar-bg { width: 100%; height: 20px; background: rgba(0,0,0,0.85); border: 2px solid #ff3366; border-radius: 10px; overflow: hidden; box-shadow: 0 0 30px rgba(255, 0, 85, 0.7); }
-        #boss-bar-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0055, #ff7700, #ffee00); transition: width 0.15s ease-out; }
-
-        /* 콤보 UI */
-        #combo-container { position: absolute; top: 25%; left: 35px; opacity: 0; transition: opacity 0.2s, transform 0.1s; transform: scale(1); pointer-events: none; }
-        #combo-count { font-size: 52px; font-weight: 900; color: #70e4ff; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ffaae5; font-style: italic; }
-        #combo-text { font-size: 14px; font-weight: bold; color: #ffffff; letter-spacing: 2px; }
-
-        /* 데미지 폰트 */
-        #damage-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
-        .damage-text { position: absolute; font-weight: 900; font-style: italic; transform: translate(-50%, -100%); animation: floatUp 0.8s ease-out forwards; text-shadow: 0 0 10px #000; }
-        .damage-normal { font-size: 24px; color: #ffffff; text-shadow: 0 0 8px #00f0ff; }
-        .damage-crit { font-size: 36px; color: #ffeb3b; text-shadow: 0 0 15px #ff5722, 0 0 25px #ffffff; }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); }
-            30% { transform: translate(-50%, -100%) scale(1.3); }
-            100% { opacity: 0; transform: translate(-50%, -180%) scale(1.0); }
-        }
-
-        /* 컨트롤러 UI */
-        #joystick-area { position: absolute; bottom: 35px; left: 30px; width: 110px; height: 110px; background: rgba(0, 240, 255, 0.08); border: 2px solid rgba(112, 228, 255, 0.5); border-radius: 50%; pointer-events: auto; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); box-shadow: 0 0 25px rgba(0, 240, 255, 0.3); }
-        #joystick-handle { width: 45px; height: 45px; background: radial-gradient(circle, #ffffff, #70e4ff); border-radius: 50%; box-shadow: 0 0 25px #00f0ff; }
-
-        .action-area { position: absolute; bottom: 20px; right: 20px; width: 240px; height: 240px; pointer-events: none; }
-        .btn-action { position: absolute; border-radius: 50%; color: #fff; font-weight: bold; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; background: rgba(5, 12, 28, 0.9); border: 1.5px solid #70e4ff; box-shadow: 0 0 22px rgba(0, 240, 255, 0.5); font-size: 11px; text-shadow: 0 0 8px #00f0ff; overflow: hidden; }
-        .btn-action:active { transform: scale(0.9); }
-        
-        .cooldown-mask { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: 900; color: #00f0ff; opacity: 0; pointer-events: none; }
-
-        #btn-attack { width: 85px; height: 85px; bottom: 0; right: 0; font-size: 16px; background: radial-gradient(circle, #ffffff, #0088ff); border-color: #ffffff; box-shadow: 0 0 32px #00f0ff; }
-        #btn-dodge { width: 50px; height: 50px; bottom: 5px; right: 105px; }
-        #btn-skill1 { width: 60px; height: 60px; bottom: 100px; right: 0; background: radial-gradient(circle, #f0f8ff, #00bfff); }
-        #btn-ult { width: 75px; height: 75px; bottom: 160px; right: 20px; border-color: #ffffff; background: radial-gradient(circle, #ffffff, #e0aaff); box-shadow: 0 0 45px #ffffff; color: #10002b; font-size: 13px; }
-
-        #toast-msg { position: absolute; top: 18%; width: 100%; text-align: center; color: #ffffff; font-size: 26px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 20; text-shadow: 0 0 20px #00f0ff, 0 0 40px #ff70a6, 0 0 60px #ffffff; }
-    </style>
-</head>
-<body>
-    <div id="canvas-container"></div>
-    <div id="damage-container"></div>
-
-    <div id="ui-layer">
-        <div id="top-hud">
-            <div class="panel-box">
-                <div style="display:flex; justify-content:space-between;">
-                    <span>❄️ 토시로 <b id="ui-level" style="color:#70e4ff;">Lv.1</b></span>
-                    <span class="gold-text">💰 <b id="ui-gold">0</b></span>
-                </div>
-                <div class="bar-container"><div id="ui-hp-fill" class="bar-fill-hp"></div></div>
-                <div class="bar-container"><div id="ui-mp-fill" class="bar-fill-mp"></div></div>
-                <div class="quest-box">📖 <span id="ui-stage-name">튜토리얼: 영혼의 마을</span></div>
-            </div>
-        </div>
-
-        <div id="boss-hud">
-            <div id="boss-name">⚠️ BOSS: 호로화 대홍련 빙룡 마신</div>
+            <div id="boss-name">⚠️ BOSS: 호로화 빙룡 마신</div>
             <div class="boss-bar-bg"><div id="boss-bar-fill"></div></div>
         </div>
 
@@ -196,7 +99,7 @@
         <div class="action-area">
             <div id="btn-dodge" class="btn-action">순보<div id="cd-dodge" class="cooldown-mask"></div></div>
             <div id="btn-skill1" class="btn-action">군구상<div id="cd-skill1" class="cooldown-mask"></div></div>
-            <div id="btn-ult" class="btn-action">만해각성<div id="cd-ult" class="cooldown-mask"></div></div>
+            <div id="btn-skill2" class="btn-action">빙류성<div id="cd-skill2" class="cooldown-mask"></div></div> <div id="btn-ult" class="btn-action">만해각성<div id="cd-ult" class="cooldown-mask"></div></div>
             <div id="btn-attack" class="btn-action">참격</div>
         </div>
     </div>
@@ -205,20 +108,20 @@
         window.addEventListener('DOMContentLoaded', () => {
             const state = { stage: 1, gold: 0, level: 1, hp: 150, maxHp: 150, mp: 100, maxMp: 100, atk: 85, combo: 0, comboTimer: null, isHitStopped: false };
 
-            // 요청하신 7가지 배경 테마 정의
             const STAGE_THEMES = {
-                1: { name: "영혼의 마을 (튜토리얼)", color: 0xffd7b5, fog: 0.005, particles: 'snow', mountainColor: 0x664422 }, // 저녁 노을
-                2: { name: "영혼 수련 마을", color: 0xffe0f0, fog: 0.006, particles: 'cherry', mountainColor: 0xdd8899 }, // 벚꽃길
-                3: { name: "영혼 기사단 본부", color: 0xf0f8ff, fog: 0.004, particles: 'snow', mountainColor: 0xaaaaaa }, // 흰 성벽
-                4: { name: "하얀 사막 차원", color: 0xffffff, fog: 0.003, particles: 'sand', mountainColor: 0x111111 }, // 하얀 사막, 검은 바위
-                5: { name: "수정 궁전", color: 0x00ffff, fog: 0.002, particles: 'ice', mountainColor: 0xffeeaa }, // 푸른 수정, 황금 장식
-                6: { name: "최종 결전 도시", color: 0xff3300, fog: 0.007, particles: 'ash', mountainColor: 0x330000 }, // 무너진 건물, 붉은 하늘
-                7: { name: "엔딩 마을", color: 0xe0f7fa, fog: 0.005, particles: 'cherry', mountainColor: 0x88cc88 } // 벚꽃 평화로운 마을
+                1: { name: "1. 영혼의 마을 (튜토리얼)", color: 0xffa066, fog: 0.005, particles: 'sunset' },
+                2: { name: "2. 영혼 수련 마을", color: 0xffd1dc, fog: 0.006, particles: 'cherry' },
+                3: { name: "3. 영혼 기사단 본부", color: 0xd8e8f8, fog: 0.004, particles: 'snow' },
+                4: { name: "4. 하얀 사막 차원", color: 0x222233, fog: 0.003, particles: 'sand' },
+                5: { name: "5. 수정 궁전", color: 0x003366, fog: 0.003, particles: 'crystal' },
+                6: { name: "6. 최종 결전 도시", color: 0x550000, fog: 0.007, particles: 'fire' },
+                7: { name: "7. 엔딩 마을", color: 0xe0ffff, fog: 0.004, particles: 'cherry' }
             };
 
             const cooldowns = {
                 dodge: { max: 2, current: 0, el: document.getElementById('cd-dodge') },
                 skill1: { max: 4, current: 0, el: document.getElementById('cd-skill1') },
+                skill2: { max: 6, current: 0, el: document.getElementById('cd-skill2') }, // 스킬2 쿨타임
                 ult: { max: 12, current: 0, el: document.getElementById('cd-ult') }
             };
 
@@ -259,7 +162,7 @@
             }
 
             function showDamageText(pos, dmgAmount, isCrit = false) {
-                const vector = pos.clone(); vector.y += 3.8; vector.project(camera);
+                const vector = pos.clone(); vector.y += 2.5; vector.project(camera);
                 const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (-(vector.y * 0.5) + 0.5) * window.innerHeight;
 
@@ -290,7 +193,7 @@
             scene.fog = new THREE.FogExp2(STAGE_THEMES[1].color, STAGE_THEMES[1].fog);
 
             const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            let targetOffset = new THREE.Vector3(0, 13, 17);
+            let targetOffset = new THREE.Vector3(0, 11, 14);
             let cameraOffset = targetOffset.clone();
 
             const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
@@ -302,81 +205,116 @@
 
             const composer = new THREE.EffectComposer(renderer);
             composer.addPass(new THREE.RenderPass(scene, camera));
-            const bloomPass = new THREE.UnrealBloomPass(
-                new THREE.Vector2(window.innerWidth, window.innerHeight),
-                1.4, 0.45, 0.15
-            );
+            const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.3, 0.45, 0.15);
             composer.addPass(bloomPass);
 
-            // 광원 세팅
-            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
-            scene.add(hemiLight);
-            const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
-            mainLight.position.set(40, 70, 30);
+            scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+            const mainLight = new THREE.DirectionalLight(0xffffff, 1.8);
+            mainLight.position.set(30, 50, 20);
             mainLight.castShadow = true;
-            mainLight.shadow.mapSize.width = 2048;
-            mainLight.shadow.mapSize.height = 2048;
             scene.add(mainLight);
 
-            const bossLight = new THREE.PointLight(0xff0044, 10.0, 80);
-            bossLight.position.set(0, 12, -28);
-            scene.add(bossLight);
+            // 호로 가면 Canvas 텍스처
+            function createHollowMaskTexture() {
+                const cv = document.createElement('canvas');
+                cv.width = 512; cv.height = 512;
+                const ctx = cv.getContext('2d');
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 512, 512);
+                ctx.fillStyle = '#cc0022';
+                for(let i=0; i<4; i++) { ctx.fillRect(160 + i*50, 40, 25, 430); }
+                ctx.fillStyle = '#000000';
+                ctx.beginPath(); ctx.ellipse(170, 240, 50, 35, -0.2, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(342, 240, 50, 35, 0.2, 0, Math.PI * 2); ctx.fill();
+                return new THREE.CanvasTexture(cv);
+            }
 
-            // 맵 환경
-            const floorMat = new THREE.MeshPhysicalMaterial({ 
-                color: 0xeeeeee, roughness: 0.1, metalness: 0.2, clearcoat: 0.8
-            });
-            const floorMesh = new THREE.Mesh(new THREE.CircleGeometry(120, 64), floorMat);
+            // 바닥 지형
+            const floorMat = new THREE.MeshPhysicalMaterial({ color: 0x111622, roughness: 0.3, metalness: 0.1 });
+            const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 160), floorMat);
             floorMesh.rotation.x = -Math.PI / 2;
             floorMesh.receiveShadow = true;
             scene.add(floorMesh);
 
-            const grid = new THREE.GridHelper(240, 120, 0x888888, 0x444444);
-            grid.position.y = 0.02;
-            scene.add(grid);
+            // 배경 환경 오브젝트 그룹
+            let envGroup = new THREE.Group();
+            scene.add(envGroup);
 
-            // 배경 산맥 오브젝트
-            let mountainMesh;
-            function createMountains(stage) {
-                if(mountainMesh) scene.remove(mountainMesh);
-                const theme = STAGE_THEMES[stage];
-                const geo = new THREE.ConeGeometry(30, 80, 4, 1, true);
-                const mat = new THREE.MeshStandardMaterial({ color: theme.mountainColor, flatShading: true });
-                mountainMesh = new THREE.Group();
-                for(let i=0; i<12; i++) {
-                    const angle = (i / 12) * Math.PI * 2;
-                    const r = 110 + Math.random() * 20;
-                    const m = new THREE.Mesh(geo, mat);
-                    m.position.set(Math.cos(angle)*r, 30, Math.sin(angle)*r);
-                    m.rotation.y = Math.random() * Math.PI;
-                    mountainMesh.add(m);
+            function buildEnvironmentObjects(stage) {
+                while(envGroup.children.length > 0) { envGroup.remove(envGroup.children[0]); }
+
+                if (stage === 1) { // 영혼의 마을 (가로등)
+                    floorMat.color.setHex(0x3a2e2b);
+                    for(let i=0; i<12; i++) {
+                        const lamp = new THREE.Group();
+                        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 5), new THREE.MeshStandardMaterial({color: 0x222222}));
+                        pole.position.y = 2.5; lamp.add(pole);
+                        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.4), new THREE.MeshBasicMaterial({color: 0xffaa33}));
+                        bulb.position.y = 5.0; lamp.add(bulb);
+                        lamp.position.set((i%2 === 0 ? -18 : 18), 0, -60 + i*10);
+                        envGroup.add(lamp);
+                    }
+                } else if (stage === 2) { // 영혼 수련 마을 (석등)
+                    floorMat.color.setHex(0x2d3b2d);
+                    for(let i=0; i<10; i++) {
+                        const lantern = new THREE.Mesh(new THREE.BoxGeometry(1.2, 3.0, 1.2), new THREE.MeshStandardMaterial({color: 0x777777}));
+                        lantern.position.set((i%2 === 0 ? -16 : 16), 1.5, -50 + i*12);
+                        envGroup.add(lantern);
+                    }
+                } else if (stage === 3) { // 영혼 기사단 본부 (거대 흰 성벽)
+                    floorMat.color.setHex(0xaaaaaa);
+                    const wall = new THREE.Mesh(new THREE.BoxGeometry(120, 20, 4), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
+                    wall.position.set(0, 10, -45); envGroup.add(wall);
+                } else if (stage === 4) { // 하얀 사막 차원 (끝없는 흰 모래 & 거대한 달)
+                    floorMat.color.setHex(0xe8e8e8);
+                    const moon = new THREE.Mesh(new THREE.SphereGeometry(14, 32, 32), new THREE.MeshBasicMaterial({color: 0xffffff}));
+                    moon.position.set(0, 25, -70); envGroup.add(moon);
+                    for(let i=0; i<8; i++) {
+                        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(3.0), new THREE.MeshStandardMaterial({color: 0x111111}));
+                        rock.position.set((Math.random()-0.5)*60, 1.5, (Math.random()-0.5)*60); envGroup.add(rock);
+                    }
+                } else if (stage === 5) { // 수정 궁전 (푸른 수정 기둥)
+                    floorMat.color.setHex(0x00ffff); floorMat.roughness = 0.05;
+                    for(let i=0; i<8; i++) {
+                        const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(2.5, 0), new THREE.MeshStandardMaterial({color: 0x00f0ff, emissive: 0x0088ff, emissiveIntensity: 1.5}));
+                        crystal.scale.set(1, 4, 1);
+                        crystal.position.set((i%2 === 0 ? -20 : 20), 5, -40 + i*12); envGroup.add(crystal);
+                    }
+                } else if (stage === 6) { // 최종 결전 도시 (무너진 건물 잔해)
+                    floorMat.color.setHex(0x1a0505);
+                    for(let i=0; i<7; i++) {
+                        const ruin = new THREE.Mesh(new THREE.BoxGeometry(8, 15 + Math.random()*15, 8), new THREE.MeshStandardMaterial({color: 0x221111}));
+                        ruin.rotation.z = (Math.random() - 0.5) * 0.3;
+                        ruin.position.set((i%2 === 0 ? -25 : 25), 6, -50 + i*15); envGroup.add(ruin);
+                    }
+                } else if (stage === 7) { // 엔딩 마을 (다리와 강 연출)
+                    floorMat.color.setHex(0x354a21);
+                    const river = new THREE.Mesh(new THREE.PlaneGeometry(160, 12), new THREE.MeshBasicMaterial({color: 0x00aaff}));
+                    river.rotation.x = -Math.PI / 2; river.position.set(0, 0.05, -10); envGroup.add(river);
+                    const bridge = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 14), new THREE.MeshStandardMaterial({color: 0x8b4513}));
+                    bridge.position.set(0, 0.2, -10); envGroup.add(bridge);
                 }
-                scene.add(mountainMesh);
             }
-            createMountains(1);
 
-            // 배경 파티클 (눈, 벚꽃, 모래 등)
+            buildEnvironmentObjects(1);
+
+            // 파티클
             let particleSystem;
             function createParticles(stage) {
                 if(particleSystem) scene.remove(particleSystem);
                 const theme = STAGE_THEMES[stage];
-                const count = theme.particles === 'cherry' ? 2000 : 1500;
+                const count = 1200;
                 const geo = new THREE.BufferGeometry();
                 const pos = new Float32Array(count * 3);
                 for (let i = 0; i < count * 3; i += 3) {
-                    pos[i] = (Math.random() - 0.5) * 200;
-                    pos[i+1] = Math.random() * 70;
-                    pos[i+2] = (Math.random() - 0.5) * 200;
+                    pos[i] = (Math.random() - 0.5) * 150; pos[i+1] = Math.random() * 50; pos[i+2] = (Math.random() - 0.5) * 150;
                 }
                 geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-                
-                let color;
-                if(theme.particles === 'cherry') color = 0xffb7c5; // 핑크
-                else if(theme.particles === 'sand') color = 0xd2b48c; // 태닝
-                else color = 0xffffff; // 눈
+                let color = 0xffffff;
+                if(theme.particles === 'cherry') color = 0xffb7c5;
+                else if(theme.particles === 'sunset') color = 0xffaa44;
+                else if(theme.particles === 'fire') color = 0xff3300;
 
-                const mat = new THREE.PointsMaterial({ color: color, size: theme.particles === 'cherry' ? 1.0 : 0.7, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending });
-                particleSystem = new THREE.Points(geo, mat);
+                particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ color: color, size: 0.8, transparent: true, opacity: 0.8 }));
                 scene.add(particleSystem);
             }
             createParticles(1);
@@ -384,100 +322,58 @@
             // 플레이어 모델
             const playerGroup = new THREE.Group();
             scene.add(playerGroup);
-
-            function buildPlayerModel() {
-                const group = new THREE.Group();
-                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x080c14, roughness: 0.3 }));
-                body.position.y = 0.9; body.castShadow = true; group.add(body);
-
-                const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
-                head.position.y = 1.65; group.add(head);
-
-                const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.4, 0.08), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00f0ff, emissiveIntensity: 2.8 }));
-                sword.position.set(0.4, 1.1, 0.3); sword.rotation.x = Math.PI / 4; group.add(sword);
-                return group;
-            }
-            playerGroup.add(buildPlayerModel());
+            const playerBody = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.35, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x080c14 }));
+            playerBody.position.y = 0.6; playerGroup.add(playerBody);
+            const playerHead = new THREE.Mesh(new THREE.SphereGeometry(0.28), new THREE.MeshStandardMaterial({ color: 0xffdbac }));
+            playerHead.position.y = 1.35; playerGroup.add(playerHead);
+            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.2, 0.06), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00f0ff, emissiveIntensity: 2.0 }));
+            sword.position.set(0.35, 0.9, 0.2); sword.rotation.x = Math.PI / 4; playerGroup.add(sword);
 
             const monsters = [];
+            const maskTex = createHollowMaskTexture();
 
-            function createHollow(x, z) {
+            // 적당한 크기로 조정된 호로 보스 생성 함수 (기존 대비 약 50% 축소)
+            function createAdjustedHollowBoss() {
                 const group = new THREE.Group();
-                const mMat = new THREE.MeshStandardMaterial({ color: 0x00bfff, roughness: 0.08, metalness: 0.9, emissive: 0x0055ff, emissiveIntensity: 1.2 });
-                const body = new THREE.Mesh(new THREE.OctahedronGeometry(1.4, 0), mMat);
-                body.position.y = 2.2; body.castShadow = true; group.add(body);
 
-                const head = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6, 0), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x00f0ff, emissiveIntensity: 3.0 }));
-                head.position.y = 3.5; group.add(head);
+                // 호로 가면 머리 (크기 축소: 반경 0.7)
+                const head = new THREE.Mesh(new THREE.SphereGeometry(0.7, 24, 24), new THREE.MeshStandardMaterial({ map: maskTex, roughness: 0.2 }));
+                head.position.y = 2.1; head.rotation.y = Math.PI; group.add(head);
 
-                const floatingParts = [];
-                for(let i=0; i<6; i++) {
-                    const part = new THREE.Mesh(new THREE.TetrahedronGeometry(0.45, 0), mMat);
-                    group.add(part); floatingParts.push(part);
+                // 붉은 안광
+                const eyeLight = new THREE.PointLight(0xff0033, 2.5, 6);
+                eyeLight.position.set(0, 2.1, 0.6); group.add(eyeLight);
+
+                // 악마 뿔
+                for(let side = -1; side <= 1; side += 2) {
+                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.9, 6), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0xff0033 }));
+                    horn.position.set(side * 0.4, 2.7, 0); horn.rotation.z = -side * 0.4; group.add(horn);
                 }
 
-                group.position.set(x, 0, z); scene.add(group);
-                monsters.push({ mesh: group, floatingParts: floatingParts, hp: 400, maxHp: 400, isBoss: false });
-            }
+                // 신체 (높이 1.6)
+                const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 1.6, 8), new THREE.MeshStandardMaterial({ color: 0x0a030d, emissive: 0x330011 }));
+                body.position.y = 0.8; group.add(body);
 
-            function createHollowBoss() {
-                const group = new THREE.Group();
-                const headGroup = new THREE.Group();
-                headGroup.position.set(0, 8.5, 3.2);
-
-                const headMesh = new THREE.Mesh(new THREE.ConeGeometry(2.0, 4.0, 6), new THREE.MeshStandardMaterial({ color: 0x220010, emissive: 0xff0055, emissiveIntensity: 2.2, roughness: 0.05, metalness: 0.95 }));
-                headMesh.rotation.x = Math.PI / 2; headGroup.add(headMesh);
-
-                const hornMat = new THREE.MeshStandardMaterial({ color: 0x00f0ff, emissive: 0x00f0ff, emissiveIntensity: 3.5 });
-                for (let i = -1; i <= 1; i += 2) {
-                    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.55, 3.5, 4), hornMat);
-                    horn.position.set(i * 1.2, 1.0, -0.8); horn.rotation.z = -i * 0.4; headGroup.add(horn);
-                }
-                group.add(headGroup);
-
-                const bodyMat = new THREE.MeshStandardMaterial({ color: 0x18000e, roughness: 0.05, metalness: 0.98, emissive: 0xaa0033, emissiveIntensity: 1.5 });
-                const body = new THREE.Mesh(new THREE.DodecahedronGeometry(4.2, 1), bodyMat);
-                body.position.y = 6.0; body.castShadow = true; group.add(body);
-
-                const core = new THREE.Mesh(new THREE.OctahedronGeometry(2.6, 0), new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0xff0055, emissiveIntensity: 5.0 }));
-                core.position.y = 6.0; group.add(core);
-
-                const tailSegments = [];
-                for(let i=0; i<6; i++) {
-                    const tailSeg = new THREE.Mesh(new THREE.ConeGeometry(1.5 - i*0.2, 3.0, 5), bodyMat);
-                    tailSeg.position.set(0, 4.5 - i*0.8, -3.5 - i*1.8); tailSeg.rotation.x = -Math.PI / 3;
-                    group.add(tailSeg); tailSegments.push(tailSeg);
-                }
-
-                const wingMat = new THREE.MeshPhysicalMaterial({ color: 0x00f0ff, roughness: 0.02, metalness: 0.95, transparent: true, opacity: 0.9, emissive: 0x00aaff, emissiveIntensity: 1.8, clearcoat: 1.0 });
-                const leftWing = new THREE.Mesh(new THREE.ConeGeometry(2.6, 11.0, 4), wingMat);
-                leftWing.position.set(-5.0, 7.5, -1.0); leftWing.rotation.z = Math.PI / 2.6; group.add(leftWing);
-
-                const rightWing = new THREE.Mesh(new THREE.ConeGeometry(2.6, 11.0, 4), wingMat);
-                rightWing.position.set(5.0, 7.5, -1.0); rightWing.rotation.z = -Math.PI / 2.6; group.add(rightWing);
-
-                group.position.set(0, 0, -28); scene.add(group);
-                monsters.push({ mesh: group, coreMesh: core, leftWing: leftWing, rightWing: rightWing, headGroup: headGroup, tailSegments: tailSegments, hp: 3500, maxHp: 3500, isBoss: true });
+                group.position.set(0, 0, -18); scene.add(group);
+                monsters.push({ mesh: group, hp: 2500, maxHp: 2500, isBoss: true });
                 document.getElementById('boss-hud').style.display = 'block';
             }
 
-            createHollowBoss();
-            createHollow(-14, -10);
-            createHollow(14, -12);
+            createAdjustedHollowBoss();
 
             const vfxList = [];
-            function spawnSlashVFX() {
+            function spawnSlashVFX(scale = 1.0, color = 0x00f0ff) {
                 const group = new THREE.Group();
-                const arcGeo = new THREE.RingGeometry(1.2, 3.5, 32, 1, 0, Math.PI * 0.75);
-                const arcMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending });
+                const arcGeo = new THREE.RingGeometry(1.0 * scale, 2.5 * scale, 32, 1, 0, Math.PI * 0.75);
+                const arcMat = new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending });
                 const arcMesh = new THREE.Mesh(arcGeo, arcMat);
                 group.add(arcMesh);
                 group.position.copy(playerGroup.position);
-                group.position.y += 1.2;
+                group.position.y += 0.8;
                 group.rotation.x = Math.PI / 2;
                 group.rotation.z = playerGroup.rotation.y + Math.PI / 4;
                 scene.add(group);
-                vfxList.push({ mesh: group, type: 'fade', life: 0.2, maxLife: 0.2, scaleSpeed: 0.22 });
+                vfxList.push({ mesh: group, type: 'fade', life: 0.2, maxLife: 0.2, scaleSpeed: 0.18 });
             }
 
             function attackMonster(m, damageMultiplier = 1.0) {
@@ -485,44 +381,34 @@
                 const finalDmg = Math.round((state.atk * damageMultiplier) * (isCrit ? 1.85 : 1.0));
                 m.hp -= finalDmg;
                 showDamageText(m.mesh.position, finalDmg, isCrit);
-                triggerHitStop(isCrit ? 80 : 40);
+                triggerHitStop(isCrit ? 70 : 35);
                 addCombo();
                 if (m.isBoss) document.getElementById('boss-bar-fill').style.width = `${Math.max(0, (m.hp / m.maxHp)) * 100}%`;
                 if (m.hp <= 0) {
                     scene.remove(m.mesh);
                     const idx = monsters.indexOf(m);
                     if (idx > -1) monsters.splice(idx, 1);
-                    state.gold += m.isBoss ? 4000 : 400;
-                    // 보스 처치 시 다음 스테이지로
-                    if(m.isBoss) setTimeout(nextStage, 2000);
+                    state.gold += 1500;
+                    setTimeout(nextStage, 1800);
                 }
             }
 
-            // 스테이지 변경 함수
             function nextStage() {
                 state.stage++;
-                if(state.stage > 7) state.stage = 1; // 7스테이지 후 다시 1로
-                
+                if(state.stage > 7) state.stage = 1;
                 const theme = STAGE_THEMES[state.stage];
-                
-                // 시각 효과 변경
                 scene.background.setHex(theme.color);
                 scene.fog.color.setHex(theme.color);
                 scene.fog.density = theme.fog;
                 
-                // 배경 오브젝트 및 파티클 변경
-                createMountains(state.stage);
+                buildEnvironmentObjects(state.stage);
                 createParticles(state.stage);
                 
-                // UI 업데이트
                 document.getElementById('ui-stage-name').innerText = theme.name;
-                showToast(`STAGE ${state.stage}: ${theme.name}`);
+                showToast(`STAGE CLEAR! -> ${theme.name}`);
 
-                // 플레이어 위치 초기화 및 새 몬스터 스폰
                 playerGroup.position.set(0,0,0);
-                createHollowBoss();
-                createHollow(-14, -10);
-                createHollow(14, -12);
+                createAdjustedHollowBoss();
             }
 
             function showToast(msg) {
@@ -538,7 +424,47 @@
                 document.getElementById('ui-mp-fill').style.width = `${(state.mp / state.maxMp) * 100}%`;
             }
 
-            // 컨트롤러 로직
+            // 스킬 이벤트 연결
+            document.getElementById('btn-attack').onclick = () => {
+                playSound('slash'); spawnSlashVFX(1.0, 0x00f0ff);
+                monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 5.5) attackMonster(m, 1.0); });
+            };
+
+            document.getElementById('btn-skill1').onclick = () => {
+                if (state.mp >= 20 && cooldowns.skill1.current <= 0) {
+                    state.mp -= 20; triggerCooldown('skill1'); playSound('slash'); spawnSlashVFX(1.6, 0x00aaff);
+                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 8.5) attackMonster(m, 1.85); });
+                    showToast("🐉 군구상빙륜환!"); updateUI();
+                }
+            };
+
+            // 신규 추가된 [스킬 2: 빙류성]
+            document.getElementById('btn-skill2').onclick = () => {
+                if (state.mp >= 30 && cooldowns.skill2.current <= 0) {
+                    state.mp -= 30; triggerCooldown('skill2'); playSound('slash'); spawnSlashVFX(2.2, 0xff00ff);
+                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 11.0) attackMonster(m, 2.6); });
+                    showToast("💫 빙류성(氷流星) 연타!"); updateUI();
+                }
+            };
+
+            document.getElementById('btn-ult').onclick = () => {
+                if (state.mp >= 40 && cooldowns.ult.current <= 0) {
+                    state.mp -= 40; triggerCooldown('ult'); playSound('ult'); spawnSlashVFX(3.0, 0xffffff);
+                    monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 18.0) attackMonster(m, 5.0); });
+                    showToast("❄️ 만해 [대홍련빙륜환] 각성!"); updateUI();
+                }
+            };
+
+            document.getElementById('btn-dodge').onclick = () => {
+                if (cooldowns.dodge.current <= 0) {
+                    triggerCooldown('dodge');
+                    playerGroup.position.x += -Math.sin(playerGroup.rotation.y) * 5.0;
+                    playerGroup.position.z += -Math.cos(playerGroup.rotation.y) * 5.0;
+                    showToast("⚡ 순보!");
+                }
+            };
+
+            // 조이스틱
             let moveVector = { x: 0, z: 0 };
             const joyArea = document.getElementById('joystick-area');
             const joyHandle = document.getElementById('joystick-handle');
@@ -559,34 +485,23 @@
             joyArea.addEventListener('touchstart', onStart); window.addEventListener('touchmove', onMove); window.addEventListener('touchend', onEnd);
             joyArea.addEventListener('mousedown', onStart); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd);
 
-            document.getElementById('btn-attack').onclick = () => {
-                playSound('slash'); spawnSlashVFX();
-                monsters.forEach(m => { if (playerGroup.position.distanceTo(m.mesh.position) < 7.0) attackMonster(m, 1.0); });
-            };
-
             function animate() {
                 requestAnimationFrame(animate);
                 if (!state.isHitStopped) {
                     if (moveVector.x !== 0 || moveVector.z !== 0) {
-                        playerGroup.position.x += moveVector.x * 0.18;
-                        playerGroup.position.z += moveVector.z * 0.18;
+                        playerGroup.position.x += moveVector.x * 0.16;
+                        playerGroup.position.z += moveVector.z * 0.16;
                         playerGroup.rotation.y = Math.atan2(moveVector.x, moveVector.z);
                     }
 
-                    // 파티클 애니메이션
                     if(particleSystem) {
                         const pos = particleSystem.geometry.attributes.position.array;
-                        const theme = STAGE_THEMES[state.stage];
-                        for (let i = 0; i < pos.length; i += 3) {
-                            pos[i+1] -= theme.particles === 'cherry' ? 0.05 : 0.15; // 떨어지는 속도
-                            if (pos[i+1] < 0) pos[i+1] = 70;
-                            // 사막 차원은 수평 이동 추가
-                            if(theme.particles === 'sand') pos[i] += 0.02;
+                        for (let i = 1; i < pos.length; i += 3) {
+                            pos[i] -= 0.1; if (pos[i] < 0) pos[i] = 50;
                         }
                         particleSystem.geometry.attributes.position.needsUpdate = true;
                     }
 
-                    // VFX 애니메이션
                     for(let i = vfxList.length - 1; i >= 0; i--) {
                         const v = vfxList[i];
                         v.life -= 0.016;
@@ -597,18 +512,12 @@
                         if(v.life <= 0) { scene.remove(v.mesh); vfxList.splice(i, 1); }
                     }
 
-                    // 몬스터 애니메이션
                     monsters.forEach(m => {
                         m.mesh.rotation.y += 0.01;
-                        m.mesh.position.y = Math.sin(Date.now() * 0.003) * 0.5;
-                        if(m.isBoss) {
-                            m.coreMesh.rotation.x += 0.04;
-                            m.headGroup.rotation.z = Math.sin(Date.now() * 0.004) * 0.18;
-                        }
+                        m.mesh.position.y = Math.sin(Date.now() * 0.003) * 0.3;
                     });
                 }
 
-                // 카메라 부드러운 추적
                 cameraOffset.lerp(targetOffset, 0.08);
                 camera.position.set(playerGroup.position.x + cameraOffset.x, playerGroup.position.y + cameraOffset.y, playerGroup.position.z + cameraOffset.z);
                 camera.lookAt(playerGroup.position);
