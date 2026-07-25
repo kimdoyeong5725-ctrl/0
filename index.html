@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>블리치: 차원 보스전 Ultimate</title>
+    <title>블리치: 차원 보스전 Custom</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -93,7 +93,7 @@
         
         <div id="status-board">
             <div class="log-title">⚔️ [전황 브리핑]</div>
-            <div id="log-content">맵 텍스처 및 보스 그래픽 완전 재조정 완료!</div>
+            <div id="log-content">이미지 기반 디테일 보스 3D 구현 완료!</div>
         </div>
 
         <div id="action-grid">
@@ -124,23 +124,23 @@ function triggerFileUpload() {
 const CHAPTER_CONFIGS = [
     { 
         id: 1, name: "카라쿠라 마을 (현세)", bg: 0x0a1020, theme: 'URBAN',
-        bossType: "HOLLOW", bossName: "거대 그랜드 피셔", bossHp: 600, bossAtk: 0.12,
-        quest: "📜 거대 호로 처치 (0/1)", bossDesc: "[호로 패턴] 참격 + 세로 영압구"
+        bossType: "HOLLOW", bossName: "CH.1 일반 호로", bossHp: 650, bossAtk: 0.12,
+        quest: "📜 거대 호로 처치 (0/1)", bossDesc: "[호로 패턴] 세로 구체 발사"
     },
     { 
         id: 2, name: "소울 소사이어티 (정령정)", bg: 0x091428, theme: 'SOUL',
-        bossType: "SHINIGAMI", bossName: "호정 13대 대장", bossHp: 1000, bossAtk: 0.15,
-        quest: "📜 사신 대장 처치 (0/1)", bossDesc: "[사신 패턴] 고유 검기 폭발"
+        bossType: "SHINIGAMI", bossName: "CH.2 사신 대장", bossHp: 1100, bossAtk: 0.15,
+        quest: "📜 사신 대장 처치 (0/1)", bossDesc: "[사신 패턴] 청색 참백도 돌진"
     },
     { 
         id: 3, name: "웨코문도 (허권)", bg: 0x020308, theme: 'HUECO',
-        bossType: "ARRANCAR", bossName: "에스파다 (No.4)", bossHp: 1500, bossAtk: 0.18,
-        quest: "📜 에스파다 처치 (0/1)", bossDesc: "[아란칼 패턴] 세로 + 레스렉시온 해방"
+        bossType: "ARRANCAR", bossName: "CH.3 에스파다", bossHp: 1600, bossAtk: 0.18,
+        quest: "📜 에스파다 처치 (0/1)", bossDesc: "[아란칼 패턴] 에메랄드 세로 빔"
     },
     { 
-        id: 4, name: "반덴라이히 (천년혈전 필드)", bg: 0x1a0505, theme: 'QUINCY',
-        bossType: "QUINCY", bossName: "성십자기사단 (슈테른릿터)", bossHp: 2500, bossAtk: 0.22,
-        quest: "📜 퀸시 기사 처치 (0/1)", bossDesc: "[퀸시 패턴] 영자 활 + 폴슈텐디히 폭주"
+        id: 4, name: "반덴라이히 (천년혈전)", bg: 0x1a0505, theme: 'QUINCY',
+        bossType: "QUINCY", bossName: "CH.4 퀸시 (슈테른릿터)", bossHp: 2600, bossAtk: 0.22,
+        quest: "📜 퀸시 기사 처치 (0/1)", bossDesc: "[퀸시 패턴] 영자 활 + 폴슈텐디히 날개"
     }
 ];
 
@@ -174,7 +174,7 @@ class Game {
         this.scene.fog = new THREE.FogExp2(cfg.bg, 0.0035);
         
         this.camera = new THREE.PerspectiveCamera(45, this.container.clientWidth / this.container.clientHeight, 0.1, 1500);
-        this.camera.position.set(0, 35, 45); // 높고 넓은 스케일의 시야각
+        this.camera.position.set(0, 35, 45);
         
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
@@ -187,7 +187,6 @@ class Game {
         this.scene.add(new THREE.AmbientLight(0x88bbdd, 1.2));
     }
 
-    // 🎨 테마별 3D 바닥/구조물 텍스처 즉석 생성 로직
     generateTexture(theme) {
         const canvas = document.createElement('canvas');
         canvas.width = 512; canvas.height = 512;
@@ -222,14 +221,12 @@ class Game {
         this.scene.background = new THREE.Color(cfg.bg);
         this.scene.fog.color = new THREE.Color(cfg.bg);
         
-        // 디테일한 입체 타일 바닥
         const floorGeo = new THREE.PlaneGeometry(MAP_WIDTH, MAP_LENGTH);
         const floorMat = new THREE.MeshStandardMaterial({ map: this.generateTexture(cfg.theme), roughness: 0.4, metalness: 0.2 });
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, -MAP_LENGTH/2 + 40);
         this.mapGroup.add(floor);
 
-        // 양옆의 신전 기둥 배치
         for(let i=0; i<12; i++) {
             const pillar = new THREE.Mesh(
                 new THREE.BoxGeometry(10, 50, 10),
@@ -240,7 +237,6 @@ class Game {
             this.mapGroup.add(pillar, pillarR);
         }
 
-        // 빛나는 차원 워프 게이트
         const gateGroup = new THREE.Group();
         const gateRing = new THREE.Mesh(new THREE.TorusGeometry(18, 2.5, 16, 32), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
         const gateCore = new THREE.Mesh(new THREE.CircleGeometry(16, 32), new THREE.MeshBasicMaterial({ color: 0x0088cc, transparent: true, opacity: 0.6, side: THREE.DoubleSide }));
@@ -257,7 +253,7 @@ class Game {
         this.projectiles.forEach(p => this.scene.remove(p.mesh)); this.projectiles = [];
 
         const cfg = CHAPTER_CONFIGS[this.chapterIndex];
-        const boss = new DetailedBoss(this, cfg);
+        const boss = new ImageMatchedBoss(this, cfg);
         boss.mesh.position.set(0, 0, -MAP_LENGTH + 180);
         this.enemies.push(boss);
     }
@@ -272,22 +268,12 @@ class Game {
         }
     }
 
-    addAdvancedFX(mesh, updateFn) {
-        this.scene.add(mesh);
-        this.fxObjects.push({ mesh: mesh, update: updateFn, life: 1.0 });
-    }
-
     updateAndCleanFX() {
         for(let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
             p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
             p.userData.life -= 0.035; p.material.opacity = p.userData.life;
             if(p.userData.life <= 0) { this.scene.remove(p); this.particles.splice(i, 1); }
-        }
-        for(let i = this.fxObjects.length - 1; i >= 0; i--) {
-            const fx = this.fxObjects[i]; fx.life -= 0.03;
-            if (fx.update) fx.update(fx.mesh, fx.life);
-            if(fx.life <= 0) { this.scene.remove(fx.mesh); this.fxObjects.splice(i, 1); }
         }
         for(let i = this.projectiles.length - 1; i >= 0; i--) {
             const proj = this.projectiles[i];
@@ -384,7 +370,6 @@ class Game {
     }
 }
 
-// 🛠️ Y축 바닥 파묻힘 완벽 방지 처리된 플레이어 클래스
 class Player {
     constructor(game) {
         this.game = game; this.hp = 300; this.maxHp = 300; this.atk = 120; this.speed = 0.55;
@@ -398,29 +383,22 @@ class Player {
         }
     }
 
-    // 기본 플레이어 입체 조형 (발바닥 Y=0 자동 정렬)
     loadDefaultToshiroModel() {
         const group = new THREE.Group();
-        
         const head = new THREE.Mesh(new THREE.SphereGeometry(1.5), new THREE.MeshStandardMaterial({ color: 0xffdfc4 }));
         head.position.y = 5.2;
         const hair = new THREE.Mesh(new THREE.ConeGeometry(1.8, 2.2, 8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
         hair.position.set(0, 6.4, -0.1);
-        
         const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.3, 3.8), new THREE.MeshStandardMaterial({ color: 0x0a0a0f }));
         body.position.y = 2.6;
-        
         const haori = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 2.8, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide }));
         haori.position.y = 2.2;
 
         group.add(head, hair, body, haori);
-        
-        // Y축 파묻힘 방지 계산
         const box = new THREE.Box3().setFromObject(group);
         group.position.y = -box.min.y;
         
-        this.mesh.add(group);
-        this.model = group;
+        this.mesh.add(group); this.model = group;
     }
 
     loadCustomModel(url) {
@@ -428,20 +406,16 @@ class Player {
         const loader = new THREE.GLTFLoader();
         loader.load(url, (gltf) => {
             const customModel = gltf.scene;
-            
-            // 🛠️ GLB 쳐박힘 완벽 보정
             const box = new THREE.Box3().setFromObject(customModel);
             const size = box.getSize(new THREE.Vector3());
-            const scaleFactor = 6.0 / (size.y || 1.0); // 알맞은 크기로 자동 정조준
+            const scaleFactor = 6.0 / (size.y || 1.0);
             customModel.scale.set(scaleFactor, scaleFactor, scaleFactor);
-            
             const reBox = new THREE.Box3().setFromObject(customModel);
-            customModel.position.y = -reBox.min.y; // 발끝을 Y=0 표면에 딱 맞춤!
+            customModel.position.y = -reBox.min.y;
 
             this.mesh.add(customModel); this.model = customModel;
-            this.game.log(`✨ GLB 커스텀 모델이 지상에 정상 배치되었습니다.`);
+            this.game.log(`✨ 커스텀 모델 정렬 배치 완료.`);
         }, undefined, () => {
-            this.game.log(`❌ GLB 파일 오류. 기본 모델 사용.`);
             this.loadDefaultToshiroModel();
         });
     }
@@ -505,8 +479,8 @@ class Player {
     }
 }
 
-// 👹 애니메이션 원작 풍으로 디테일하게 내장 3D 조형된 거대 보스
-class DetailedBoss {
+// 🖼️ 첨부 이미지 매칭 3D 보스 조형 클래스
+class ImageMatchedBoss {
     constructor(game, cfg) {
         this.game = game; this.type = cfg.bossType; this.name = cfg.bossName;
         this.hp = cfg.bossHp; this.maxHp = this.hp; this.atk = cfg.bossAtk;
@@ -514,77 +488,107 @@ class DetailedBoss {
         this.mesh = new THREE.Group();
         this.skillCooldown = 0; this.rageActive = false;
 
-        this.buildBossModel();
+        this.buildImageMatchedModel();
         this.game.scene.add(this.mesh);
         this.game.log(`👾 <b>[보스 강림]</b> ${this.name}이 필드에 모습을 드러냈습니다!`);
-        this.game.log(`📜 ${cfg.bossDesc}`);
     }
 
-    buildBossModel() {
+    buildImageMatchedModel() {
         const group = new THREE.Group();
 
         if (this.type === "HOLLOW") {
-            // 거대 호로 (하얀 가면 + 붉은 눈 + 가슴 구멍 + 거대 입체 뿔)
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(4, 7, 22), new THREE.MeshStandardMaterial({ color: 0x111115, roughness:0.2 }));
-            body.position.y = 11;
-            
-            const hole = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 8), new THREE.MeshBasicMaterial({ color: 0x000000 }));
-            hole.rotation.x = Math.PI / 2; hole.position.set(0, 14, 0);
+            // 🔴 333.jpg 기반: 일반 호로
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 6, 22), new THREE.MeshStandardMaterial({ color: 0x111118, roughness: 0.3 }));
+            torso.position.y = 11;
 
-            const mask = new THREE.Mesh(new THREE.BoxGeometry(6, 8, 4), new THREE.MeshStandardMaterial({ color: 0xf0f0f0 }));
+            // 가슴 흉공 (Hollow Hole)
+            const holeRim = new THREE.Mesh(new THREE.TorusGeometry(2.5, 0.8, 16, 32), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+            holeRim.position.set(0, 14, 0); holeRim.rotation.x = Math.PI / 2;
+
+            // 흰 가면 + 붉은 문양
+            const mask = new THREE.Mesh(new THREE.BoxGeometry(6.5, 8.5, 4.5), new THREE.MeshStandardMaterial({ color: 0xf2f2f2 }));
             mask.position.set(0, 21, 2);
 
-            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.8), new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+            const stripeL = new THREE.Mesh(new THREE.BoxGeometry(0.6, 6, 0.2), new THREE.MeshBasicMaterial({ color: 0xff0033 }));
+            stripeL.position.set(-1.8, 21, 4.3); stripeL.rotation.z = -0.2;
+            const stripeR = stripeL.clone(); stripeR.position.x = 1.8; stripeR.rotation.z = 0.2;
+
+            const eyeL = new THREE.Mesh(new THREE.SphereGeometry(1.0), new THREE.MeshBasicMaterial({ color: 0xff0022 }));
             eyeL.position.set(-1.8, 22, 4.2);
             const eyeR = eyeL.clone(); eyeR.position.x = 1.8;
 
-            const hornL = new THREE.Mesh(new THREE.ConeGeometry(1.2, 10, 8), new THREE.MeshStandardMaterial({ color: 0x222222 }));
-            hornL.position.set(-3.5, 26, 1); hornL.rotation.z = -0.4;
-            const hornR = hornL.clone(); hornR.position.x = 3.5; hornR.rotation.z = 0.4;
+            const hornL = new THREE.Mesh(new THREE.ConeGeometry(1.5, 12, 8), new THREE.MeshStandardMaterial({ color: 0x15151a }));
+            hornL.position.set(-4, 27, 0); hornL.rotation.z = -0.5;
+            const hornR = hornL.clone(); hornR.position.x = 4; hornR.rotation.z = 0.5;
 
-            group.add(body, hole, mask, eyeL, eyeR, hornL, hornR);
+            group.add(torso, holeRim, mask, stripeL, stripeR, eyeL, eyeR, hornL, hornR);
 
         } else if (this.type === "SHINIGAMI") {
-            // 사신 대장 (대장 하오리 입체 레이어 + 참백도 거대 검)
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 4.5, 18), new THREE.MeshStandardMaterial({ color: 0x050508 }));
-            body.position.y = 9;
+            // 🔵 334.jpg 기반: 사신 대장
+            const shihakusho = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 4.8, 18), new THREE.MeshStandardMaterial({ color: 0x08080c }));
+            shihakusho.position.y = 9;
 
-            const haori = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 5.5, 14, 16, 1, true), new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide }));
-            haori.position.y = 8;
+            // 대장 순백 하오리 코트
+            const haori = new THREE.Mesh(new THREE.CylinderGeometry(3.6, 5.8, 15, 16, 1, true), new THREE.MeshStandardMaterial({ color: 0xffffff, side: THREE.DoubleSide }));
+            haori.position.y = 8.5;
 
             const head = new THREE.Mesh(new THREE.SphereGeometry(2.8), new THREE.MeshStandardMaterial({ color: 0xffdfc4 }));
             head.position.y = 19;
 
-            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.8, 22, 1.2), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8 }));
-            sword.position.set(5, 10, 3); sword.rotation.z = -0.2;
+            // 참백도 & 청색 영압 오라
+            const sword = new THREE.Mesh(new THREE.BoxGeometry(0.8, 24, 1.2), new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.9 }));
+            sword.position.set(5.5, 12, 3); sword.rotation.z = -0.3;
 
-            group.add(body, haori, head, sword);
+            const aura = new THREE.Mesh(new THREE.TorusGeometry(7, 0.4, 8, 32), new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.7 }));
+            aura.position.set(0, 10, 0); aura.rotation.x = Math.PI / 2;
+
+            group.add(shihakusho, haori, head, sword, aura);
 
         } else if (this.type === "ARRANCAR") {
-            // 에스파다 (화이트 제복 + 가면 잔해 + 세로 방출 포트)
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 4.0, 18), new THREE.MeshStandardMaterial({ color: 0xf5f5f5 }));
-            body.position.y = 9;
+            // 🟢 335.jpg 기반: 에스파다 (아란칼)
+            const uniform = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 4.5, 18), new THREE.MeshStandardMaterial({ color: 0xf8f8f8 }));
+            uniform.position.y = 9;
+
+            // 검은 중앙 지퍼라인 & 허리띠
+            const line = new THREE.Mesh(new THREE.BoxGeometry(0.8, 18.2, 0.5), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+            line.position.set(0, 9, 2.5);
 
             const head = new THREE.Mesh(new THREE.SphereGeometry(2.8), new THREE.MeshStandardMaterial({ color: 0xffdfc4 }));
             head.position.y = 19;
 
-            const maskFragment = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3.2, 1.8), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-            maskFragment.position.set(2.0, 20, 2.0);
+            // 뺨/머리 파쇄 가면 조형
+            const brokenMask = new THREE.Mesh(new THREE.BoxGeometry(2.2, 3.5, 2.0), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            brokenMask.position.set(2.2, 20.2, 1.8); brokenMask.rotation.z = -0.2;
 
-            group.add(body, head, maskFragment);
+            // 손끝 에메랄드 Cero 충전 구체
+            const ceroOrb = new THREE.Mesh(new THREE.SphereGeometry(2.0), new THREE.MeshBasicMaterial({ color: 0x00ff66 }));
+            ceroOrb.position.set(-4.5, 12, 3);
+
+            group.add(uniform, line, head, brokenMask, ceroOrb);
 
         } else if (this.type === "QUINCY") {
-            // 퀸시 슈테른릿터 (순백 코트 + 영자 날개 + 푸른 활)
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(3.0, 5.0, 20), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-            body.position.y = 10;
+            // 🏹 336.jpg 기반: 퀸시 (슈테른릿터)
+            const tunic = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 5.2, 20), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            tunic.position.y = 10;
 
-            const bow = new THREE.Mesh(new THREE.TorusGeometry(8, 0.6, 8, 24), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
-            bow.position.set(0, 12, -2);
+            // 퀸시 십자가 문양
+            const crossH = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.8, 0.4), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+            crossH.position.set(0, 15, 3.2);
+            const crossV = new THREE.Mesh(new THREE.BoxGeometry(0.8, 4.0, 0.4), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+            crossV.position.set(0, 15, 3.2);
 
-            group.add(body, bow);
+            // 푸른 영자 날개 (Vollständig)
+            const wingL = new THREE.Mesh(new THREE.BoxGeometry(22, 2.5, 1.0), new THREE.MeshBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.85 }));
+            wingL.position.set(-11, 16, -2); wingL.rotation.z = 0.35;
+            const wingR = wingL.clone(); wingR.position.x = 11; wingR.rotation.z = -0.35;
+
+            // 영자 활
+            const bow = new THREE.Mesh(new THREE.TorusGeometry(10, 0.8, 8, 32), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+            bow.position.set(0, 12, -3);
+
+            group.add(tunic, crossH, crossV, wingL, wingR, bow);
         }
 
-        // 발바닥 표면 Y=0 보정
         const box = new THREE.Box3().setFromObject(group);
         group.position.y = -box.min.y;
 
@@ -597,7 +601,7 @@ class DetailedBoss {
             this.game.addParticles(this.mesh.position, 0xff1744, 35, 6.0);
             this.mesh.position.y = -200; 
             this.game.updateUI(); 
-            this.game.log(`🏆 <b>[토벌 성공!]</b> ${this.name} 처치 완료! 포탈 게이트로 이동하세요.`);
+            this.game.log(`🏆 <b>[토벌 성공!]</b> ${this.name} 처치 완료! 차원 게이트로 이동하세요.`);
         }
     }
 
@@ -605,37 +609,37 @@ class DetailedBoss {
         let dir = new THREE.Vector3().subVectors(pPos, this.mesh.position).normalize();
         
         if(this.type === "HOLLOW") {
-            this.game.popText(this.mesh.position, `🔴 세로 영압구!`, 'ENEMY');
-            const ball = new THREE.Mesh(new THREE.SphereGeometry(2.5), new THREE.MeshBasicMaterial({ color: 0xff0055 }));
-            ball.position.copy(this.mesh.position).add(new THREE.Vector3(0, 12, 0));
+            this.game.popText(this.mesh.position, `🔴 호로 세로탄!`, 'ENEMY');
+            const ball = new THREE.Mesh(new THREE.SphereGeometry(2.8), new THREE.MeshBasicMaterial({ color: 0xff0033 }));
+            ball.position.copy(this.mesh.position).add(new THREE.Vector3(0, 14, 0));
             this.game.scene.add(ball);
-            this.game.projectiles.push({ mesh: ball, dir: dir, speed: 0.8, damage: 35, life: 1.0 });
+            this.game.projectiles.push({ mesh: ball, dir: dir, speed: 0.82, damage: 35, life: 1.0 });
 
         } else if(this.type === "SHINIGAMI") {
-            this.game.popText(this.mesh.position, `⚡ 대장급 검기 돌진!`, 'ENEMY');
-            this.mesh.position.addScaledVector(dir, 20.0);
+            this.game.popText(this.mesh.position, `⚡ 대장급 참격!`, 'ENEMY');
+            this.mesh.position.addScaledVector(dir, 22.0);
             this.game.player.hp = Math.max(0, this.game.player.hp - 45); 
             this.game.addParticles(this.game.player.mesh.position, 0x00e5ff, 15);
             this.game.updateUI();
 
         } else if(this.type === "ARRANCAR") {
-            this.game.popText(this.mesh.position, `🟩 왕의 세로(Cero)!`, 'ENEMY');
-            const cero = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 25.0), new THREE.MeshBasicMaterial({ color: 0x00ff66 }));
-            cero.rotation.x = Math.PI / 2; cero.position.copy(this.mesh.position).add(new THREE.Vector3(0, 10, 0));
+            this.game.popText(this.mesh.position, `🟢 에스파다 세로!`, 'ENEMY');
+            const cero = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 28.0), new THREE.MeshBasicMaterial({ color: 0x00ff66 }));
+            cero.rotation.x = Math.PI / 2; cero.position.copy(this.mesh.position).add(new THREE.Vector3(0, 12, 0));
             this.game.scene.add(cero);
-            this.game.projectiles.push({ mesh: cero, dir: dir, speed: 0.95, damage: 60, life: 1.0 });
+            this.game.projectiles.push({ mesh: cero, dir: dir, speed: 0.98, damage: 60, life: 1.0 });
 
         } else if(this.type === "QUINCY") {
             if(this.hp / this.maxHp < 0.45 && !this.rageActive) {
                 this.rageActive = true;
-                this.game.log(`🏹 <span style='color:#00e5ff;'>[퀸시] 폴슈텐디히 전개!</span>`);
+                this.game.log(`🏹 <span style='color:#00e5ff;'>[퀸시] 폴슈텐디히 폭주!</span>`);
             }
             this.game.popText(this.mesh.position, this.rageActive ? `🔥 폭주 신성 멸화!` : `🏹 하일리히 프파일!`, 'ENEMY');
             for(let i = -1; i <= 1; i++) {
-                const arrow = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 8.0), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
-                arrow.position.copy(this.mesh.position).add(new THREE.Vector3(i * 3.0, 10, 0));
+                const arrow = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 9.0), new THREE.MeshBasicMaterial({ color: 0x00e5ff }));
+                arrow.position.copy(this.mesh.position).add(new THREE.Vector3(i * 3.5, 12, 0));
                 this.game.scene.add(arrow);
-                this.game.projectiles.push({ mesh: arrow, dir: dir, speed: 0.9, damage: this.rageActive ? 40 : 25, life: 1.0 });
+                this.game.projectiles.push({ mesh: arrow, dir: dir, speed: 0.92, damage: this.rageActive ? 42 : 26, life: 1.0 });
             }
         }
     }
@@ -654,7 +658,7 @@ class DetailedBoss {
             if(this.skillCooldown > 2.8) {
                 this.skillCooldown = 0; this.useAbility(pPos);
             }
-            if(dist < 10.0) { // 근접 평타
+            if(dist < 10.0) {
                 this.game.player.hp = Math.max(0, this.game.player.hp - this.atk * (this.rageActive ? 1.5 : 1.0)); 
                 this.game.updateUI();
             }
