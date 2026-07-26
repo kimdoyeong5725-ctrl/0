@@ -2,49 +2,42 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D 액션 RPG - 야치루 삼포검수 & 맵 커스텀</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D 야치루 삼포검수 - 모바일 모드</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, sans-serif; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #08030c; color: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: -apple-system, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #ffeef5; color: #333; }
         #webgl-container { width: 100%; height: 100%; display: block; }
 
-        /* UI Overlay */
-        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
+        /* HUD & Mobile Overlay */
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; }
 
-        .top-hud { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .player-card { background: rgba(25, 8, 30, 0.88); backdrop-filter: blur(12px); border: 1.5px solid #ff69b4; padding: 12px 16px; border-radius: 14px; width: 310px; pointer-events: auto; box-shadow: 0 0 20px rgba(255,105,180,0.3); }
-        .player-card h2 { font-size: 0.95rem; color: #ff94c2; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .bar-bg { width: 100%; height: 9px; background: rgba(0,0,0,0.7); border-radius: 5px; overflow: hidden; margin-bottom: 5px; border: 1px solid rgba(255,105,180,0.3); }
+        .top-hud { display: flex; justify-content: space-between; align-items: flex-start; }
+        .player-card { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(10px); border: 2px solid #ff69b4; padding: 10px 14px; border-radius: 16px; width: 220px; pointer-events: auto; box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3); }
+        .player-card h2 { font-size: 0.95rem; color: #ff1493; margin-bottom: 6px; display: flex; justify-content: space-between; }
+        .bar-bg { width: 100%; height: 10px; background: #ffd0e0; border-radius: 5px; overflow: hidden; margin-bottom: 4px; }
         .bar-hp { height: 100%; background: linear-gradient(90deg, #ff1493, #ff69b4); width: 100%; transition: width 0.2s; }
-        .bar-mp { height: 100%; background: linear-gradient(90deg, #da70d6, #ee82ee); width: 100%; transition: width 0.2s; }
+        .bar-mp { height: 100%; background: linear-gradient(90deg, #ba55d3, #da70d6); width: 100%; transition: width 0.2s; }
 
-        /* Custom File Upload Buttons */
-        .btn-group { display: flex; gap: 6px; margin-top: 6px; }
-        .cfg-btn { background: #ff1493; border: 1px solid #ffb6c1; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; transition: all 0.15s; }
-        .cfg-btn:hover { background: #ff69b4; transform: translateY(-1px); }
-        .cfg-btn:active { transform: scale(0.95); }
-
-        /* MiniMap Canvas */
-        .minimap-container { pointer-events: auto; background: rgba(15, 5, 20, 0.9); border: 2px solid #ff69b4; border-radius: 50%; width: 125px; height: 125px; overflow: hidden; box-shadow: 0 0 15px rgba(255, 105, 180, 0.5); position: relative; }
-        #minimap-canvas { width: 100%; height: 100%; }
-
-        /* Bottom Action Buttons */
+        /* Mobile Touch Controls */
         .bottom-hud { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; pointer-events: auto; }
-        .action-btns { display: flex; gap: 10px; }
-        .btn-act { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(35, 10, 35, 0.88); color: #fff; font-weight: bold; font-size: 0.72rem; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 15px rgba(255, 105, 180, 0.4); backdrop-filter: blur(8px); transition: transform 0.1s; }
-        .btn-act:active { transform: scale(0.9); }
-        .btn-act.skill-a { border-color: #ff1493; color: #ffb6c1; }
-        .btn-act.skill-b { border-color: #ffd700; color: #ffd700; }
-        .btn-act.skill-dash { border-color: #00f5d4; color: #00f5d4; }
+        
+        /* Left Joystick Zone */
+        #joystick-zone { width: 130px; height: 130px; background: rgba(255, 255, 255, 0.4); border: 2px solid #ff69b4; border-radius: 50%; position: relative; touch-action: none; backdrop-filter: blur(4px); }
+        #joystick-knob { width: 50px; height: 50px; background: #ff1493; border: 2px solid #fff; border-radius: 50%; position: absolute; top: 38px; left: 38px; box-shadow: 0 0 10px rgba(255,20,147,0.5); }
+
+        /* Right Action Buttons */
+        .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .btn-act { width: 58px; height: 58px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(255, 255, 255, 0.9); color: #ff1493; font-weight: bold; font-size: 0.75rem; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3); touch-action: manipulation; }
+        .btn-act:active { transform: scale(0.9); background: #ff69b4; color: #fff; }
+        .btn-act.main-atk { width: 68px; height: 68px; background: #ff1493; color: #fff; border-color: #fff; grid-column: span 2; justify-self: center; font-size: 0.85rem; }
 
         /* Floating Damage Text */
-        .dmg-float { position: absolute; font-weight: 900; font-size: 1.5rem; pointer-events: none; animation: floatUp 0.8s forwards; text-shadow: 0 0 8px #ff1493, 0 0 12px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(1.3); } }
+        .dmg-float { position: absolute; font-weight: 900; font-size: 1.6rem; pointer-events: none; animation: floatUp 0.8s forwards; text-shadow: 0 0 6px #fff, 0 0 10px #ff1493; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-45px) scale(1.3); } }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
@@ -53,68 +46,48 @@
     <div id="hud">
         <div class="top-hud">
             <div class="player-card">
-                <h2>
-                    <span>🌸 쿠사지시 야치루</span>
-                    <span style="font-size:0.75rem; color:#ffd700;">Lv.MAX</span>
-                </h2>
+                <h2><span>🌸 야치루</span><span style="font-size:0.75rem; color:#ff1493;">Lv.MAX</span></h2>
                 <div class="bar-bg"><div class="bar-hp" id="ui-hp-bar"></div></div>
                 <div class="bar-bg"><div class="bar-mp" id="ui-mp-bar"></div></div>
-                
-                <div class="btn-group">
-                    <button class="cfg-btn" onclick="document.getElementById('map-img-input').click()">🖼️ 맵 이미지 로드</button>
-                    <button class="cfg-btn" onclick="document.getElementById('glb-input').click()">📂 .GLB 캐릭 로드</button>
-                </div>
-            </div>
-            
-            <div class="minimap-container">
-                <canvas id="minimap-canvas" width="125" height="125"></canvas>
             </div>
         </div>
 
-        <input type="file" id="map-img-input" accept="image/*" multiple style="display:none;" onchange="loadCustomMapTexture(event)">
-        <input type="file" id="glb-input" accept=".glb,.gltf" style="display:none;" onchange="loadCustomGLB(event)">
-
         <div class="bottom-hud">
-            <div style="font-size:0.75rem; background:rgba(20,5,25,0.85); border:1px solid #ff69b4; padding:10px 14px; border-radius:10px; color:#ffc0cb; max-width: 400px; backdrop-filter: blur(8px);">
-                🌸 <b>[삼포검수 (三步劍獸)]</b> 시공간을 베는 야치루의 백호 참격<br>
-                ⚔️ <b>Space / 클릭:</b> 삼포참격 (야치루 + 前/後 2마리 야수 삼중 참격)<br>
-                👹 <b>E:</b> 삼포검수 회전 난무 | 🌸 <b>R:</b> 핑크 영압 폭발 | ⚡ <b>Shift:</b> 핑크 순보
+            <div id="joystick-zone">
+                <div id="joystick-knob"></div>
             </div>
-            <div class="action-btns">
-                <button class="btn-act skill-dash" onclick="useDash()">⚡<br>순보</button>
-                <button class="btn-act skill-b" onclick="useUltimate()">🌸<br>영압폭발</button>
-                <button class="btn-act skill-a" onclick="useBeastSkill()">👹<br>검수난무</button>
-                <button class="btn-act" onclick="playerAttack()">⚔️<br>삼포참격</button>
+
+            <div class="action-grid">
+                <button class="btn-act" onclick="useDash()">⚡<br>순보</button>
+                <button class="btn-act" onclick="useUltimate()">🌸<br>폭발</button>
+                <button class="btn-act" onclick="useBeastSkill()">👹<br>난무</button>
+                <button class="btn-act main-atk" onclick="playerAttack()">⚔️<br>삼포참격</button>
             </div>
         </div>
     </div>
 
     <script>
-        let scene, camera, renderer, minimapCtx;
+        let scene, camera, renderer;
         let playerGroup, frontBeastMesh, backBeastMesh, particleGroup;
-        let groundTilesGroup;
-        let gltfAnimationMixer = null;
-        let keys = {};
         let monsters = [];
 
+        // 모바일 조이스틱 상태
+        let joystickInput = { x: 0, z: 0, active: false };
+
         let player = {
-            hp: 150, maxHp: 150, mp: 100, maxMp: 100,
-            atk: 45, angle: 0,
+            hp: 200, maxHp: 200, mp: 100, maxMp: 100,
+            atk: 50, angle: 0,
             attackCooldown: false,
             isDashing: false
         };
 
-        // 기본 맵 이미지 리스트 (178.png, 352.png ~ 360.png)
-        const DEFAULT_MAP_IMAGES = [
-            '178.png', '352.png', '353.png', '354.png', '355.png',
-            '356.png', '357.png', '358.png', '359.png', '360.png'
-        ];
-
         function init() {
             const container = document.getElementById('webgl-container');
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a030d);
-            scene.fog = new THREE.FogExp2(0x0a030d, 0.012);
+            
+            // ☀️ 1. 분위기 더욱 밝게 변경 (밝은 핑크빛 벚꽃 배경 & 안개)
+            scene.background = new THREE.Color(0xffebf2);
+            scene.fog = new THREE.FogExp2(0xffebf2, 0.008);
 
             camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
 
@@ -122,203 +95,166 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
-            minimapCtx = document.getElementById('minimap-canvas').getContext('2d');
+            // ☀️ 2. 밝은 조명 세팅
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
 
-            // 조명 설정 (분홍빛 벚꽃 영압 조명)
-            scene.add(new THREE.AmbientLight(0xffb6c1, 0.85));
-            const dirLight = new THREE.DirectionalLight(0xff1493, 1.2);
-            dirLight.position.set(30, 60, 30);
+            const dirLight = new THREE.DirectionalLight(0xfff0f5, 1.5);
+            dirLight.position.set(20, 50, 20);
             dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 1024;
+            dirLight.shadow.mapSize.height = 1024;
             scene.add(dirLight);
 
             particleGroup = new THREE.Group();
             scene.add(particleGroup);
 
-            // 🗺️ 커스텀 타일 필드 맵 생성
-            createTileMapField();
+            // 🗺️ 3. 코드로 직접 만든 밝은 타일 맵 (외부 이미지 필요 없음)
+            createProceduralMap();
 
-            // 🌸 야치루 및 삼포검수(前獸 / 後獸) 3D 연출 생성
+            // 🌸 4. 캐릭터 크기 확대 및 땅 위치 정밀 교정
             createYachiruAndBeasts();
 
-            // 몬스터 배치
-            spawnMonsters(16);
+            // 몬스터 생성
+            spawnMonsters(12);
 
-            // 이벤트 리스너
-            window.addEventListener('keydown', e => { 
-                keys[e.key.toLowerCase()] = true; 
-                if (e.code === 'Space') playerAttack(); 
-                if (e.key.toLowerCase() === 'e') useBeastSkill();
-                if (e.key.toLowerCase() === 'r') useUltimate();
-                if (e.key === 'Shift' || e.key.toLowerCase() === 'q') useDash();
-            });
-            window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+            // 모바일 터치 조이스틱 바인딩
+            setupJoystick();
+
             window.addEventListener('resize', onWindowResize);
-
-            updateUI();
             animate();
         }
 
-        // 🗺️ 타일화된 3D 맵 필드 (업로드된 맵 이미지 자동 적용)
-        function createTileMapField() {
-            if (groundTilesGroup) scene.remove(groundTilesGroup);
-            groundTilesGroup = new THREE.Group();
+        // 🎨 코드로 밝은 벚꽃 문양 맵 텍스처 직접 그리기
+        function createProceduralMap() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
 
-            const textureLoader = new THREE.TextureLoader();
-            const gridSize = 6; 
-            const tileSize = 35; 
+            // 바닥 밝은 핑크/화이트 격자 패턴
+            ctx.fillStyle = '#fff5f8';
+            ctx.fillRect(0, 0, 512, 512);
 
-            for (let r = 0; r < gridSize; r++) {
-                for (let c = 0; c < gridSize; c++) {
-                    const imgIndex = (r * gridSize + c) % DEFAULT_MAP_IMAGES.length;
-                    const imgPath = DEFAULT_MAP_IMAGES[imgIndex];
+            ctx.strokeStyle = '#ffc0cb';
+            ctx.lineWidth = 8;
+            ctx.strokeRect(0, 0, 512, 512);
 
-                    const geo = new THREE.PlaneGeometry(tileSize, tileSize);
-                    let mat;
+            // 중앙 장식 동그라미
+            ctx.fillStyle = '#ffe4e1';
+            ctx.beginPath();
+            ctx.arc(256, 256, 180, 0, Math.PI * 2);
+            ctx.fill();
 
-                    // 텍스처 로드 시도 (실패시 기본 테마 색상 적용)
-                    const texture = textureLoader.load(imgPath, 
-                        undefined, undefined, 
-                        () => { /* 로드 실패시 기본 서브 컬러 */ }
-                    );
+            ctx.strokeStyle = '#ffb6c1';
+            ctx.lineWidth = 4;
+            ctx.stroke();
 
-                    mat = new THREE.MeshStandardMaterial({ 
-                        map: texture, 
-                        color: 0xffffff,
-                        roughness: 0.6 
-                    });
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(12, 12);
 
-                    const tile = new THREE.Mesh(geo, mat);
-                    tile.rotation.x = -Math.PI / 2;
-                    tile.position.set(
-                        (c - gridSize / 2) * tileSize + tileSize/2,
-                        0,
-                        (r - gridSize / 2) * tileSize + tileSize/2
-                    );
-                    tile.receiveShadow = true;
-                    groundTilesGroup.add(tile);
-                }
-            }
-
-            scene.add(groundTilesGroup);
+            const floorGeo = new THREE.PlaneGeometry(160, 160);
+            const floorMat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.4 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
         }
 
-        // 🖼️ 사용자가 선택한 이미지들로 맵 텍스처 덮어쓰기
-        function loadCustomMapTexture(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-
-            const loadedURLs = [];
-            for (let i = 0; i < files.length; i++) {
-                loadedURLs.push(URL.createObjectURL(files[i]));
-            }
-
-            const textureLoader = new THREE.TextureLoader();
-            let idx = 0;
-            groundTilesGroup.children.forEach(tile => {
-                const url = loadedURLs[idx % loadedURLs.length];
-                tile.material.map = textureLoader.load(url);
-                tile.material.needsUpdate = true;
-                idx++;
-            });
-
-            alert(`🖼️ ${files.length}개의 맵 이미지가 타일 필드에 성공적으로 입혀졌습니다!`);
-        }
-
-        // 🌸 야치루 본체 + 삼포검수 2마리 3D 모델링 생성
+        // 🌸 야치루 & 삼포검수 3D 캐릭터 생성
         function createYachiruAndBeasts() {
             playerGroup = new THREE.Group();
 
-            // 1. 야치루 본체
+            // 🔍 [요청사항 반영] 캐릭터 크기를 크게 확대 (Scale 1.8배)
+            playerGroup.scale.set(1.8, 1.8, 1.8);
+
+            // 🔍 [요청사항 반영] 땅에 박히지 않도록 피벗 Y축을 0 위로 정밀하게 배치
+            // 야치루 본체 (사패장 + 분홍 머리)
+            const bodyHeight = 1.2;
             const body = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.3, 0.2, 1.1, 12),
-                new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 }) // 사패장
+                new THREE.CylinderGeometry(0.25, 0.35, bodyHeight, 16),
+                new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.3 })
             );
-            body.position.y = 0.55;
+            body.position.y = bodyHeight / 2; // 발바닥이 딱 y=0에 오도록 설정
             body.castShadow = true;
             playerGroup.add(body);
 
-            // 핑크 단발머리
+            // 분홍 단발머리
             const hair = new THREE.Mesh(
-                new THREE.SphereGeometry(0.38, 12, 12),
+                new THREE.SphereGeometry(0.42, 16, 16),
                 new THREE.MeshStandardMaterial({ color: 0xff1493, roughness: 0.2 })
             );
-            hair.position.set(0, 1.05, 0);
+            hair.position.y = bodyHeight + 0.2;
+            hair.castShadow = true;
             playerGroup.add(hair);
 
             // 참백도
             const katana = new THREE.Mesh(
-                new THREE.BoxGeometry(0.06, 1.0, 0.12),
-                new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xff69b4, emissiveIntensity: 0.9 })
+                new THREE.BoxGeometry(0.08, 1.2, 0.15),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xff69b4, emissiveIntensity: 0.8 })
             );
-            katana.position.set(0.35, 0.65, 0.25);
+            katana.position.set(0.4, bodyHeight * 0.6, 0.2);
             katana.rotation.x = Math.PI / 4;
             playerGroup.add(katana);
 
-            // 2. 앞의 검수 [前獸 - 모구라]: 길쭉한 뼈 골면 마스크 야수
+            // 前獸 (앞의 뼈 야수 모구라)
             frontBeastMesh = new THREE.Group();
             const fHead = new THREE.Mesh(
-                new THREE.ConeGeometry(0.4, 0.9, 8),
-                new THREE.MeshStandardMaterial({ color: 0xdddddd, emissive: 0x442244 })
+                new THREE.ConeGeometry(0.45, 1.0, 8),
+                new THREE.MeshStandardMaterial({ color: 0xf0f0f0, emissive: 0x9b5de5, emissiveIntensity: 0.3 })
             );
             fHead.rotation.x = -Math.PI / 2;
-            fHead.position.set(0, 0.8, 0);
+            fHead.position.y = 0.8;
             frontBeastMesh.add(fHead);
 
-            const fSword = new THREE.Mesh(
-                new THREE.BoxGeometry(0.1, 1.6, 0.2),
-                new THREE.MeshStandardMaterial({ color: 0x888888, emissive: 0x9b5de5 })
-            );
-            fSword.position.set(0.4, 0.8, 0.3);
-            frontBeastMesh.add(fSword);
-
-            frontBeastMesh.position.set(0, 0, 1.6); // 야치루 앞배치
-            frontBeastMesh.scale.set(0.001, 0.001, 0.001); // 숨김 상태
+            frontBeastMesh.position.set(0, 0, 1.6);
+            frontBeastMesh.scale.set(0.001, 0.001, 0.001);
             playerGroup.add(frontBeastMesh);
 
-            // 3. 뒤의 검수 [後獸 - 호네호네]: 노란색/핑크 복슬복슬 야수
+            // 後獸 (뒤의 털 야수 호네호네)
             backBeastMesh = new THREE.Group();
             const bBody = new THREE.Mesh(
-                new THREE.DodecahedronGeometry(0.65),
-                new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.9 })
+                new THREE.DodecahedronGeometry(0.7),
+                new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.8 })
             );
-            bBody.position.y = 0.7;
+            bBody.position.y = 0.8;
             backBeastMesh.add(bBody);
 
-            backBeastMesh.position.set(0, 0, -1.6); // 야치루 뒷배치
-            backBeastMesh.scale.set(0.001, 0.001, 0.001); // 숨김 상태
+            backBeastMesh.position.set(0, 0, -1.6);
+            backBeastMesh.scale.set(0.001, 0.001, 0.001);
             playerGroup.add(backBeastMesh);
 
             scene.add(playerGroup);
         }
 
-        // ⚔️ [삼포참격 (三步斬擊)] - 원작 야치루 삼포검수 연출
+        // ⚔️ 삼포참격 (3중 시차 연속 공격)
         function playerAttack() {
             if (player.attackCooldown) return;
             player.attackCooldown = true;
 
-            // 1타: 야치루 본인 참격
+            // 1타: 야치루 참격
             spawnPinkSlashArc(playerGroup.position, player.angle, 0, 0xff1493);
             executeDamageHit(0, 1.0);
 
-            // 2타: 前獸(앞의 뼈 야수) 출현 및 참격 (시차 0.08초)
+            // 2타: 앞의 야수 참격
             setTimeout(() => {
                 frontBeastMesh.scale.set(1.2, 1.2, 1.2);
-                spawnPinkSlashArc(playerGroup.position, player.angle, 1.8, 0x9b5de5);
-                spawnParticles(playerGroup.position.x + Math.sin(player.angle)*1.8, 1, playerGroup.position.z + Math.cos(player.angle)*1.8, 0x9b5de5, 15);
-                executeDamageHit(1.8, 0.85);
+                spawnPinkSlashArc(playerGroup.position, player.angle, 2.0, 0x9b5de5);
+                executeDamageHit(2.0, 0.9);
             }, 80);
 
-            // 3타: 後獸(뒤의 털 야수) 출현 및 참격 (시차 0.16초)
+            // 3타: 뒤의 야수 참격
             setTimeout(() => {
                 backBeastMesh.scale.set(1.3, 1.3, 1.3);
-                spawnPinkSlashArc(playerGroup.position, player.angle, -1.5, 0xffd700);
-                spawnParticles(playerGroup.position.x - Math.sin(player.angle)*1.5, 1, playerGroup.position.z - Math.cos(player.angle)*1.5, 0xffd700, 15);
-                executeDamageHit(-1.5, 0.85);
+                spawnPinkSlashArc(playerGroup.position, player.angle, -1.6, 0xffd700);
+                executeDamageHit(-1.6, 0.9);
             }, 160);
 
-            // 검수 원위치 및 쿨타임 해제
             setTimeout(() => {
                 frontBeastMesh.scale.set(0.001, 0.001, 0.001);
                 backBeastMesh.scale.set(0.001, 0.001, 0.001);
@@ -326,7 +262,6 @@
             }, 320);
         }
 
-        // 👹 [삼포검수 난무] - 전방 2마리 검수 소환용 연속 팽이 회전
         function useBeastSkill() {
             if (player.mp < 25 || player.attackCooldown) return;
             player.mp -= 25;
@@ -338,13 +273,13 @@
             let spins = 0;
             const interval = setInterval(() => {
                 playerGroup.rotation.y += Math.PI / 2;
-                spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0xff1493, 15);
-                
+                spawnParticles(playerGroup.position.x, 1.5, playerGroup.position.z, 0xff1493, 12);
+
                 monsters.forEach(m => {
-                    if (playerGroup.position.distanceTo(m.mesh.position) < 5.0) {
-                        let dmg = Math.floor(player.atk * 0.85);
+                    if (playerGroup.position.distanceTo(m.mesh.position) < 6.0) {
+                        let dmg = Math.floor(player.atk * 0.9);
                         m.hp -= dmg;
-                        showDamageText(dmg, m.mesh.position, '#ff69b4');
+                        showDamageText(dmg, m.mesh.position, '#ff1493');
                     }
                 });
 
@@ -360,24 +295,18 @@
             updateUI();
         }
 
-        // 🌸 [핑크 영압 폭발] - 화면 전체 광범위 충격파
         function useUltimate() {
             if (player.mp < 40 || player.attackCooldown) return;
             player.mp -= 40;
             player.attackCooldown = true;
 
-            // 거대 핑크 영압 기둥
-            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0xff1493, 100);
+            spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0xff1493, 80);
 
             monsters.forEach(m => {
-                if (playerGroup.position.distanceTo(m.mesh.position) < 9.5) {
-                    let dmg = Math.floor(player.atk * 3.5);
+                if (playerGroup.position.distanceTo(m.mesh.position) < 11.0) {
+                    let dmg = Math.floor(player.atk * 3.8);
                     m.hp -= dmg;
-                    showDamageText(`💥${dmg}`, m.mesh.position, '#ffd700');
-                    
-                    // 대형 넉백
-                    const dir = m.mesh.position.clone().sub(playerGroup.position).normalize();
-                    m.mesh.position.addScaledVector(dir, 4.5);
+                    showDamageText(`💥${dmg}`, m.mesh.position, '#ff007f');
                 }
             });
 
@@ -385,18 +314,14 @@
             updateUI();
         }
 
-        // ⚡ [순보] - 분홍 잔영 순보 이동
         function useDash() {
             if (player.mp < 10 || player.isDashing) return;
             player.mp -= 10;
             player.isDashing = true;
 
-            spawnParticles(playerGroup.position.x, 0.8, playerGroup.position.z, 0xff69b4, 25);
-
-            playerGroup.position.x += Math.sin(player.angle) * 7.5;
-            playerGroup.position.z += Math.cos(player.angle) * 7.5;
-
-            spawnParticles(playerGroup.position.x, 0.8, playerGroup.position.z, 0x00f5d4, 25);
+            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0xff69b4, 20);
+            playerGroup.position.x += Math.sin(player.angle) * 8.0;
+            playerGroup.position.z += Math.cos(player.angle) * 8.0;
 
             setTimeout(() => { player.isDashing = false; }, 200);
             updateUI();
@@ -405,37 +330,31 @@
         function executeDamageHit(offsetZ, mult) {
             const hitPos = new THREE.Vector3(
                 playerGroup.position.x + Math.sin(player.angle) * offsetZ,
-                playerGroup.position.y + 0.8,
+                playerGroup.position.y + 1.0,
                 playerGroup.position.z + Math.cos(player.angle) * offsetZ
             );
 
             monsters.forEach(m => {
-                if (hitPos.distanceTo(m.mesh.position) < 3.5) {
-                    let dmg = Math.floor(player.atk * mult + Math.random() * 6);
+                if (hitPos.distanceTo(m.mesh.position) < 4.5) {
+                    let dmg = Math.floor(player.atk * mult + Math.random() * 8);
                     m.hp -= dmg;
-                    showDamageText(dmg, m.mesh.position, '#ff69b4');
+                    showDamageText(dmg, m.mesh.position, '#ff1493');
                 }
             });
         }
 
-        // 3D 참격 궤적 시각화 효과
         function spawnPinkSlashArc(pos, angle, offsetZ, colorHex) {
-            const arcGeo = new THREE.RingGeometry(1.2, 2.2, 16, 1, 0, Math.PI);
-            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+            const arcGeo = new THREE.RingGeometry(1.6, 2.8, 16, 1, 0, Math.PI);
+            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.95 });
             const arcMesh = new THREE.Mesh(arcGeo, arcMat);
 
             arcMesh.rotation.x = Math.PI / 2;
             arcMesh.rotation.z = -angle + Math.PI / 2;
-
-            arcMesh.position.set(
-                pos.x + Math.sin(angle) * offsetZ,
-                pos.y + 0.8,
-                pos.z + Math.cos(angle) * offsetZ
-            );
+            arcMesh.position.set(pos.x + Math.sin(angle) * offsetZ, pos.y + 1.2, pos.z + Math.cos(angle) * offsetZ);
 
             scene.add(arcMesh);
 
-            let opacity = 0.9;
+            let opacity = 0.95;
             const fade = setInterval(() => {
                 opacity -= 0.15;
                 arcMesh.material.opacity = opacity;
@@ -446,36 +365,38 @@
             }, 30);
         }
 
-        // 📂 .GLB 캐릭 파일 업로드 로더
-        function loadCustomGLB(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+        // 📱 모바일 가상 조이스틱 터치 이벤트 처리
+        function setupJoystick() {
+            const zone = document.getElementById('joystick-zone');
+            const knob = document.getElementById('joystick-knob');
+            const maxRadius = 40;
 
-            const url = URL.createObjectURL(file);
-            const loader = new THREE.GLTFLoader();
+            function handleTouch(e) {
+                const touch = e.touches[0];
+                const rect = zone.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
 
-            loader.load(url, (gltf) => {
-                scene.remove(playerGroup);
-                playerGroup = new THREE.Group();
+                let dx = touch.clientX - centerX;
+                let dy = touch.clientY - centerY;
+                let dist = Math.hypot(dx, dy);
 
-                const loadedModel = gltf.scene;
-                loadedModel.scale.set(1.3, 1.3, 1.3);
-                loadedModel.traverse((c) => { if (c.isMesh) c.castShadow = true; });
-
-                playerGroup.add(loadedModel);
-                
-                // 삼포검수 야수 2마리 다시 바인딩
-                playerGroup.add(frontBeastMesh);
-                playerGroup.add(backBeastMesh);
-
-                scene.add(playerGroup);
-
-                if (gltf.animations && gltf.animations.length > 0) {
-                    gltfAnimationMixer = new THREE.AnimationMixer(loadedModel);
-                    gltfAnimationMixer.clipAction(gltf.animations[0]).play();
+                if (dist > maxRadius) {
+                    dx = (dx / dist) * maxRadius;
+                    dy = (dy / dist) * maxRadius;
                 }
 
-                alert("🌸 야치루 3D 모델이 적용되었습니다!");
+                knob.style.transform = `translate(${dx}px, ${dy}px)`;
+                joystickInput.x = dx / maxRadius;
+                joystickInput.z = dy / maxRadius;
+                joystickInput.active = true;
+            }
+
+            zone.addEventListener('touchstart', handleTouch, { passive: false });
+            zone.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
+            zone.addEventListener('touchend', () => {
+                knob.style.transform = `translate(0px, 0px)`;
+                joystickInput = { x: 0, z: 0, active: false };
             });
         }
 
@@ -483,105 +404,76 @@
             for (let i = 0; i < count; i++) {
                 const group = new THREE.Group();
                 const mesh = new THREE.Mesh(
-                    new THREE.DodecahedronGeometry(0.85),
-                    new THREE.MeshStandardMaterial({ color: 0x7b2cbf, roughness: 0.3 })
+                    new THREE.DodecahedronGeometry(1.0),
+                    new THREE.MeshStandardMaterial({ color: 0x9b5de5, roughness: 0.3 })
                 );
-                mesh.position.y = 0.85;
+                mesh.position.y = 1.0; // 땅 위에 올바르게 생성
                 mesh.castShadow = true;
                 group.add(mesh);
 
-                let rx = (Math.random() - 0.5) * 120;
-                let rz = (Math.random() - 0.5) * 120;
-                if (Math.abs(rx) < 10) rx += 18;
+                let rx = (Math.random() - 0.5) * 100;
+                let rz = (Math.random() - 0.5) * 100;
+                if (Math.abs(rx) < 12) rx += 20;
                 group.position.set(rx, 0, rz);
 
                 scene.add(group);
-                monsters.push({ mesh: group, hp: 110, maxHp: 110, speed: 0.04 + Math.random() * 0.02 });
+                monsters.push({ mesh: group, hp: 130, maxHp: 130, speed: 0.05 });
             }
         }
 
         function updateGame() {
-            // Movement
-            let moveX = 0, moveZ = 0;
-            const speed = 0.24;
+            const speed = 0.28;
 
-            if (keys['w'] || keys['arrowup']) moveZ -= 1;
-            if (keys['s'] || keys['arrowdown']) moveZ += 1;
-            if (keys['a'] || keys['arrowleft']) moveX -= 1;
-            if (keys['d'] || keys['arrowright']) moveX += 1;
+            if (joystickInput.active) {
+                const moveX = joystickInput.x;
+                const moveZ = joystickInput.z;
 
-            if (moveX !== 0 || moveZ !== 0) {
                 const angle = Math.atan2(moveX, moveZ);
                 player.angle = angle;
                 playerGroup.rotation.y = angle;
 
-                playerGroup.position.x += Math.sin(angle) * speed;
-                playerGroup.position.z += Math.cos(angle) * speed;
+                playerGroup.position.x += moveX * speed;
+                playerGroup.position.z += moveZ * speed;
 
                 player.mp = Math.min(player.maxMp, player.mp + 0.08);
                 updateUI();
             }
 
-            // Monster Logic
+            // 몬스터 이동 및 사망
             for (let i = monsters.length - 1; i >= 0; i--) {
                 const m = monsters[i];
                 if (m.hp <= 0) {
-                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0x7b2cbf, 20);
+                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0x9b5de5, 20);
                     scene.remove(m.mesh);
                     monsters.splice(i, 1);
                     continue;
                 }
 
                 const dist = m.mesh.position.distanceTo(playerGroup.position);
-                if (dist < 20 && dist > 1.2) {
+                if (dist < 22 && dist > 1.8) {
                     m.mesh.position.x += ((playerGroup.position.x - m.mesh.position.x) / dist) * m.speed;
                     m.mesh.position.z += ((playerGroup.position.z - m.mesh.position.z) / dist) * m.speed;
                     m.mesh.lookAt(playerGroup.position);
                 }
             }
 
-            // Camera Tracking
+            // 카메라도 확대된 캐릭터 비율에 맞춰 시원하게 추적
             camera.position.x = playerGroup.position.x;
-            camera.position.y = playerGroup.position.y + 12;
-            camera.position.z = playerGroup.position.z + 14;
+            camera.position.y = playerGroup.position.y + 16;
+            camera.position.z = playerGroup.position.z + 18;
             camera.lookAt(playerGroup.position);
-
-            drawMinimap();
-        }
-
-        function drawMinimap() {
-            minimapCtx.clearRect(0, 0, 125, 125);
-            const cx = 62.5, cy = 62.5, scale = 0.85;
-
-            // Player Dot
-            minimapCtx.fillStyle = '#ff69b4';
-            minimapCtx.beginPath();
-            minimapCtx.arc(cx, cy, 4, 0, Math.PI * 2);
-            minimapCtx.fill();
-
-            // Monster Dots
-            minimapCtx.fillStyle = '#9b5de5';
-            monsters.forEach(m => {
-                const dx = (m.mesh.position.x - playerGroup.position.x) * scale;
-                const dz = (m.mesh.position.z - playerGroup.position.z) * scale;
-                if (Math.abs(dx) < 55 && Math.abs(dz) < 55) {
-                    minimapCtx.beginPath();
-                    minimapCtx.arc(cx + dx, cy + dz, 2.5, 0, Math.PI * 2);
-                    minimapCtx.fill();
-                }
-            });
         }
 
         function spawnParticles(x, y, z, colorHex, count = 10) {
             for(let i = 0; i < count; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: colorHex }));
+                const p = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.15), new THREE.MeshBasicMaterial({ color: colorHex }));
                 p.position.set(x, y, z);
-                p.userData = { vx: (Math.random() - 0.5) * 0.3, vy: Math.random() * 0.25, vz: (Math.random() - 0.5) * 0.3, life: 1.0 };
+                p.userData = { vx: (Math.random() - 0.5) * 0.3, vy: Math.random() * 0.3, vz: (Math.random() - 0.5) * 0.3, life: 1.0 };
                 particleGroup.add(p);
             }
         }
 
-        function showDamageText(dmg, pos, color = '#ff69b4') {
+        function showDamageText(dmg, pos, color = '#ff1493') {
             const el = document.createElement('div');
             el.className = 'dmg-float';
             el.innerText = `${dmg}`;
@@ -604,12 +496,8 @@
 
         function animate() {
             requestAnimationFrame(animate);
-
             updateGame();
 
-            if (gltfAnimationMixer) gltfAnimationMixer.update(0.016);
-
-            // Particles update
             for (let i = particleGroup.children.length - 1; i >= 0; i--) {
                 let p = particleGroup.children[i];
                 p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
