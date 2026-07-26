@@ -2,796 +2,631 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BLEACH: 히츠가야 토시로 외전 (Toshiro Saga)</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>3D 액션 RPG - 야치루 삼포검수 & 맵 커스텀</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; touch-action: none; }
-        body { background: #020617; overflow: hidden; font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
-        #game-container { position: relative; width: 100%; max-width: 480px; height: 100%; max-height: 860px; background: #000; overflow: hidden; display: flex; flex-direction: column; border: 2px solid #38bdf855; box-shadow: 0 0 40px rgba(56,189,248,0.25); }
-        
-        /* 상단 스테이터스 바 */
-        #top-status-bar { width: 100%; height: 15%; background: rgba(15, 23, 42, 0.95); border-bottom: 2px solid #38bdf8aa; padding: 8px 12px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 6px; z-index: 105; backdrop-filter: blur(5px); }
-        .bar-group { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
-        .bar-row { display: flex; align-items: center; gap: 6px; }
-        .bar-label { width: 55px; font-weight: bold; color: #94a3b8; font-size: 9.5px; }
-        .bar-bg { flex: 1; height: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 3px; overflow: hidden; }
-        .bar-fill { height: 100%; width: 100%; transition: width 0.15s ease-out; }
-        #hp-fill { background: linear-gradient(90deg, #dc2626, #ef4444); }
-        #mp-fill { background: linear-gradient(90deg, #0284c7, #38bdf8); width: 0%; }
-        .bar-text { font-size: 8.5px; width: 55px; text-align: right; color: #cbd5e1; font-weight: bold; }
-        
-        .right-info { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; font-size: 10px; border-left: 1px solid #334155; padding-left: 8px; color: #eee; gap: 2px; }
-        .char-tag { color: #38bdf8; font-weight: 900; font-size: 11px; text-shadow: 0 0 10px rgba(56,189,248,0.8); }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #08030c; color: #fff; }
+        #webgl-container { width: 100%; height: 100%; display: block; }
 
-        /* 미니맵 */
-        #minimap-container { position: absolute; top: 16%; right: 10px; width: 85px; height: 85px; background: rgba(15,23,42,0.9); border: 2px solid #38bdf8; border-radius: 50%; z-index: 140; overflow: hidden; box-shadow: 0 0 12px rgba(56,189,248,0.4); }
+        /* UI Overlay */
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
+
+        .top-hud { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .player-card { background: rgba(25, 8, 30, 0.88); backdrop-filter: blur(12px); border: 1.5px solid #ff69b4; padding: 12px 16px; border-radius: 14px; width: 310px; pointer-events: auto; box-shadow: 0 0 20px rgba(255,105,180,0.3); }
+        .player-card h2 { font-size: 0.95rem; color: #ff94c2; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .bar-bg { width: 100%; height: 9px; background: rgba(0,0,0,0.7); border-radius: 5px; overflow: hidden; margin-bottom: 5px; border: 1px solid rgba(255,105,180,0.3); }
+        .bar-hp { height: 100%; background: linear-gradient(90deg, #ff1493, #ff69b4); width: 100%; transition: width 0.2s; }
+        .bar-mp { height: 100%; background: linear-gradient(90deg, #da70d6, #ee82ee); width: 100%; transition: width 0.2s; }
+
+        /* Custom File Upload Buttons */
+        .btn-group { display: flex; gap: 6px; margin-top: 6px; }
+        .cfg-btn { background: #ff1493; border: 1px solid #ffb6c1; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; transition: all 0.15s; }
+        .cfg-btn:hover { background: #ff69b4; transform: translateY(-1px); }
+        .cfg-btn:active { transform: scale(0.95); }
+
+        /* MiniMap Canvas */
+        .minimap-container { pointer-events: auto; background: rgba(15, 5, 20, 0.9); border: 2px solid #ff69b4; border-radius: 50%; width: 125px; height: 125px; overflow: hidden; box-shadow: 0 0 15px rgba(255, 105, 180, 0.5); position: relative; }
         #minimap-canvas { width: 100%; height: 100%; }
 
-        /* 보스 체력바 */
-        #boss-hp-container { position: absolute; top: 16%; left: 50%; transform: translateX(-50%); width: 60%; z-index: 140; display: none; flex-direction: column; align-items: center; background: rgba(15,23,42,0.95); padding: 5px 10px; border-radius: 6px; border: 1px solid #ef4444; box-shadow: 0 0 15px rgba(239,68,68,0.5); }
-        #boss-name-tag { color: #ef4444; font-size: 10px; font-weight: 900; margin-bottom: 2px; }
-        #boss-hp-bg { width: 100%; height: 8px; background: #450a0a; border-radius: 4px; overflow: hidden; border: 1px solid #7f1d1d; }
-        #boss-hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #dc2626, #f97316); transition: width 0.1s; }
+        /* Bottom Action Buttons */
+        .bottom-hud { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; pointer-events: auto; }
+        .action-btns { display: flex; gap: 10px; }
+        .btn-act { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(35, 10, 35, 0.88); color: #fff; font-weight: bold; font-size: 0.72rem; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 0 15px rgba(255, 105, 180, 0.4); backdrop-filter: blur(8px); transition: transform 0.1s; }
+        .btn-act:active { transform: scale(0.9); }
+        .btn-act.skill-a { border-color: #ff1493; color: #ffb6c1; }
+        .btn-act.skill-b { border-color: #ffd700; color: #ffd700; }
+        .btn-act.skill-dash { border-color: #00f5d4; color: #00f5d4; }
 
-        /* 토시로 스토리 퀘스트 창 */
-        #quest-box { position: absolute; top: 16%; left: 10px; z-index: 140; background: rgba(15, 23, 42, 0.9); border: 1.5px solid #38bdf8; border-radius: 6px; padding: 6px 10px; color: #fff; font-size: 9px; width: 145px; box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
-        #quest-act { color: #38bdf8; font-weight: bold; font-size: 9.5px; }
-        #quest-title { color: #facc15; font-weight: bold; font-size: 10px; margin-bottom: 2px; }
-
-        /* 3D 캔버스 영역 */
-        #canvas3d-container { position: relative; width: 100%; height: 53%; background: #020617; overflow: hidden; }
-        canvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; display: block; }
-
-        /* 데미지 팝업 */
-        .damage-popup { position: absolute; color: #fff; font-weight: 900; font-size: 16px; pointer-events: none; z-index: 150; transform: translate(-50%, -50%); animation: popupAnim 0.5s ease-out forwards; }
-        .crit-popup { color: #38bdf8 !important; font-size: 26px !important; text-shadow: 0 0 16px #38bdf8, 0 0 30px #ffffff; }
-        .enemy-skill-popup { color: #ef4444 !important; font-size: 20px !important; text-shadow: 0 0 14px #dc2626; }
-        .mob-hit-popup { color: #facc15 !important; font-size: 15px !important; text-shadow: 0 0 8px #eab308; }
-        
-        @keyframes popupAnim { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); } 30% { opacity: 1; transform: translate(-50%, -50%) scale(1.4); } 100% { opacity: 0; transform: translate(-50%, -50%) translateY(-50px); } }
-
-        /* 조작 패널 및 로그 */
-        #ui-panel { width: 100%; height: 32%; background: #090d16; border-top: 1px solid #1e293b; padding: 6px; display: grid; grid-template-columns: 0.9fr 1.1fr 1.2fr; gap: 4px; z-index: 100; }
-        #dpad-container { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width: 95px; height: 95px; margin: auto; gap: 2px; }
-        .dpad-btn { background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #94a3b8; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .dpad-btn:active { background: #38bdf8; color: #000; }
-        .dpad-empty { visibility: hidden; }
-
-        #status-board { background: #020617; border: 1px solid #1e293b; border-radius: 5px; padding: 6px; color: #94a3b8; font-size: 8.5px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
-        .log-title { color: #38bdf8; font-weight: bold; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
-        #log-content { flex: 1; font-size: 8px; overflow-y: auto; color: #94a3b8; line-height: 1.3; }
-
-        #action-grid { display: grid; grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); gap: 3px; }
-        .action-btn { width: 100%; height: 100%; border: 1px solid #334155; border-radius: 4px; font-size: 9px; font-weight: bold; color: #cbd5e1; background: #0f172a; cursor: pointer; }
-        #btn-atk { background: linear-gradient(180deg, #1e293b, #0f172a); color: #fff; border-color: #38bdf844; }
-        #btn-skl { background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff; font-weight: 900; text-shadow: 0 0 5px #000; }
-        #btn-heal { color: #4ade80; }
-        #btn-ban { background: linear-gradient(180deg, #eab308, #ca8a04); color: #000; font-weight: 900; }
+        /* Floating Damage Text */
+        .dmg-float { position: absolute; font-weight: 900; font-size: 1.5rem; pointer-events: none; animation: floatUp 0.8s forwards; text-shadow: 0 0 8px #ff1493, 0 0 12px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(1.3); } }
     </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="top-status-bar">
-        <div class="bar-group">
-            <div class="bar-row"><span class="bar-label">HP 체력</span><div class="bar-bg"><div id="hp-fill" class="bar-fill"></div></div><span id="hp-txt" class="bar-text">300 / 300</span></div>
-            <div class="bar-row"><span class="bar-label">MP 영압</span><div class="bar-bg"><div id="mp-fill" class="bar-fill"></div></div><span id="mp-txt" class="bar-text">0 / 100</span></div>
-        </div>
-        <div class="right-info">
-            <div class="char-tag" id="player-char-name">10번대 대장 히츠가야</div>
-            <div style="color:#4ade80; font-weight:bold; font-size:9px;" id="zone-tag">ACT 1. 현세 조사</div>
-        </div>
-    </div>
-
-    <div id="minimap-container">
-        <canvas id="minimap-canvas" width="85" height="85"></canvas>
-    </div>
-
-    <div id="boss-hp-container">
-        <div id="boss-name-tag">BOSS: 거대 호로</div>
-        <div id="boss-hp-bg"><div id="boss-hp-fill"></div></div>
-    </div>
-
-    <div id="quest-box">
-        <div id="quest-act">📜 [ACT 1] 현세 경계</div>
-        <div id="quest-title">카라쿠라 마을 호로 토벌</div>
-        <span id="quest-desc" style="font-size:8px; color:#cbd5e1;">호로 토벌 후 차원 게이트 이동</span>
-    </div>
-
-    <div id="canvas3d-container"></div>
-
-    <div id="ui-panel">
-        <div id="dpad-container">
-            <div class="dpad-empty"></div><div class="dpad-btn" id="dpad-up">▲</div><div class="dpad-empty"></div>
-            <div class="dpad-btn" id="dpad-left">◀</div><div class="dpad-empty"></div><div class="dpad-btn" id="dpad-right">▶</div>
-            <div class="dpad-empty"></div><div class="dpad-btn" id="dpad-down">▼</div><div class="dpad-empty"></div>
-        </div>
-        
-        <div id="status-board">
-            <div class="log-title">❄️ [히츠가야 토시로 외전]</div>
-            <div id="log-content">시달려라, 빙륜환! 정령정 수호 미션 시작.</div>
-        </div>
-
-        <div id="action-grid">
-            <button id="btn-atk" class="action-btn">⚔️ 빙륜환 참격</button>
-            <button id="btn-skl" class="action-btn">🐉 대용권 빙룡선풍</button>
-            <button id="btn-heal" class="action-btn">🧪 영압 수복</button>
-            <button id="btn-ban" class="action-btn">🧊 대홍련빙륜환</button>
-        </div>
-    </div>
-</div>
-
-<script>
-// 효과음 엔진
-class SoundEngine {
-    constructor() {
-        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    playMetallicSlashSFX() {
-        if(this.ctx.state === 'suspended') this.ctx.resume();
-        const now = this.ctx.currentTime;
-        const osc1 = this.ctx.createOscillator();
-        const gain1 = this.ctx.createGain();
-        osc1.type = 'sawtooth';
-        osc1.frequency.setValueAtTime(2600, now);
-        osc1.frequency.exponentialRampToValueAtTime(350, now + 0.12);
-        gain1.gain.setValueAtTime(0.4, now);
-        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-        osc1.connect(gain1); gain1.connect(this.ctx.destination);
-        osc1.start(now); osc1.stop(now + 0.12);
-    }
-
-    playIceSkillSFX() {
-        if(this.ctx.state === 'suspended') this.ctx.resume();
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(750, now);
-        osc.frequency.linearRampToValueAtTime(2400, now + 0.35);
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(now); osc.stop(now + 0.35);
-    }
-
-    playBankaiSFX() {
-        if(this.ctx.state === 'suspended') this.ctx.resume();
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(140, now);
-        osc.frequency.exponentialRampToValueAtTime(1400, now + 0.6);
-        gain.gain.setValueAtTime(0.6, now);
-        gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
-        osc.connect(gain); gain.connect(this.ctx.destination);
-        osc.start(now); osc.stop(now + 0.6);
-    }
-}
-
-const soundFx = new SoundEngine();
-
-// 📜 토시로 주인공 5개 ACT 스토리 구성
-const CHAPTER_CONFIGS = [
-    { act: "ACT 1", name: "현세 조사 (카라쿠라)", title: "호로 군단 토벌", bg: 0x090d16, theme: 'URBAN', floorColor: 0x1e293b, mobName: "변종 호로", mobHp: 100, bossName: "ACT 1 거대 호로", bossHp: 900, bossAtk: 0.12 },
-    { act: "ACT 2", name: "정령정 음모 (소울소사이어티)", title: "중앙 46실 조사", bg: 0x0c1e38, theme: 'SOUL', floorColor: 0x334155, mobName: "반란 사신", mobHp: 160, bossName: "ACT 2 반란 사신 대장", bossHp: 1500, bossAtk: 0.15 },
-    { act: "ACT 3", name: "에스파다 결전 (웨코문도)", title: "제 3에스파다 격돌", bg: 0x030712, theme: 'HUECO', floorColor: 0xe2e8f0, mobName: "아란칼 프라시온", mobHp: 220, bossName: "ACT 3 에스파다 하리벨", bossHp: 2200, bossAtk: 0.18 },
-    { act: "ACT 4", name: "풀브링 제압 (엑스큐션)", title: "게임 공간 제압", bg: 0x0f172a, theme: 'URBAN', floorColor: 0x1e293b, mobName: "풀브링거", mobHp: 280, bossName: "ACT 4 풀브링 유키오", bossHp: 2800, bossAtk: 0.20 },
-    { act: "ACT 5", name: "천년혈전 (반덴라이히)", title: "완성형 대홍련빙륜환", bg: 0x18050e, theme: 'QUINCY', floorColor: 0x3d1428, mobName: "퀸시 성기사", mobHp: 350, bossName: "ACT 5 슈테른릿터 / 유하바하", bossHp: 4000, bossAtk: 0.25 }
-];
-
-const MAP_WIDTH = 180; const MAP_LENGTH = 450;
-
-class Game {
-    constructor() {
-        this.container = document.getElementById('canvas3d-container');
-        this.logBox = document.getElementById('log-content');
-        this.btnHeal = document.getElementById('btn-heal');
-        this.minimapCanvas = document.getElementById('minimap-canvas');
-        this.minimapCtx = this.minimapCanvas.getContext('2d');
-        
-        this.mp = 0; this.chapterIndex = 0;
-        this.isSpecialActive = false; this.healCooldown = false;
-        this.clock = new THREE.Clock();
-        this.shakeTimer = 0;
-
-        this.initThree();
-        this.initWorld();
-        this.player = new ToshiroPlayer(this);
-        
-        this.mobs = []; this.enemies = []; this.particles = []; this.projectiles = []; this.slashes = [];
-        this.spawnMobs();
-        this.spawnBoss();
-        
-        this.keys = { up: false, down: false, left: false, right: false };
-        this.initEvents(); this.updateUI();
-    }
-
-    initThree() {
-        this.scene = new THREE.Scene(); 
-        const cfg = CHAPTER_CONFIGS[0];
-        this.scene.background = new THREE.Color(cfg.bg);
-        this.scene.fog = new THREE.FogExp2(cfg.bg, 0.0022);
-        
-        this.camera = new THREE.PerspectiveCamera(45, this.container.clientWidth / this.container.clientHeight, 0.1, 1500);
-        this.camera.position.set(0, 38, 50);
-        
-        this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
-        this.renderer.shadowMap.enabled = true;
-        this.container.appendChild(this.renderer.domElement);
-        
-        this.mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
-        this.mainLight.position.set(60, 100, 50);
-        this.scene.add(this.mainLight);
-
-        const lightIce = new THREE.PointLight(0x38bdf8, 1.8, 150);
-        lightIce.position.set(0, 30, -100);
-        this.scene.add(lightIce);
-
-        this.scene.add(new THREE.AmbientLight(0x64748b, 1.2));
-    }
-
-    initWorld() {
-        if(this.mapGroup) this.scene.remove(this.mapGroup);
-        this.mapGroup = new THREE.Group();
-
-        const cfg = CHAPTER_CONFIGS[this.chapterIndex];
-        this.scene.background = new THREE.Color(cfg.bg);
-        this.scene.fog.color = new THREE.Color(cfg.bg);
-        
-        const terrainGeo = new THREE.PlaneGeometry(MAP_WIDTH, MAP_LENGTH, 50, 100);
-        const posAttr = terrainGeo.attributes.position;
-        for (let i = 0; i < posAttr.count; i++) {
-            let x = posAttr.getX(i);
-            let y = posAttr.getY(i);
-            let zVal = Math.sin(x * 0.04) * Math.cos(y * 0.02) * 4.5;
-            posAttr.setZ(i, zVal);
-        }
-        terrainGeo.computeVertexNormals();
-
-        const terrainMat = new THREE.MeshStandardMaterial({
-            color: cfg.floorColor,
-            roughness: cfg.theme==='HUECO'? 0.9 : 0.4, 
-            metalness: 0.1
-        });
-
-        const floor = new THREE.Mesh(terrainGeo, terrainMat);
-        floor.rotation.x = -Math.PI / 2; floor.position.set(0, -2, -MAP_LENGTH/2 + 40);
-        this.mapGroup.add(floor);
-
-        // 빙륜환 얼음 결정 기둥 배치
-        for(let i=0; i<20; i++) {
-            const rockGeo = new THREE.DodecahedronGeometry(8 + Math.random()*5, 1);
-            const rockMat = new THREE.MeshStandardMaterial({ color: cfg.theme==='HUECO'? 0xf1f5f9 : 0x1e293b, roughness: 0.8 });
-            const rockL = new THREE.Mesh(rockGeo, rockMat);
-            rockL.position.set(-MAP_WIDTH/2 - 5 + Math.random()*8, 8, -i*22);
-            rockL.scale.set(1.2, 2.5, 1.2);
-            const rockR = rockL.clone(); rockR.position.x = MAP_WIDTH/2 + 5 - Math.random()*8;
-            this.mapGroup.add(rockL, rockR);
-
-            if(i % 2 === 0) {
-                const crystalGeo = new THREE.ConeGeometry(2.5, 14, 5);
-                const crystalMat = new THREE.MeshStandardMaterial({ color: 0x7dd3fc, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0.85 });
-                const cry = new THREE.Mesh(crystalGeo, crystalMat);
-                cry.position.set(-MAP_WIDTH/2 + 12, 7, -i*22 + 5);
-                cry.rotation.z = 0.2;
-                const cryR = cry.clone(); cryR.position.x = MAP_WIDTH/2 - 12; cryR.rotation.z = -0.2;
-                this.mapGroup.add(cry, cryR);
-            }
-        }
-
-        // 차원 게이트
-        const gateGroup = new THREE.Group();
-        const gateRing = new THREE.Mesh(new THREE.TorusGeometry(18, 2.5, 16, 32), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
-        const gateCore = new THREE.Mesh(new THREE.CircleGeometry(16, 32), new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.65, side: THREE.DoubleSide }));
-        gateGroup.add(gateRing, gateCore);
-        gateGroup.position.set(0, 18, -MAP_LENGTH + 80);
-        this.portalGate = gateGroup;
-        this.mapGroup.add(this.portalGate);
-
-        this.scene.add(this.mapGroup);
-    }
-
-    spawnMobs() {
-        this.mobs.forEach(m => this.scene.remove(m.mesh)); this.mobs = [];
-        const cfg = CHAPTER_CONFIGS[this.chapterIndex];
-
-        for(let i=0; i<8; i++) {
-            const mob = new NormalMob(this, cfg);
-            let randX = (Math.random() - 0.5) * (MAP_WIDTH - 40);
-            let randZ = -Math.random() * (MAP_LENGTH - 150) - 20;
-            mob.mesh.position.set(randX, 0, randZ);
-            this.mobs.push(mob);
-        }
-    }
-
-    spawnBoss() {
-        this.enemies.forEach(e => this.scene.remove(e.mesh)); this.enemies = [];
-        this.projectiles.forEach(p => this.scene.remove(p.mesh)); this.projectiles = [];
-
-        const cfg = CHAPTER_CONFIGS[this.chapterIndex];
-        const boss = new ChapterBoss(this, cfg);
-        boss.mesh.position.set(0, 0, -MAP_LENGTH + 180);
-        this.enemies.push(boss);
-    }
-
-    triggerShake(amount = 0.5) { this.shakeTimer = amount; }
-
-    addParticles(pos, mainColor = 0x38bdf8, count = 15, scaleMult = 4.0) {
-        const icePalette = [0x7dd3fc, 0x38bdf8, 0xe0f2fe, 0xffffff];
-        for(let i=0; i<count; i++) {
-            const c = icePalette[i % icePalette.length];
-            const mat = new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: 0.9 });
-            const p = new THREE.Mesh(new THREE.BoxGeometry(0.4 * scaleMult, 0.4 * scaleMult, 0.4 * scaleMult), mat);
-            p.position.copy(pos);
-            p.userData = { vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() * 0.9 + 0.3), vz: (Math.random() - 0.5) * 1.5, life: 1.0 };
-            this.scene.add(p); this.particles.push(p);
-        }
-    }
-
-    add3DSlashEffect(pos, rotationY) {
-        const slashGeo = new THREE.RingGeometry(3.0, 9.0, 16, 1, 0, Math.PI * 0.85);
-        const slashMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
-        const slash = new THREE.Mesh(slashGeo, slashMat);
-        slash.position.copy(pos).add(new THREE.Vector3(0, 4, 0));
-        slash.rotation.x = Math.PI / 2.5; slash.rotation.z = Math.PI / 4; slash.rotation.y = rotationY;
-        this.scene.add(slash);
-        this.slashes.push({ mesh: slash, life: 1.0 });
-    }
-
-    renderMinimap() {
-        const ctx = this.minimapCtx;
-        ctx.clearRect(0, 0, 85, 85);
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.fillRect(0, 0, 85, 85);
-
-        const scale = 85 / MAP_LENGTH;
-        const centerX = 85 / 2;
-        const centerY = 85 / 2;
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.beginPath();
-        ctx.arc(centerX + (this.player.mesh.position.x * scale), centerY + (this.player.mesh.position.z * scale * 0.2), 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#facc15';
-        this.mobs.forEach(m => {
-            if (m.hp > 0) {
-                ctx.beginPath();
-                ctx.arc(centerX + (m.mesh.position.x * scale), centerY + (m.mesh.position.z * scale * 0.2), 2, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-
-        ctx.fillStyle = '#ef4444';
-        this.enemies.forEach(e => {
-            if (e.hp > 0) {
-                ctx.beginPath();
-                ctx.arc(centerX + (e.mesh.position.x * scale), centerY + (e.mesh.position.z * scale * 0.2), 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        });
-    }
-
-    updateAndCleanFX() {
-        for(let i = this.slashes.length - 1; i >= 0; i--) {
-            const s = this.slashes[i];
-            s.mesh.scale.addScalar(0.09);
-            s.life -= 0.08;
-            s.mesh.material.opacity = s.life;
-            if(s.life <= 0) { this.scene.remove(s.mesh); this.slashes.splice(i, 1); }
-        }
-
-        for(let i = this.particles.length - 1; i >= 0; i--) {
-            const p = this.particles[i];
-            p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
-            p.userData.life -= 0.038; p.material.opacity = p.userData.life;
-            if(p.userData.life <= 0) { this.scene.remove(p); this.particles.splice(i, 1); }
-        }
-
-        for(let i = this.projectiles.length - 1; i >= 0; i--) {
-            const proj = this.projectiles[i];
-            proj.mesh.position.addScaledVector(proj.dir, proj.speed);
-            proj.life -= 0.02;
-
-            if(proj.mesh.position.distanceTo(this.player.mesh.position) < 4.0) {
-                this.player.hp = Math.max(0, this.player.hp - proj.damage);
-                this.triggerShake(0.6);
-                this.popText(this.player.mesh.position, `💥 피격! -${proj.damage}`, 'ENEMY');
-                this.updateUI();
-                this.scene.remove(proj.mesh); this.projectiles.splice(i, 1);
-                continue;
-            }
-            if(proj.life <= 0) {
-                this.scene.remove(proj.mesh); this.projectiles.splice(i, 1);
-            }
-        }
-
-        if(this.portalGate) this.portalGate.rotation.z += 0.03;
-        this.renderMinimap();
-    }
-
-    applyCameraUpdate() {
-        let targetX = this.player.mesh.position.x;
-        let targetY = this.player.mesh.position.y + 35.0;
-        let targetZ = this.player.mesh.position.z + 42.0;
-
-        if (this.shakeTimer > 0) {
-            targetX += (Math.random() - 0.5) * this.shakeTimer * 3.5;
-            targetY += (Math.random() - 0.5) * this.shakeTimer * 3.5;
-            this.shakeTimer -= 0.04;
-        }
-
-        this.camera.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.15);
-        this.camera.lookAt(this.player.mesh.position.x, this.player.mesh.position.y + 6.0, this.player.mesh.position.z);
-    }
-
-    checkPortalInteraction() {
-        if(this.portalGate && this.player.mesh.position.distanceTo(this.portalGate.position) < 25.0) {
-            const aliveBoss = this.enemies.filter(e => e.hp > 0);
-            if(aliveBoss.length > 0) {
-                this.log(`⚠️ 보스를 토벌해야 다음 스토리아크로 진행할 수 있습니다!`);
-                this.player.mesh.position.z += 15.0; 
-            } else {
-                this.chapterIndex = (this.chapterIndex + 1) % CHAPTER_CONFIGS.length;
-                this.player.mesh.position.set(0, 0, 0); 
-                this.initWorld(); this.spawnMobs(); this.spawnBoss();
-                const cfg = CHAPTER_CONFIGS[this.chapterIndex];
-                this.log(`🌌 <b>[스토리 진하] ${cfg.act}: ${cfg.name}</b> 진입!`);
-                this.updateUI();
-            }
-        }
-    }
-
-    log(msg) { this.logBox.innerHTML = msg + "<br>" + this.logBox.innerHTML; }
-
-    updateUI() {
-        document.getElementById('hp-fill').style.width = (this.player.hp / this.player.maxHp * 100) + "%";
-        document.getElementById('hp-txt').innerText = `${Math.round(this.player.hp)} / ${this.player.maxHp}`;
-        document.getElementById('mp-fill').style.width = this.mp + "%";
-        document.getElementById('mp-txt').innerText = `${this.mp} / 100`;
-        
-        const cfg = CHAPTER_CONFIGS[this.chapterIndex];
-        const boss = this.enemies[0];
-        const bossHpBar = document.getElementById('boss-hp-container');
-
-        if (boss && boss.hp > 0 && this.player.mesh.position.distanceTo(boss.mesh.position) < 120.0) {
-            bossHpBar.style.display = 'flex';
-            document.getElementById('boss-name-tag').innerText = `BOSS: ${boss.name}`;
-            document.getElementById('boss-hp-fill').style.width = (boss.hp / boss.maxHp * 100) + "%";
-        } else {
-            bossHpBar.style.display = 'none';
-        }
-
-        const bossAlive = this.enemies.some(e => e.hp > 0);
-        document.getElementById('quest-act').innerText = `📜 [${cfg.act}] ${cfg.name}`;
-        document.getElementById('quest-title').innerText = cfg.title;
-        document.getElementById('quest-desc').innerText = bossAlive ? `필드 적 및 ${cfg.bossName} 토벌` : `🏆 차원 게이트로 이동하여 다음 ACT 진입`;
-        document.getElementById('zone-tag').innerText = `${cfg.act} ${cfg.name}`;
-    }
-
-    popText(pos, text, type = 'NORMAL') {
-        const p = pos.clone().project(this.camera);
-        const pop = document.createElement('div');
-        pop.className = "damage-popup " + (type === 'CRIT' ? "crit-popup" : (type === 'ENEMY' ? "enemy-skill-popup" : (type==='MOB'? "mob-hit-popup" : "")));
-        pop.innerText = text; 
-        pop.style.left = ((p.x * .5 + .5) * this.container.clientWidth) + "px"; 
-        pop.style.top = ((-(p.y * .5) + .5) * this.container.clientHeight) + "px";
-        this.container.appendChild(pop); setTimeout(() => pop.remove(), 600);
-    }
-
-    initEvents() {
-        const setKey = (id, dir, val) => {
-            const el = document.getElementById(id);
-            el.addEventListener('mousedown', () => this.keys[dir] = val);
-            el.addEventListener('mouseup', () => this.keys[dir] = !val);
-            el.addEventListener('touchstart', (e) => { e.preventDefault(); this.keys[dir] = val; });
-            el.addEventListener('touchend', (e) => { e.preventDefault(); this.keys[dir] = !val; });
-        };
-        setKey('dpad-up', 'up', true); setKey('dpad-down', 'down', true);
-        setKey('dpad-left', 'left', true); setKey('dpad-right', 'right', true);
-        
-        document.getElementById('btn-atk').addEventListener('click', () => this.player.attack());
-        document.getElementById('btn-skl').addEventListener('click', () => this.player.useSkill());
-        document.getElementById('btn-heal').addEventListener('click', () => this.useHealPotion());
-        document.getElementById('btn-ban').addEventListener('click', () => { 
-            if(this.mp >= 100 && !this.isSpecialActive) { this.mp = 0; this.isSpecialActive = true; this.player.activateBankai(); }
-        });
-    }
-    
-    useHealPotion() {
-        if (this.healCooldown || this.player.hp >= this.player.maxHp) return;
-        this.healCooldown = true; this.btnHeal.disabled = true;
-        this.player.hp = Math.min(this.player.maxHp, this.player.hp + 150);
-        this.popText(this.player.mesh.position, `💖 영압 회복`, 'NORMAL'); this.updateUI();
-        setTimeout(() => { this.healCooldown = false; this.btnHeal.disabled = false; }, 5000);
-    }
-}
-
-// 🧊 토시로 플레이어 클래스 (원작 애니 고증 비주얼)
-class ToshiroPlayer {
-    constructor(game) {
-        this.game = game; this.hp = 300; this.maxHp = 300; this.atk = 130; 
-        this.baseSpeed = 0.68;
-        this.mesh = new THREE.Group();
-        this.game.scene.add(this.mesh);
-        this.buildCanonToshiroModel();
-    }
-
-    buildCanonToshiroModel() {
-        const group = new THREE.Group();
-        
-        // 백색 은발 & 얼굴
-        const head = new THREE.Mesh(new THREE.SphereGeometry(1.5), new THREE.MeshStandardMaterial({ color: 0xffdfc4, roughness: 0.8 }));
-        head.position.y = 5.2;
-        const hair = new THREE.Mesh(new THREE.ConeGeometry(1.9, 2.4, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 }));
-        hair.position.set(0, 6.4, -0.1);
-
-        // 검은 사패장
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.3, 3.8), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 }));
-        body.position.y = 2.6;
-
-        // 원작 10번대 대장 초록색 어깨 끈 (Obi)
-        const greenRibbon = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.25, 8, 16), new THREE.MeshStandardMaterial({ color: 0x15803d }));
-        greenRibbon.position.set(0, 3.2, 0); greenRibbon.rotation.x = Math.PI / 3;
-
-        // 사대장 하오리 (백색)
-        const haori = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.9, 3.0, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0xf8fafc, side: THREE.DoubleSide, roughness: 0.5 }));
-        haori.position.y = 2.2;
-
-        group.add(head, hair, body, greenRibbon, haori);
-        const box = new THREE.Box3().setFromObject(group);
-        group.position.y = -box.min.y;
-        
-        this.mesh.add(group); this.model = group;
-    }
-
-    activateBankai() {
-        soundFx.playBankaiSFX();
-        const isAct5 = this.game.chapterIndex === 4;
-        const bankaiName = isAct5 ? "완성형 대홍련빙륜환 (성인화)" : "대홍련빙륜환";
-        
-        this.game.log(`🔮 <span style='color:#38bdf8;font-weight:900;'>[卍解] "${bankaiName}" 개방!</span>`);
-        this.game.popText(this.mesh.position, `🧊 만해 ${bankaiName}!`, 'CRIT');
-        this.game.triggerShake(1.2);
-        
-        // 투명 빙결 날개 전개
-        const wingMat = new THREE.MeshStandardMaterial({ color: 0xbae6fd, transparent: true, opacity: 0.85, roughness: 0.1 });
-        const wingL = new THREE.Mesh(new THREE.BoxGeometry(18, 1.4, 3.5), wingMat);
-        wingL.position.set(-9, 5.5, -1); wingL.rotation.z = 0.35;
-        const wingR = wingL.clone(); wingR.position.x = 9; wingR.rotation.z = -0.35;
-        this.mesh.add(wingL, wingR);
-
-        setTimeout(() => {
-            this.mesh.remove(wingL, wingR);
-            this.game.isSpecialActive = false; this.game.updateUI();
-        }, 12000);
-        this.game.updateUI();
-    }
-
-    attack() {
-        soundFx.playMetallicSlashSFX();
-        this.game.add3DSlashEffect(this.mesh.position, this.mesh.rotation.y);
-        this.game.addParticles(this.mesh.position.clone().add(new THREE.Vector3(0,3,-4).applyQuaternion(this.mesh.quaternion)), 0x38bdf8, 15, 4.0);
-        this.game.triggerShake(0.3);
-        
-        let range = this.game.isSpecialActive ? 26.0 : 16.0;
-
-        this.game.mobs.forEach(m => {
-            if (m.hp > 0 && this.mesh.position.distanceTo(m.mesh.position) < range) {
-                let dmg = this.atk * (this.game.isSpecialActive ? 2.6 : 1.0);
-                m.takeDamage(dmg);
-                this.game.popText(m.mesh.position, `⚔️ -${Math.round(dmg)}`, 'MOB');
-            }
-        });
-
-        this.game.enemies.forEach(e => {
-            if (e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < range) {
-                let dmg = this.atk * (this.game.isSpecialActive ? 3.0 : 1.0);
-                e.takeDamage(dmg);
-                this.game.popText(e.mesh.position, `💥 -${Math.round(dmg)}`, this.game.isSpecialActive ? 'CRIT' : 'NORMAL');
-            }
-        });
-
-        if(!this.game.isSpecialActive) this.game.mp = Math.min(100, this.game.mp + 15);
-        this.game.updateUI();
-    }
-    
-    useSkill() {
-        soundFx.playIceSkillSFX();
-        this.game.log(`❄️ <b>[오의] 대용권 빙룡선풍!</b>`);
-        this.game.triggerShake(1.2);
-
-        for(let r=0; r<Math.PI*2; r+=Math.PI/2) {
-            this.game.add3DSlashEffect(this.mesh.position, r);
-        }
-
-        this.game.mobs.forEach(m => {
-            if(m.hp > 0 && this.mesh.position.distanceTo(m.mesh.position) < 32.0) {
-                let dmg = this.atk * 3.2; m.takeDamage(dmg);
-                this.game.popText(m.mesh.position, `🐉 -${Math.round(dmg)}`, 'CRIT');
-            }
-        });
-
-        this.game.enemies.forEach(e => {
-            if(e.hp > 0 && this.mesh.position.distanceTo(e.mesh.position) < 32.0) {
-                let dmg = this.atk * 3.2; e.takeDamage(dmg);
-                this.game.popText(e.mesh.position, `🐉 -${Math.round(dmg)}`, 'CRIT');
-            }
-        });
-
-        this.game.updateUI();
-    }
-
-    move(delta) {
-        let dx = 0, dz = 0;
-        if (this.game.keys.up) dz = -1; if (this.game.keys.down) dz = 1;
-        if (this.game.keys.left) dx = -1; if (this.game.keys.right) dx = 1;
-        if (dx !== 0 || dz !== 0) {
-            let mag = Math.sqrt(dx*dx + dz*dz);
-            let currentSpeed = this.game.isSpecialActive ? this.baseSpeed * 2.5 : this.baseSpeed;
+    <div id="webgl-container"></div>
+
+    <div id="hud">
+        <div class="top-hud">
+            <div class="player-card">
+                <h2>
+                    <span>🌸 쿠사지시 야치루</span>
+                    <span style="font-size:0.75rem; color:#ffd700;">Lv.MAX</span>
+                </h2>
+                <div class="bar-bg"><div class="bar-hp" id="ui-hp-bar"></div></div>
+                <div class="bar-bg"><div class="bar-mp" id="ui-mp-bar"></div></div>
+                
+                <div class="btn-group">
+                    <button class="cfg-btn" onclick="document.getElementById('map-img-input').click()">🖼️ 맵 이미지 로드</button>
+                    <button class="cfg-btn" onclick="document.getElementById('glb-input').click()">📂 .GLB 캐릭 로드</button>
+                </div>
+            </div>
             
-            let nextX = this.mesh.position.x + (dx/mag) * currentSpeed;
-            let nextZ = this.mesh.position.z + (dz/mag) * currentSpeed;
-            if (Math.abs(nextX) < MAP_WIDTH / 2 - 5.0) this.mesh.position.x = nextX;
-            if (nextZ > -MAP_LENGTH + 40 && nextZ < 20) this.mesh.position.z = nextZ;
-            this.mesh.rotation.y = Math.atan2(dx, dz);
+            <div class="minimap-container">
+                <canvas id="minimap-canvas" width="125" height="125"></canvas>
+            </div>
+        </div>
+
+        <input type="file" id="map-img-input" accept="image/*" multiple style="display:none;" onchange="loadCustomMapTexture(event)">
+        <input type="file" id="glb-input" accept=".glb,.gltf" style="display:none;" onchange="loadCustomGLB(event)">
+
+        <div class="bottom-hud">
+            <div style="font-size:0.75rem; background:rgba(20,5,25,0.85); border:1px solid #ff69b4; padding:10px 14px; border-radius:10px; color:#ffc0cb; max-width: 400px; backdrop-filter: blur(8px);">
+                🌸 <b>[삼포검수 (三步劍獸)]</b> 시공간을 베는 야치루의 백호 참격<br>
+                ⚔️ <b>Space / 클릭:</b> 삼포참격 (야치루 + 前/後 2마리 야수 삼중 참격)<br>
+                👹 <b>E:</b> 삼포검수 회전 난무 | 🌸 <b>R:</b> 핑크 영압 폭발 | ⚡ <b>Shift:</b> 핑크 순보
+            </div>
+            <div class="action-btns">
+                <button class="btn-act skill-dash" onclick="useDash()">⚡<br>순보</button>
+                <button class="btn-act skill-b" onclick="useUltimate()">🌸<br>영압폭발</button>
+                <button class="btn-act skill-a" onclick="useBeastSkill()">👹<br>검수난무</button>
+                <button class="btn-act" onclick="playerAttack()">⚔️<br>삼포참격</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, minimapCtx;
+        let playerGroup, frontBeastMesh, backBeastMesh, particleGroup;
+        let groundTilesGroup;
+        let gltfAnimationMixer = null;
+        let keys = {};
+        let monsters = [];
+
+        let player = {
+            hp: 150, maxHp: 150, mp: 100, maxMp: 100,
+            atk: 45, angle: 0,
+            attackCooldown: false,
+            isDashing: false
+        };
+
+        // 기본 맵 이미지 리스트 (178.png, 352.png ~ 360.png)
+        const DEFAULT_MAP_IMAGES = [
+            '178.png', '352.png', '353.png', '354.png', '355.png',
+            '356.png', '357.png', '358.png', '359.png', '360.png'
+        ];
+
+        function init() {
+            const container = document.getElementById('webgl-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a030d);
+            scene.fog = new THREE.FogExp2(0x0a030d, 0.012);
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            minimapCtx = document.getElementById('minimap-canvas').getContext('2d');
+
+            // 조명 설정 (분홍빛 벚꽃 영압 조명)
+            scene.add(new THREE.AmbientLight(0xffb6c1, 0.85));
+            const dirLight = new THREE.DirectionalLight(0xff1493, 1.2);
+            dirLight.position.set(30, 60, 30);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            particleGroup = new THREE.Group();
+            scene.add(particleGroup);
+
+            // 🗺️ 커스텀 타일 필드 맵 생성
+            createTileMapField();
+
+            // 🌸 야치루 및 삼포검수(前獸 / 後獸) 3D 연출 생성
+            createYachiruAndBeasts();
+
+            // 몬스터 배치
+            spawnMonsters(16);
+
+            // 이벤트 리스너
+            window.addEventListener('keydown', e => { 
+                keys[e.key.toLowerCase()] = true; 
+                if (e.code === 'Space') playerAttack(); 
+                if (e.key.toLowerCase() === 'e') useBeastSkill();
+                if (e.key.toLowerCase() === 'r') useUltimate();
+                if (e.key === 'Shift' || e.key.toLowerCase() === 'q') useDash();
+            });
+            window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+            window.addEventListener('resize', onWindowResize);
+
+            updateUI();
+            animate();
         }
-    }
-}
 
-// 필드 일반 적
-class NormalMob {
-    constructor(game, cfg) {
-        this.game = game; this.name = cfg.mobName;
-        this.hp = cfg.mobHp; this.maxHp = this.hp; this.atk = 8; this.speed = 0.22;
-        this.mesh = new THREE.Group();
-        this.buildMobModel();
-        this.game.scene.add(this.mesh);
-    }
+        // 🗺️ 타일화된 3D 맵 필드 (업로드된 맵 이미지 자동 적용)
+        function createTileMapField() {
+            if (groundTilesGroup) scene.remove(groundTilesGroup);
+            groundTilesGroup = new THREE.Group();
 
-    buildMobModel() {
-        const group = new THREE.Group();
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.8, 5.0), new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.9 }));
-        body.position.y = 2.5;
-        const mask = new THREE.Mesh(new THREE.SphereGeometry(1.5), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 }));
-        mask.position.set(0, 5.5, 0);
-        group.add(body, mask);
-        const box = new THREE.Box3().setFromObject(group);
-        group.position.y = -box.min.y;
-        this.mesh.add(group);
-    }
+            const textureLoader = new THREE.TextureLoader();
+            const gridSize = 6; 
+            const tileSize = 35; 
 
-    takeDamage(amt) {
-        this.hp -= amt;
-        if (this.hp <= 0) {
-            this.game.addParticles(this.mesh.position, 0x38bdf8, 10, 3.0);
-            this.mesh.position.y = -100;
-            this.game.mp = Math.min(100, this.game.mp + 25);
-            this.game.log(`⚔️ 적 <b>[${this.name}]</b> 처치! (영압 +25)`);
-            this.game.updateUI();
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    const imgIndex = (r * gridSize + c) % DEFAULT_MAP_IMAGES.length;
+                    const imgPath = DEFAULT_MAP_IMAGES[imgIndex];
 
-            setTimeout(() => {
-                if(this.mesh) {
-                    let randX = (Math.random() - 0.5) * (MAP_WIDTH - 40);
-                    let randZ = -Math.random() * (MAP_LENGTH - 150) - 20;
-                    this.mesh.position.set(randX, 0, randZ);
-                    this.hp = this.maxHp;
+                    const geo = new THREE.PlaneGeometry(tileSize, tileSize);
+                    let mat;
+
+                    // 텍스처 로드 시도 (실패시 기본 테마 색상 적용)
+                    const texture = textureLoader.load(imgPath, 
+                        undefined, undefined, 
+                        () => { /* 로드 실패시 기본 서브 컬러 */ }
+                    );
+
+                    mat = new THREE.MeshStandardMaterial({ 
+                        map: texture, 
+                        color: 0xffffff,
+                        roughness: 0.6 
+                    });
+
+                    const tile = new THREE.Mesh(geo, mat);
+                    tile.rotation.x = -Math.PI / 2;
+                    tile.position.set(
+                        (c - gridSize / 2) * tileSize + tileSize/2,
+                        0,
+                        (r - gridSize / 2) * tileSize + tileSize/2
+                    );
+                    tile.receiveShadow = true;
+                    groundTilesGroup.add(tile);
                 }
-            }, 6000);
+            }
+
+            scene.add(groundTilesGroup);
         }
-    }
 
-    update() {
-        if (this.hp <= 0) return;
-        const pPos = this.game.player.mesh.position;
-        const dist = this.mesh.position.distanceTo(pPos);
+        // 🖼️ 사용자가 선택한 이미지들로 맵 텍스처 덮어쓰기
+        function loadCustomMapTexture(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
 
-        if (dist < 45.0) {
-            let dir = new THREE.Vector3().subVectors(pPos, this.mesh.position).normalize();
-            this.mesh.position.addScaledVector(dir, this.speed);
-            this.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+            const loadedURLs = [];
+            for (let i = 0; i < files.length; i++) {
+                loadedURLs.push(URL.createObjectURL(files[i]));
+            }
 
-            if (dist < 4.0) {
-                this.game.player.hp = Math.max(0, this.game.player.hp - this.atk * 0.08);
-                this.game.updateUI();
+            const textureLoader = new THREE.TextureLoader();
+            let idx = 0;
+            groundTilesGroup.children.forEach(tile => {
+                const url = loadedURLs[idx % loadedURLs.length];
+                tile.material.map = textureLoader.load(url);
+                tile.material.needsUpdate = true;
+                idx++;
+            });
+
+            alert(`🖼️ ${files.length}개의 맵 이미지가 타일 필드에 성공적으로 입혀졌습니다!`);
+        }
+
+        // 🌸 야치루 본체 + 삼포검수 2마리 3D 모델링 생성
+        function createYachiruAndBeasts() {
+            playerGroup = new THREE.Group();
+
+            // 1. 야치루 본체
+            const body = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.3, 0.2, 1.1, 12),
+                new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 }) // 사패장
+            );
+            body.position.y = 0.55;
+            body.castShadow = true;
+            playerGroup.add(body);
+
+            // 핑크 단발머리
+            const hair = new THREE.Mesh(
+                new THREE.SphereGeometry(0.38, 12, 12),
+                new THREE.MeshStandardMaterial({ color: 0xff1493, roughness: 0.2 })
+            );
+            hair.position.set(0, 1.05, 0);
+            playerGroup.add(hair);
+
+            // 참백도
+            const katana = new THREE.Mesh(
+                new THREE.BoxGeometry(0.06, 1.0, 0.12),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xff69b4, emissiveIntensity: 0.9 })
+            );
+            katana.position.set(0.35, 0.65, 0.25);
+            katana.rotation.x = Math.PI / 4;
+            playerGroup.add(katana);
+
+            // 2. 앞의 검수 [前獸 - 모구라]: 길쭉한 뼈 골면 마스크 야수
+            frontBeastMesh = new THREE.Group();
+            const fHead = new THREE.Mesh(
+                new THREE.ConeGeometry(0.4, 0.9, 8),
+                new THREE.MeshStandardMaterial({ color: 0xdddddd, emissive: 0x442244 })
+            );
+            fHead.rotation.x = -Math.PI / 2;
+            fHead.position.set(0, 0.8, 0);
+            frontBeastMesh.add(fHead);
+
+            const fSword = new THREE.Mesh(
+                new THREE.BoxGeometry(0.1, 1.6, 0.2),
+                new THREE.MeshStandardMaterial({ color: 0x888888, emissive: 0x9b5de5 })
+            );
+            fSword.position.set(0.4, 0.8, 0.3);
+            frontBeastMesh.add(fSword);
+
+            frontBeastMesh.position.set(0, 0, 1.6); // 야치루 앞배치
+            frontBeastMesh.scale.set(0.001, 0.001, 0.001); // 숨김 상태
+            playerGroup.add(frontBeastMesh);
+
+            // 3. 뒤의 검수 [後獸 - 호네호네]: 노란색/핑크 복슬복슬 야수
+            backBeastMesh = new THREE.Group();
+            const bBody = new THREE.Mesh(
+                new THREE.DodecahedronGeometry(0.65),
+                new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.9 })
+            );
+            bBody.position.y = 0.7;
+            backBeastMesh.add(bBody);
+
+            backBeastMesh.position.set(0, 0, -1.6); // 야치루 뒷배치
+            backBeastMesh.scale.set(0.001, 0.001, 0.001); // 숨김 상태
+            playerGroup.add(backBeastMesh);
+
+            scene.add(playerGroup);
+        }
+
+        // ⚔️ [삼포참격 (三步斬擊)] - 원작 야치루 삼포검수 연출
+        function playerAttack() {
+            if (player.attackCooldown) return;
+            player.attackCooldown = true;
+
+            // 1타: 야치루 본인 참격
+            spawnPinkSlashArc(playerGroup.position, player.angle, 0, 0xff1493);
+            executeDamageHit(0, 1.0);
+
+            // 2타: 前獸(앞의 뼈 야수) 출현 및 참격 (시차 0.08초)
+            setTimeout(() => {
+                frontBeastMesh.scale.set(1.2, 1.2, 1.2);
+                spawnPinkSlashArc(playerGroup.position, player.angle, 1.8, 0x9b5de5);
+                spawnParticles(playerGroup.position.x + Math.sin(player.angle)*1.8, 1, playerGroup.position.z + Math.cos(player.angle)*1.8, 0x9b5de5, 15);
+                executeDamageHit(1.8, 0.85);
+            }, 80);
+
+            // 3타: 後獸(뒤의 털 야수) 출현 및 참격 (시차 0.16초)
+            setTimeout(() => {
+                backBeastMesh.scale.set(1.3, 1.3, 1.3);
+                spawnPinkSlashArc(playerGroup.position, player.angle, -1.5, 0xffd700);
+                spawnParticles(playerGroup.position.x - Math.sin(player.angle)*1.5, 1, playerGroup.position.z - Math.cos(player.angle)*1.5, 0xffd700, 15);
+                executeDamageHit(-1.5, 0.85);
+            }, 160);
+
+            // 검수 원위치 및 쿨타임 해제
+            setTimeout(() => {
+                frontBeastMesh.scale.set(0.001, 0.001, 0.001);
+                backBeastMesh.scale.set(0.001, 0.001, 0.001);
+                player.attackCooldown = false;
+            }, 320);
+        }
+
+        // 👹 [삼포검수 난무] - 전방 2마리 검수 소환용 연속 팽이 회전
+        function useBeastSkill() {
+            if (player.mp < 25 || player.attackCooldown) return;
+            player.mp -= 25;
+            player.attackCooldown = true;
+
+            frontBeastMesh.scale.set(1.4, 1.4, 1.4);
+            backBeastMesh.scale.set(1.4, 1.4, 1.4);
+
+            let spins = 0;
+            const interval = setInterval(() => {
+                playerGroup.rotation.y += Math.PI / 2;
+                spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0xff1493, 15);
+                
+                monsters.forEach(m => {
+                    if (playerGroup.position.distanceTo(m.mesh.position) < 5.0) {
+                        let dmg = Math.floor(player.atk * 0.85);
+                        m.hp -= dmg;
+                        showDamageText(dmg, m.mesh.position, '#ff69b4');
+                    }
+                });
+
+                spins++;
+                if (spins >= 6) {
+                    clearInterval(interval);
+                    frontBeastMesh.scale.set(0.001, 0.001, 0.001);
+                    backBeastMesh.scale.set(0.001, 0.001, 0.001);
+                    player.attackCooldown = false;
+                }
+            }, 60);
+
+            updateUI();
+        }
+
+        // 🌸 [핑크 영압 폭발] - 화면 전체 광범위 충격파
+        function useUltimate() {
+            if (player.mp < 40 || player.attackCooldown) return;
+            player.mp -= 40;
+            player.attackCooldown = true;
+
+            // 거대 핑크 영압 기둥
+            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0xff1493, 100);
+
+            monsters.forEach(m => {
+                if (playerGroup.position.distanceTo(m.mesh.position) < 9.5) {
+                    let dmg = Math.floor(player.atk * 3.5);
+                    m.hp -= dmg;
+                    showDamageText(`💥${dmg}`, m.mesh.position, '#ffd700');
+                    
+                    // 대형 넉백
+                    const dir = m.mesh.position.clone().sub(playerGroup.position).normalize();
+                    m.mesh.position.addScaledVector(dir, 4.5);
+                }
+            });
+
+            setTimeout(() => { player.attackCooldown = false; }, 400);
+            updateUI();
+        }
+
+        // ⚡ [순보] - 분홍 잔영 순보 이동
+        function useDash() {
+            if (player.mp < 10 || player.isDashing) return;
+            player.mp -= 10;
+            player.isDashing = true;
+
+            spawnParticles(playerGroup.position.x, 0.8, playerGroup.position.z, 0xff69b4, 25);
+
+            playerGroup.position.x += Math.sin(player.angle) * 7.5;
+            playerGroup.position.z += Math.cos(player.angle) * 7.5;
+
+            spawnParticles(playerGroup.position.x, 0.8, playerGroup.position.z, 0x00f5d4, 25);
+
+            setTimeout(() => { player.isDashing = false; }, 200);
+            updateUI();
+        }
+
+        function executeDamageHit(offsetZ, mult) {
+            const hitPos = new THREE.Vector3(
+                playerGroup.position.x + Math.sin(player.angle) * offsetZ,
+                playerGroup.position.y + 0.8,
+                playerGroup.position.z + Math.cos(player.angle) * offsetZ
+            );
+
+            monsters.forEach(m => {
+                if (hitPos.distanceTo(m.mesh.position) < 3.5) {
+                    let dmg = Math.floor(player.atk * mult + Math.random() * 6);
+                    m.hp -= dmg;
+                    showDamageText(dmg, m.mesh.position, '#ff69b4');
+                }
+            });
+        }
+
+        // 3D 참격 궤적 시각화 효과
+        function spawnPinkSlashArc(pos, angle, offsetZ, colorHex) {
+            const arcGeo = new THREE.RingGeometry(1.2, 2.2, 16, 1, 0, Math.PI);
+            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+            const arcMesh = new THREE.Mesh(arcGeo, arcMat);
+
+            arcMesh.rotation.x = Math.PI / 2;
+            arcMesh.rotation.z = -angle + Math.PI / 2;
+
+            arcMesh.position.set(
+                pos.x + Math.sin(angle) * offsetZ,
+                pos.y + 0.8,
+                pos.z + Math.cos(angle) * offsetZ
+            );
+
+            scene.add(arcMesh);
+
+            let opacity = 0.9;
+            const fade = setInterval(() => {
+                opacity -= 0.15;
+                arcMesh.material.opacity = opacity;
+                if (opacity <= 0) {
+                    clearInterval(fade);
+                    scene.remove(arcMesh);
+                }
+            }, 30);
+        }
+
+        // 📂 .GLB 캐릭 파일 업로드 로더
+        function loadCustomGLB(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const url = URL.createObjectURL(file);
+            const loader = new THREE.GLTFLoader();
+
+            loader.load(url, (gltf) => {
+                scene.remove(playerGroup);
+                playerGroup = new THREE.Group();
+
+                const loadedModel = gltf.scene;
+                loadedModel.scale.set(1.3, 1.3, 1.3);
+                loadedModel.traverse((c) => { if (c.isMesh) c.castShadow = true; });
+
+                playerGroup.add(loadedModel);
+                
+                // 삼포검수 야수 2마리 다시 바인딩
+                playerGroup.add(frontBeastMesh);
+                playerGroup.add(backBeastMesh);
+
+                scene.add(playerGroup);
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    gltfAnimationMixer = new THREE.AnimationMixer(loadedModel);
+                    gltfAnimationMixer.clipAction(gltf.animations[0]).play();
+                }
+
+                alert("🌸 야치루 3D 모델이 적용되었습니다!");
+            });
+        }
+
+        function spawnMonsters(count) {
+            for (let i = 0; i < count; i++) {
+                const group = new THREE.Group();
+                const mesh = new THREE.Mesh(
+                    new THREE.DodecahedronGeometry(0.85),
+                    new THREE.MeshStandardMaterial({ color: 0x7b2cbf, roughness: 0.3 })
+                );
+                mesh.position.y = 0.85;
+                mesh.castShadow = true;
+                group.add(mesh);
+
+                let rx = (Math.random() - 0.5) * 120;
+                let rz = (Math.random() - 0.5) * 120;
+                if (Math.abs(rx) < 10) rx += 18;
+                group.position.set(rx, 0, rz);
+
+                scene.add(group);
+                monsters.push({ mesh: group, hp: 110, maxHp: 110, speed: 0.04 + Math.random() * 0.02 });
             }
         }
-    }
-}
 
-// 각 ACT별 보스 클래스
-class ChapterBoss {
-    constructor(game, cfg) {
-        this.game = game; this.name = cfg.bossName;
-        this.hp = cfg.bossHp; this.maxHp = this.hp; this.atk = cfg.bossAtk;
-        this.speed = 0.18; this.detectionRange = 110.0;
-        this.mesh = new THREE.Group();
-        this.skillCooldown = 0;
+        function updateGame() {
+            // Movement
+            let moveX = 0, moveZ = 0;
+            const speed = 0.24;
 
-        this.buildBossModel();
-        this.game.scene.add(this.mesh);
-        this.game.log(`👾 <b>[보스 강림]</b> ${this.name} 등장!`);
-    }
+            if (keys['w'] || keys['arrowup']) moveZ -= 1;
+            if (keys['s'] || keys['arrowdown']) moveZ += 1;
+            if (keys['a'] || keys['arrowleft']) moveX -= 1;
+            if (keys['d'] || keys['arrowright']) moveX += 1;
 
-    buildBossModel() {
-        const group = new THREE.Group();
-        const torso = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 6, 22), new THREE.MeshStandardMaterial({ color: 0x020617, roughness: 0.9 }));
-        torso.position.y = 11;
-        const mask = new THREE.Mesh(new THREE.BoxGeometry(6.5, 8.5, 4.5), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 }));
-        mask.position.set(0, 21, 2);
-        group.add(torso, mask);
-        const box = new THREE.Box3().setFromObject(group);
-        group.position.y = -box.min.y;
-        this.mesh.add(group);
-    }
+            if (moveX !== 0 || moveZ !== 0) {
+                const angle = Math.atan2(moveX, moveZ);
+                player.angle = angle;
+                playerGroup.rotation.y = angle;
 
-    takeDamage(amt) {
-        this.hp = Math.max(0, this.hp - amt);
-        if(this.hp <= 0) { 
-            this.game.addParticles(this.mesh.position, 0xef4444, 40, 7.0);
-            this.mesh.position.y = -200; 
-            this.game.updateUI(); 
-            this.game.log(`🏆 <b>[스토리 보스 토벌 성공!]</b> ${this.name} 처치! 차원 게이트로 이동하세요.`);
-        }
-    }
+                playerGroup.position.x += Math.sin(angle) * speed;
+                playerGroup.position.z += Math.cos(angle) * speed;
 
-    useAbility(pPos) {
-        let dir = new THREE.Vector3().subVectors(pPos, this.mesh.position).normalize();
-        this.game.popText(this.mesh.position, `💥 영압 탄격!`, 'ENEMY');
-        const ball = new THREE.Mesh(new THREE.SphereGeometry(3.2), new THREE.MeshBasicMaterial({ color: 0xf43f5e }));
-        ball.position.copy(this.mesh.position).add(new THREE.Vector3(0, 14, 0));
-        this.game.scene.add(ball);
-        this.game.projectiles.push({ mesh: ball, dir: dir, speed: 0.88, damage: 42, life: 1.0 });
-    }
-
-    update() {
-        if(this.hp <= 0) return;
-        const pPos = this.game.player.mesh.position;
-        const dist = this.mesh.position.distanceTo(pPos);
-
-        if (dist < this.detectionRange) {
-            let dir = new THREE.Vector3().subVectors(pPos, this.mesh.position).normalize();
-            this.mesh.position.addScaledVector(dir, this.speed);
-            this.mesh.rotation.y = Math.atan2(dir.x, dir.z);
-
-            this.skillCooldown += 0.02;
-            if(this.skillCooldown > 2.6) {
-                this.skillCooldown = 0; this.useAbility(pPos);
+                player.mp = Math.min(player.maxMp, player.mp + 0.08);
+                updateUI();
             }
-            if(dist < 10.0) {
-                this.game.player.hp = Math.max(0, this.game.player.hp - this.atk); 
-                this.game.triggerShake(0.3);
-                this.game.updateUI();
+
+            // Monster Logic
+            for (let i = monsters.length - 1; i >= 0; i--) {
+                const m = monsters[i];
+                if (m.hp <= 0) {
+                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0x7b2cbf, 20);
+                    scene.remove(m.mesh);
+                    monsters.splice(i, 1);
+                    continue;
+                }
+
+                const dist = m.mesh.position.distanceTo(playerGroup.position);
+                if (dist < 20 && dist > 1.2) {
+                    m.mesh.position.x += ((playerGroup.position.x - m.mesh.position.x) / dist) * m.speed;
+                    m.mesh.position.z += ((playerGroup.position.z - m.mesh.position.z) / dist) * m.speed;
+                    m.mesh.lookAt(playerGroup.position);
+                }
+            }
+
+            // Camera Tracking
+            camera.position.x = playerGroup.position.x;
+            camera.position.y = playerGroup.position.y + 12;
+            camera.position.z = playerGroup.position.z + 14;
+            camera.lookAt(playerGroup.position);
+
+            drawMinimap();
+        }
+
+        function drawMinimap() {
+            minimapCtx.clearRect(0, 0, 125, 125);
+            const cx = 62.5, cy = 62.5, scale = 0.85;
+
+            // Player Dot
+            minimapCtx.fillStyle = '#ff69b4';
+            minimapCtx.beginPath();
+            minimapCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+            minimapCtx.fill();
+
+            // Monster Dots
+            minimapCtx.fillStyle = '#9b5de5';
+            monsters.forEach(m => {
+                const dx = (m.mesh.position.x - playerGroup.position.x) * scale;
+                const dz = (m.mesh.position.z - playerGroup.position.z) * scale;
+                if (Math.abs(dx) < 55 && Math.abs(dz) < 55) {
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(cx + dx, cy + dz, 2.5, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            });
+        }
+
+        function spawnParticles(x, y, z, colorHex, count = 10) {
+            for(let i = 0; i < count; i++) {
+                const p = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.12), new THREE.MeshBasicMaterial({ color: colorHex }));
+                p.position.set(x, y, z);
+                p.userData = { vx: (Math.random() - 0.5) * 0.3, vy: Math.random() * 0.25, vz: (Math.random() - 0.5) * 0.3, life: 1.0 };
+                particleGroup.add(p);
             }
         }
-    }
-}
 
-let gameInstance = null;
-window.onload = () => {
-    gameInstance = new Game();
-    function animate() {
-        requestAnimationFrame(animate);
-        if (gameInstance) {
-            const delta = gameInstance.clock.getDelta();
-            gameInstance.player.move(delta); 
-            gameInstance.mobs.forEach(m => m.update());
-            gameInstance.enemies.forEach(e => e.update()); 
-            gameInstance.updateAndCleanFX();
-            gameInstance.checkPortalInteraction();
-            gameInstance.applyCameraUpdate(); 
-            gameInstance.renderer.render(gameInstance.scene, gameInstance.camera);
+        function showDamageText(dmg, pos, color = '#ff69b4') {
+            const el = document.createElement('div');
+            el.className = 'dmg-float';
+            el.innerText = `${dmg}`;
+            el.style.color = color;
+
+            const vector = pos.clone().project(camera);
+            const x = (vector.x * .5 + .5) * window.innerWidth;
+            const y = (-(vector.y * .5) + .5) * window.innerHeight;
+
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 800);
         }
-    }
-    animate();
-};
-</script>
+
+        function updateUI() {
+            document.getElementById('ui-hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
+            document.getElementById('ui-mp-bar').style.width = `${(player.mp / player.maxMp) * 100}%`;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            updateGame();
+
+            if (gltfAnimationMixer) gltfAnimationMixer.update(0.016);
+
+            // Particles update
+            for (let i = particleGroup.children.length - 1; i >= 0; i--) {
+                let p = particleGroup.children[i];
+                p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
+                p.userData.life -= 0.04; p.scale.setScalar(p.userData.life);
+                if (p.userData.life <= 0) particleGroup.remove(p);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
