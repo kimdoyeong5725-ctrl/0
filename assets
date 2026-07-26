@@ -1,0 +1,4 @@
+├── index.html
+└── assets/
+    ├── yachiru.glb   (야치루 3D 모델)
+    └── hollow.glb    (호로 몬스터 3D 모델)
