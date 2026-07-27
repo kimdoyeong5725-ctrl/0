@@ -3,58 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>블리치: 삼포검수 - 풀 액션 RPG</title>
+    <title>블리치: 삼포검수 - 풀 3D 퀄리티 RPG</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', sans-serif; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #050508; color: #fff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; color: #fff; }
         #webgl-container { width: 100%; height: 100%; display: block; }
 
-        /* Top Header UI */
-        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; }
-        .top-hud { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 10px; }
+        /* Game Start Title Overlay */
+        #title-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(10,5,20,0.95), rgba(30,10,40,0.95)); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(8px); }
+        #title-screen h1 { font-size: 2.8rem; color: #ff1493; text-shadow: 0 0 20px #ff1493, 0 0 40px #8a2be2; margin-bottom: 10px; letter-spacing: 2px; text-align: center; }
+        #title-screen p { color: #aaa; margin-bottom: 30px; font-size: 1rem; }
+        .btn-start { padding: 16px 45px; font-size: 1.2rem; font-weight: bold; color: #fff; background: linear-gradient(90deg, #ff1493, #8a2be2); border: none; border-radius: 30px; cursor: pointer; box-shadow: 0 0 25px rgba(255,20,147,0.6); transition: transform 0.2s; }
+        .btn-start:active { transform: scale(0.95); }
 
-        /* Player Profile Card */
-        .player-card { background: rgba(12, 10, 24, 0.88); border: 2px solid #ff1493; border-left: 5px solid #ff1493; padding: 10px 14px; border-radius: 8px; width: 220px; pointer-events: auto; box-shadow: 0 0 15px rgba(255, 20, 147, 0.3); }
-        .player-card h2 { font-size: 0.95rem; color: #ff69b4; margin-bottom: 4px; display: flex; justify-content: space-between; }
-        .bar-bg { width: 100%; height: 9px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
-        .bar-hp { height: 100%; background: linear-gradient(90deg, #e6005c, #ff1493); width: 100%; transition: width 0.15s; }
-        .bar-mp { height: 100%; background: linear-gradient(90deg, #7b1fa2, #ba55d3); width: 100%; transition: width 0.15s; }
-        .bar-exp { height: 100%; background: linear-gradient(90deg, #00bfff, #1e90ff); width: 0%; transition: width 0.15s; }
-        .stat-text { font-size: 0.75rem; color: #ffd700; font-weight: bold; margin-top: 2px; }
+        /* HUD UI Elements */
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 14px; display: none; }
+        .top-hud { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
 
-        /* Boss Health Bar */
-        #boss-bar-container { display: none; flex-direction: column; align-items: center; width: 50%; max-width: 400px; background: rgba(0,0,0,0.8); border: 2px solid #ff0000; padding: 6px 12px; border-radius: 8px; }
-        #boss-name { color: #ff3333; font-weight: bold; font-size: 0.9rem; margin-bottom: 4px; letter-spacing: 1px; }
-        .bar-boss { height: 12px; background: linear-gradient(90deg, #990000, #ff0000); width: 100%; transition: width 0.15s; }
+        /* Player Stats Card */
+        .player-card { background: rgba(12, 10, 24, 0.85); border: 2px solid #ff1493; border-left: 6px solid #ff1493; padding: 10px 14px; border-radius: 10px; width: 230px; pointer-events: auto; box-shadow: 0 0 20px rgba(255, 20, 147, 0.3); backdrop-filter: blur(5px); }
+        .player-card h2 { font-size: 1rem; color: #ff69b4; margin-bottom: 6px; display: flex; justify-content: space-between; text-shadow: 0 0 5px #ff1493; }
+        .bar-bg { width: 100%; height: 10px; background: rgba(255,255,255,0.12); border-radius: 5px; overflow: hidden; margin-bottom: 5px; }
+        .bar-hp { height: 100%; background: linear-gradient(90deg, #ff0055, #ff1493); width: 100%; transition: width 0.2s; }
+        .bar-mp { height: 100%; background: linear-gradient(90deg, #7b1fa2, #ba55d3); width: 100%; transition: width 0.2s; }
+        .bar-exp { height: 100%; background: linear-gradient(90deg, #00bfff, #1e90ff); width: 0%; transition: width 0.2s; }
+        .stat-text { font-size: 0.8rem; color: #ffd700; font-weight: bold; margin-top: 4px; }
 
-        /* Menu Buttons (GLB Upload & Shop) */
+        /* Boss Health Bar Overlay */
+        #boss-hud { display: none; flex-direction: column; align-items: center; width: 45%; max-width: 450px; background: rgba(10, 0, 0, 0.85); border: 2px solid #ff0000; padding: 8px 16px; border-radius: 10px; box-shadow: 0 0 20px rgba(255,0,0,0.5); }
+        #boss-name { color: #ff3333; font-weight: 900; font-size: 1rem; margin-bottom: 4px; text-shadow: 0 0 8px #ff0000; letter-spacing: 1px; }
+        .bar-boss { height: 14px; background: linear-gradient(90deg, #800000, #ff0000); width: 100%; transition: width 0.15s; }
+
+        /* Menu Bar */
         .menu-btns { display: flex; gap: 8px; pointer-events: auto; }
-        .btn-menu { background: rgba(20, 20, 35, 0.9); border: 1px solid #ff69b4; color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; backdrop-filter: blur(4px); }
+        .btn-menu { background: rgba(20, 15, 35, 0.85); border: 1px solid #ff69b4; color: #fff; padding: 8px 12px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255,105,180,0.2); }
         .btn-menu:active { background: #ff1493; }
 
-        /* Shop & Stat Upgrade Modal */
-        #shop-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.9); display: none; justify-content: center; align-items: center; z-index: 100; pointer-events: auto; }
-        .shop-box { background: #12101f; border: 2px solid #ff1493; padding: 20px; border-radius: 12px; width: 90%; max-width: 420px; box-shadow: 0 0 25px rgba(255, 20, 147, 0.4); }
-        .shop-box h3 { color: #ff69b4; text-align: center; margin-bottom: 15px; font-size: 1.3rem; border-bottom: 1px solid rgba(255,105,180,0.3); padding-bottom: 8px; }
-        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 6px; }
-        .shop-item span { font-size: 0.85rem; color: #ddd; }
-        .btn-buy { background: #8a2be2; border: none; color: #fff; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .btn-buy:active { background: #ff1493; }
-        .btn-close-shop { width: 100%; margin-top: 10px; background: #333; border: 1px solid #666; color: #fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        /* Dynamic Combo Display */
+        #combo-box { position: absolute; top: 110px; right: 20px; text-align: right; pointer-events: none; opacity: 0; transition: opacity 0.2s, transform 0.1s; }
+        #combo-count { font-size: 3rem; font-weight: 900; color: #ff007f; text-shadow: 0 0 15px #ff007f, 0 0 30px #ffffff; font-style: italic; }
+        #combo-label { font-size: 1rem; color: #ffd700; font-weight: bold; letter-spacing: 2px; }
 
-        /* Bottom Controls */
+        /* Shop Modal */
+        #shop-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); display: none; justify-content: center; align-items: center; z-index: 100; pointer-events: auto; backdrop-filter: blur(10px); }
+        .shop-box { background: #120e24; border: 2px solid #ff1493; padding: 24px; border-radius: 16px; width: 90%; max-width: 440px; box-shadow: 0 0 35px rgba(255, 20, 147, 0.5); }
+        .shop-box h3 { color: #ff69b4; text-align: center; margin-bottom: 18px; font-size: 1.4rem; border-bottom: 1px solid rgba(255,105,180,0.3); padding-bottom: 10px; text-shadow: 0 0 8px #ff1493; }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); }
+        .shop-item span { font-size: 0.9rem; color: #eee; }
+        .btn-buy { background: linear-gradient(135deg, #8a2be2, #ff1493); border: none; color: #fff; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-close-shop { width: 100%; margin-top: 12px; background: #222; border: 1px solid #555; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* Mobile Controls */
         .bottom-hud { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; pointer-events: auto; }
-        #joystick-zone { width: 120px; height: 120px; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 105, 180, 0.5); border-radius: 50%; position: relative; touch-action: none; }
-        #joystick-knob { width: 44px; height: 44px; background: radial-gradient(circle, #ff1493, #7b1fa2); border: 2px solid #fff; border-radius: 50%; position: absolute; top: 38px; left: 38px; }
+        #joystick-zone { width: 130px; height: 130px; background: rgba(255, 255, 255, 0.06); border: 2px solid rgba(255, 105, 180, 0.4); border-radius: 50%; position: relative; touch-action: none; }
+        #joystick-knob { width: 48px; height: 48px; background: radial-gradient(circle, #ff1493, #7b1fa2); border: 2px solid #fff; border-radius: 50%; position: absolute; top: 41px; left: 41px; box-shadow: 0 0 10px #ff1493; }
 
-        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .btn-act { width: 52px; height: 52px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(15, 10, 25, 0.9); color: #ff69b4; font-weight: bold; font-size: 0.7rem; display: flex; flex-direction: column; justify-content: center; align-items: center; touch-action: manipulation; }
+        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .btn-act { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(15, 10, 25, 0.9); color: #ff69b4; font-weight: bold; font-size: 0.72rem; display: flex; flex-direction: column; justify-content: center; align-items: center; touch-action: manipulation; box-shadow: 0 0 12px rgba(255,105,180,0.3); }
         .btn-act:active { transform: scale(0.92); background: #ff1493; color: #fff; }
-        .btn-act.main-atk { width: 66px; height: 66px; background: linear-gradient(135deg, #ff1493, #8a2be2); color: #fff; border: 2px solid #fff; grid-column: span 3; justify-self: center; font-size: 0.85rem; }
+        .btn-act.main-atk { width: 72px; height: 72px; background: linear-gradient(135deg, #ff1493, #8a2be2); color: #fff; border: 2px solid #fff; grid-column: span 3; justify-self: center; font-size: 0.9rem; box-shadow: 0 0 20px rgba(255,20,147,0.7); }
 
         /* Floating Damage Text */
-        .dmg-float { position: absolute; font-weight: 900; font-size: 1.5rem; pointer-events: none; animation: floatUp 0.6s forwards; text-shadow: 0 0 8px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-35px) scale(0.8); } }
+        .dmg-float { position: absolute; font-weight: 900; font-size: 1.6rem; pointer-events: none; animation: floatUp 0.65s ease-out forwards; text-shadow: 0 0 10px #000, 0 0 5px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1.3); } 100% { opacity: 0; transform: translateY(-40px) scale(0.8); } }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -66,6 +77,12 @@
 
     <input type="file" id="glb-file-input" accept=".glb,.gltf" style="display:none;" onchange="handleGLBUpload(event)">
 
+    <div id="title-screen">
+        <h1>BLEACH: 삼포검수</h1>
+        <p>풀 액션 3D RPG 에디션</p>
+        <button class="btn-start" onclick="startGame()">⚔️ 게임 시작</button>
+    </div>
+
     <div id="hud">
         <div class="top-hud">
             <div class="player-card">
@@ -76,15 +93,21 @@
                 <div class="stat-text">💎 영자: <span id="ui-gold">0</span> | 🧪 포션: <span id="ui-potion">2</span>개</div>
             </div>
 
-            <div id="boss-bar-container">
+            <div id="boss-hud">
                 <div id="boss-name">☠️ 메노스 그란데 (BOSS)</div>
                 <div class="bar-bg"><div class="bar-boss" id="ui-boss-hp"></div></div>
             </div>
 
             <div class="menu-btns">
+                <button class="btn-menu" onclick="switchMap()">📍 맵 변경</button>
                 <button class="btn-menu" onclick="document.getElementById('glb-file-input').click()">📁 GLB 로드</button>
-                <button class="btn-menu" onclick="toggleShop(true)">🛒 상점/강화</button>
+                <button class="btn-menu" onclick="toggleShop(true)">🛒 상점</button>
             </div>
+        </div>
+
+        <div id="combo-box">
+            <div id="combo-count">0</div>
+            <div id="combo-label">COMBO</div>
         </div>
 
         <div class="bottom-hud">
@@ -92,7 +115,7 @@
             <div class="action-grid">
                 <button class="btn-act" onclick="usePotion()">🧪<br>포션</button>
                 <button class="btn-act" onclick="useDash()">⚡<br>순보</button>
-                <button class="btn-act" onclick="useUltimate()">🌀<br>영압</button>
+                <button class="btn-act" onclick="useUltimate()">🌀<br>영압해방</button>
                 <button class="btn-act main-atk" onclick="playerAttack()">⚔️<br>삼포참격</button>
             </div>
         </div>
@@ -123,46 +146,60 @@
 
     <script>
         let scene, camera, renderer, gltfLoader;
-        let playerGroup, customGLBMesh, frontBeastMesh, backBeastMesh, particleGroup;
+        let playerGroup, frontBeastMesh, backBeastMesh, particleGroup, sakuraGroup, mapGroup;
         let monsters = [];
-
         let joystickInput = { x: 0, z: 0, active: false };
         let activeBoss = null;
+        let shakeIntensity = 0;
+        let comboCount = 0, comboTimer = null;
+        let currentMapTheme = 0; // 0: Soul Society, 1: Hueco Mundo
 
         // Player Stats
         let player = {
             level: 1, exp: 0, maxExp: 100, gold: 0, potions: 2,
             hp: 250, maxHp: 250, mp: 100, maxMp: 100,
-            atk: 70, speed: 0.32, angle: 0,
+            atk: 70, speed: 0.35, angle: 0,
             attackCooldown: false, isDashing: false
         };
+
+        function startGame() {
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('hud').style.display = 'flex';
+        }
 
         function init() {
             const container = document.getElementById('webgl-container');
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x06060c);
-            scene.fog = new THREE.FogExp2(0x06060c, 0.012);
-
-            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
             gltfLoader = new THREE.GLTFLoader();
 
-            // Lighting
-            scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-            const dirLight = new THREE.DirectionalLight(0xfff0f5, 1.6);
-            dirLight.position.set(30, 60, 30);
+            // Lighting Setup
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xfff0f5, 1.8);
+            dirLight.position.set(40, 80, 40);
             dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
             scene.add(dirLight);
 
             particleGroup = new THREE.Group();
+            sakuraGroup = new THREE.Group();
+            mapGroup = new THREE.Group();
             scene.add(particleGroup);
+            scene.add(sakuraGroup);
+            scene.add(mapGroup);
 
-            createSeireiteiMap();
+            buildHighQualityMap(0); // Default: Soul Society
             createYachiruCharacter();
             spawnMonsterWave();
             setupJoystick();
@@ -171,52 +208,168 @@
             animate();
         }
 
-        // 🏯 Map Creation
-        function createSeireiteiMap() {
-            const floorGeo = new THREE.PlaneGeometry(240, 240);
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, roughness: 0.8 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+        // 🎨 Procedural High-Res Stone Texture Generator
+        function createProceduralStoneTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = "#22222c"; ctx.fillRect(0, 0, 512, 512);
+            ctx.strokeStyle = "#111116"; ctx.lineWidth = 4;
+
+            const tileSize = 64;
+            for (let x = 0; x <= 512; x += tileSize) {
+                for (let y = 0; y <= 512; y += tileSize) {
+                    ctx.fillStyle = `rgb(${30 + Math.random()*15}, ${28 + Math.random()*15}, ${38 + Math.random()*15})`;
+                    ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
+                    ctx.strokeRect(x, y, tileSize, tileSize);
+                }
+            }
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(12, 12);
+            return texture;
+        }
+
+        // 🏰 High-Quality Map Builder (Soul Society & Hueco Mundo)
+        function buildHighQualityMap(theme) {
+            while(mapGroup.children.length > 0) mapGroup.remove(mapGroup.children[0]);
+            while(sakuraGroup.children.length > 0) sakuraGroup.remove(sakuraGroup.children[0]);
+
+            if (theme === 0) { // 🌸 Soul Society (Seireitei)
+                scene.background = new THREE.Color(0x0a0a16);
+                scene.fog = new THREE.FogExp2(0x0a0a16, 0.009);
+
+                // Stone Floor
+                const stoneTexture = createProceduralStoneTexture();
+                const floorGeo = new THREE.PlaneGeometry(260, 260);
+                const floorMat = new THREE.MeshStandardMaterial({ map: stoneTexture, roughness: 0.6, metalness: 0.1 });
+                const floor = new THREE.Mesh(floorGeo, floorMat);
+                floor.rotation.x = -Math.PI / 2;
+                floor.receiveShadow = true;
+                mapGroup.add(floor);
+
+                // Boundary Seireitei Japanese Walls
+                const wallMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.5 });
+                const roofMat = new THREE.MeshStandardMaterial({ color: 0x1f1f2e, roughness: 0.3 });
+
+                createWallBorder(-120, 120, true, wallMat, roofMat);
+                createWallBorder(-120, 120, false, wallMat, roofMat);
+
+                // Torii Gate Structure
+                const toriiMat = new THREE.MeshStandardMaterial({ color: 0xb22222, roughness: 0.4 });
+                const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 12), toriiMat); p1.position.set(-8, 6, -60);
+                const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 12), toriiMat); p2.position.set(8, 6, -60);
+                const topBeam = new THREE.Mesh(new THREE.BoxGeometry(22, 1.2, 1.6), toriiMat); topBeam.position.set(0, 11.5, -60);
+                mapGroup.add(p1, p2, topBeam);
+
+                // Sakura Trees & Flying Petals
+                for (let i = 0; i < 18; i++) {
+                    let sx = (Math.random() - 0.5) * 200;
+                    let sz = (Math.random() - 0.5) * 200;
+                    if (Math.abs(sx) > 20 || Math.abs(sz) > 20) createSakuraTree(sx, sz);
+                }
+
+                // Falling Sakura Particles
+                for (let i = 0; i < 150; i++) {
+                    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 0.25), new THREE.MeshBasicMaterial({ color: 0xffb6c1, side: THREE.DoubleSide }));
+                    p.position.set((Math.random() - 0.5) * 220, Math.random() * 20 + 2, (Math.random() - 0.5) * 220);
+                    p.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+                    p.userData = { speedY: Math.random() * 0.05 + 0.02, rotSpeed: Math.random() * 0.02 };
+                    sakuraGroup.add(p);
+                }
+
+            } else { // 🌙 Hueco Mundo (Las Noches)
+                scene.background = new THREE.Color(0x030611);
+                scene.fog = new THREE.FogExp2(0x030611, 0.008);
+
+                // White Sand Floor
+                const floorGeo = new THREE.PlaneGeometry(260, 260);
+                const floorMat = new THREE.MeshStandardMaterial({ color: 0xdcdcdc, roughness: 0.9 });
+                const floor = new THREE.Mesh(floorGeo, floorMat);
+                floor.rotation.x = -Math.PI / 2;
+                floor.receiveShadow = true;
+                mapGroup.add(floor);
+
+                // White Quartz Pillars
+                const pillarMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.3 });
+                for (let i = 0; i < 24; i++) {
+                    const pillar = new THREE.Mesh(new THREE.BoxGeometry(4, 35, 4), pillarMat);
+                    let px = (Math.random() - 0.5) * 210;
+                    let pz = (Math.random() - 0.5) * 210;
+                    pillar.position.set(px, 17.5, pz);
+                    mapGroup.add(pillar);
+                }
+            }
+        }
+
+        function createWallBorder(min, max, isHorizontal, wallMat, roofMat) {
+            [-120, 120].forEach(pos => {
+                const wall = new THREE.Mesh(new THREE.BoxGeometry(isHorizontal ? 240 : 3, 6, isHorizontal ? 3 : 240), wallMat);
+                const roof = new THREE.Mesh(new THREE.BoxGeometry(isHorizontal ? 242 : 4, 1.2, isHorizontal ? 4 : 242), roofMat);
+                wall.position.set(isHorizontal ? 0 : pos, 3, isHorizontal ? pos : 0);
+                roof.position.set(isHorizontal ? 0 : pos, 6.4, isHorizontal ? pos : 0);
+                mapGroup.add(wall, roof);
+            });
+        }
+
+        function createSakuraTree(x, z) {
+            const trunkGeo = new THREE.CylinderGeometry(0.6, 1.0, 7);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2314 });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.set(x, 3.5, z);
+
+            const foliageMat = new THREE.MeshStandardMaterial({ color: 0xff69b4, roughness: 0.8 });
+            for(let i = 0; i < 4; i++) {
+                const foliage = new THREE.Mesh(new THREE.SphereGeometry(2.2 - i*0.3, 8, 8), foliageMat);
+                foliage.position.set(x + (Math.random()-0.5)*1.5, 6.5 + i*1.2, z + (Math.random()-0.5)*1.5);
+                mapGroup.add(foliage);
+            }
+            mapGroup.add(trunk);
+        }
+
+        function switchMap() {
+            currentMapTheme = currentMapTheme === 0 ? 1 : 0;
+            buildHighQualityMap(currentMapTheme);
         }
 
         // 🌸 Character Creation
         function createYachiruCharacter() {
             playerGroup = new THREE.Group();
 
-            // Default Mesh
             const defaultMesh = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.4, 1.4, 16), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-            body.position.y = 0.7;
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x111116 }));
+            body.position.y = 0.75;
             defaultMesh.add(body);
-            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff1493 }));
-            hair.position.y = 1.5;
+
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff1493, roughness: 0.4 }));
+            hair.position.y = 1.65;
             defaultMesh.add(hair);
 
             playerGroup.add(defaultMesh);
 
-            // Triple-Blade Beasts (삼포검수 야수)
+            // Triple-Blade Beast Meshes (삼포검수 야수)
             frontBeastMesh = new THREE.Group();
-            const fMesh = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x8a2be2 }));
-            fMesh.rotation.x = -Math.PI / 2; fMesh.position.y = 0.8;
+            const fMesh = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0x8a2be2 }));
+            fMesh.rotation.x = -Math.PI / 2; fMesh.position.y = 0.9;
             frontBeastMesh.add(fMesh);
-            frontBeastMesh.position.set(0, 0, 1.8);
+            frontBeastMesh.position.set(0, 0, 2.0);
             frontBeastMesh.scale.set(0.001, 0.001, 0.001);
             playerGroup.add(frontBeastMesh);
 
             backBeastMesh = new THREE.Group();
-            const bMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
-            bMesh.position.y = 0.8;
+            const bMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
+            bMesh.position.y = 0.9;
             backBeastMesh.add(bMesh);
-            backBeastMesh.position.set(0, 0, -1.8);
+            backBeastMesh.position.set(0, 0, -2.0);
             backBeastMesh.scale.set(0.001, 0.001, 0.001);
             playerGroup.add(backBeastMesh);
 
             scene.add(playerGroup);
         }
 
-        // 📁 User GLB Upload Loader Function
+        // 📁 User GLB Upload Loader
         function handleGLBUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -225,74 +378,88 @@
             gltfLoader.load(url, (gltf) => {
                 const model = gltf.scene;
 
-                // Auto Scale & Pivot Alignment
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
                 const maxDim = Math.max(size.x, size.y, size.z);
-                const scale = 2.2 / (maxDim || 1);
+                const scale = 2.4 / (maxDim || 1);
                 model.scale.set(scale, scale, scale);
 
                 const adjustedBox = new THREE.Box3().setFromObject(model);
                 model.position.y = -adjustedBox.min.y;
 
-                model.traverse(child => { if (child.isMesh) child.castShadow = true; });
+                model.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
 
-                // Remove existing visual meshes except beasts
                 playerGroup.children.forEach(child => {
-                    if (child !== frontBeastMesh && child !== backBeastMesh) {
-                        playerGroup.remove(child);
-                    }
+                    if (child !== frontBeastMesh && child !== backBeastMesh) playerGroup.remove(child);
                 });
 
                 playerGroup.add(model);
-                spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00bfff, 40);
-                alert("🎉 GLB 3D 모델을 성공적으로 적용했습니다!");
-            }, undefined, (err) => {
-                alert("⚠️ GLB 파일을 로드하지 못했습니다.");
-            });
+                spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00e5ff, 40);
+                alert("🎉 커스텀 3D GLB 모델이 정상 반영되었습니다!");
+            }, undefined, (err) => { alert("⚠️ GLB 파일 로드 중 오류 발생."); });
         }
 
-        // 👹 Monster Wave & Boss Spawn
+        // 👹 Spawn Monsters & Boss
         function spawnMonsterWave() {
             for (let i = 0; i < 6; i++) spawnMonster(false);
-            spawnMonster(true); // Boss
+            spawnMonster(true);
         }
 
         function spawnMonster(isBoss) {
             const mGroup = new THREE.Group();
-            const scaleSize = isBoss ? 4.5 : 1.8;
-
             const body = new THREE.Mesh(
-                new THREE.BoxGeometry(0.8, isBoss ? 2.5 : 1.4, 0.8),
-                new THREE.MeshStandardMaterial({ color: isBoss ? 0xff0033 : 0x4a148c })
+                new THREE.BoxGeometry(isBoss ? 2.5 : 1.0, isBoss ? 5.5 : 1.6, isBoss ? 2.5 : 1.0),
+                new THREE.MeshStandardMaterial({ color: isBoss ? 0xa00000 : 0x3a0066, roughness: 0.4 })
             );
-            body.position.y = isBoss ? 1.25 : 0.7;
+            body.position.y = isBoss ? 2.75 : 0.8;
+            body.castShadow = true;
             mGroup.add(body);
 
-            const mask = new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-            mask.position.set(0, isBoss ? 2.4 : 1.3, 0.3);
+            // Hollow Mask
+            const mask = new THREE.Mesh(new THREE.SphereGeometry(isBoss ? 1.2 : 0.5, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            mask.position.set(0, isBoss ? 4.8 : 1.4, isBoss ? 1.0 : 0.4);
             mGroup.add(mask);
 
-            let rx = (Math.random() - 0.5) * 110;
-            let rz = (Math.random() - 0.5) * 110;
-            if (Math.abs(rx) < 15) rx += 25;
+            let rx = (Math.random() - 0.5) * 120;
+            let rz = (Math.random() - 0.5) * 120;
+            if (Math.abs(rx) < 20) rx += 30;
             mGroup.position.set(rx, 0, rz);
 
             scene.add(mGroup);
             const mData = {
-                mesh: mGroup, hp: isBoss ? 1500 : 200, maxHp: isBoss ? 1500 : 200,
-                atk: isBoss ? 35 : 12, speed: isBoss ? 0.08 : 0.1, isBoss: isBoss, lastAttack: 0
+                mesh: mGroup, hp: isBoss ? 2000 : 220, maxHp: isBoss ? 2000 : 220,
+                atk: isBoss ? 40 : 14, speed: isBoss ? 0.08 : 0.12, isBoss: isBoss,
+                lastAttack: 0, aoeCircle: null
             };
 
             monsters.push(mData);
             if (isBoss) {
                 activeBoss = mData;
-                document.getElementById('boss-bar-container').style.display = 'flex';
+                document.getElementById('boss-hud').style.display = 'flex';
                 updateBossUI();
             }
         }
 
-        // ⚔️ Attack Actions
+        // ⚔️ Combat Actions
+        function triggerCombo() {
+            comboCount++;
+            const box = document.getElementById('combo-box');
+            document.getElementById('combo-count').innerText = comboCount;
+            box.style.opacity = '1';
+            box.style.transform = 'scale(1.2)';
+            setTimeout(() => { box.style.transform = 'scale(1.0)'; }, 100);
+
+            clearTimeout(comboTimer);
+            comboTimer = setTimeout(() => {
+                comboCount = 0;
+                box.style.opacity = '0';
+            }, 2000);
+        }
+
+        function triggerScreenShake(amount) {
+            shakeIntensity = amount;
+        }
+
         function playerAttack() {
             if (player.attackCooldown) return;
             player.attackCooldown = true;
@@ -301,22 +468,22 @@
             executeHit(0, 1.0);
 
             setTimeout(() => {
-                frontBeastMesh.scale.set(1.4, 1.4, 1.4);
-                spawnSlashArc(playerGroup.position, player.angle, 2.2, 0x8a2be2);
-                executeHit(2.2, 1.2);
-            }, 90);
+                frontBeastMesh.scale.set(1.5, 1.5, 1.5);
+                spawnSlashArc(playerGroup.position, player.angle, 2.4, 0x8a2be2);
+                executeHit(2.4, 1.25);
+            }, 100);
 
             setTimeout(() => {
-                backBeastMesh.scale.set(1.5, 1.5, 1.5);
-                spawnSlashArc(playerGroup.position, player.angle, -1.8, 0xffd700);
-                executeHit(-1.8, 1.3);
-            }, 180);
+                backBeastMesh.scale.set(1.6, 1.6, 1.6);
+                spawnSlashArc(playerGroup.position, player.angle, -2.0, 0xffd700);
+                executeHit(-2.0, 1.4);
+            }, 200);
 
             setTimeout(() => {
                 frontBeastMesh.scale.set(0.001, 0.001, 0.001);
                 backBeastMesh.scale.set(0.001, 0.001, 0.001);
                 player.attackCooldown = false;
-            }, 340);
+            }, 360);
         }
 
         function useUltimate() {
@@ -324,11 +491,14 @@
             player.mp -= 40;
             player.attackCooldown = true;
 
-            spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0x8a2be2, 80);
+            triggerScreenShake(0.8);
+            spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0x8a2be2, 100);
+
             monsters.forEach(m => {
-                if (playerGroup.position.distanceTo(m.mesh.position) < 14.0) {
-                    let dmg = Math.floor(player.atk * 4.2);
+                if (playerGroup.position.distanceTo(m.mesh.position) < 16.0) {
+                    let dmg = Math.floor(player.atk * 4.5);
                     m.hp -= dmg;
+                    triggerCombo();
                     showDamageText(`💥${dmg}`, m.mesh.position, '#ba55d3');
                 }
             });
@@ -341,8 +511,11 @@
             if (player.mp < 10 || player.isDashing) return;
             player.mp -= 10;
             player.isDashing = true;
-            playerGroup.position.x += Math.sin(player.angle) * 8.5;
-            playerGroup.position.z += Math.cos(player.angle) * 8.5;
+
+            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0xff1493, 20);
+            playerGroup.position.x += Math.sin(player.angle) * 9.5;
+            playerGroup.position.z += Math.cos(player.angle) * 9.5;
+
             setTimeout(() => { player.isDashing = false; }, 180);
             updateUI();
         }
@@ -350,8 +523,8 @@
         function usePotion() {
             if (player.potions <= 0) return alert("포션이 부족합니다! 상점에서 구매하세요.");
             player.potions--;
-            player.hp = Math.min(player.maxHp, player.hp + 120);
-            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00ff00, 30);
+            player.hp = Math.min(player.maxHp, player.hp + 140);
+            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00ff7f, 35);
             updateUI();
         }
 
@@ -363,9 +536,11 @@
             );
 
             monsters.forEach(m => {
-                if (hitPos.distanceTo(m.mesh.position) < 5.0) {
-                    let dmg = Math.floor(player.atk * mult + Math.random() * 10);
+                if (hitPos.distanceTo(m.mesh.position) < 5.5) {
+                    let dmg = Math.floor(player.atk * mult + Math.random() * 12);
                     m.hp -= dmg;
+                    triggerCombo();
+                    triggerScreenShake(0.2);
                     showDamageText(dmg, m.mesh.position, m.isBoss ? '#ff0000' : '#ff1493');
                     if (m.isBoss) updateBossUI();
                 }
@@ -373,15 +548,15 @@
         }
 
         function spawnSlashArc(pos, angle, offsetZ, colorHex) {
-            const arcGeo = new THREE.RingGeometry(1.8, 3.2, 16, 1, 0, Math.PI);
-            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+            const arcGeo = new THREE.RingGeometry(2.0, 3.6, 16, 1, 0, Math.PI);
+            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.95 });
             const arcMesh = new THREE.Mesh(arcGeo, arcMat);
             arcMesh.rotation.x = Math.PI / 2;
             arcMesh.rotation.z = -angle + Math.PI / 2;
             arcMesh.position.set(pos.x + Math.sin(angle) * offsetZ, pos.y + 1.2, pos.z + Math.cos(angle) * offsetZ);
 
             scene.add(arcMesh);
-            let opacity = 0.9;
+            let opacity = 0.95;
             const fade = setInterval(() => {
                 opacity -= 0.18;
                 arcMesh.material.opacity = opacity;
@@ -389,23 +564,15 @@
             }, 30);
         }
 
-        // 🛒 Shop & Upgrades
-        function toggleShop(show) {
-            document.getElementById('shop-modal').style.display = show ? 'flex' : 'none';
-        }
+        // 🛒 Shop System
+        function toggleShop(show) { document.getElementById('shop-modal').style.display = show ? 'flex' : 'none'; }
 
         function buyUpgrade(type) {
-            if (type === 'atk' && player.gold >= 50) {
-                player.gold -= 50; player.atk += 15;
-            } else if (type === 'hp' && player.gold >= 60) {
-                player.gold -= 60; player.maxHp += 50; player.hp += 50;
-            } else if (type === 'spd' && player.gold >= 80) {
-                player.gold -= 80; player.speed += 0.04;
-            } else if (type === 'potion' && player.gold >= 30) {
-                player.gold -= 30; player.potions++;
-            } else {
-                return alert("영자가 부족합니다!");
-            }
+            if (type === 'atk' && player.gold >= 50) { player.gold -= 50; player.atk += 15; }
+            else if (type === 'hp' && player.gold >= 60) { player.gold -= 60; player.maxHp += 50; player.hp += 50; }
+            else if (type === 'spd' && player.gold >= 80) { player.gold -= 80; player.speed += 0.04; }
+            else if (type === 'potion' && player.gold >= 30) { player.gold -= 30; player.potions++; }
+            else { return alert("영자가 부족합니다!"); }
             updateUI();
         }
 
@@ -419,8 +586,8 @@
                 player.maxExp = Math.floor(player.maxExp * 1.4);
                 player.hp = player.maxHp;
                 player.mp = player.maxMp;
-                player.atk += 10;
-                spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0xffd700, 50);
+                player.atk += 12;
+                spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0xffd700, 60);
                 showDamageText("LEVEL UP!", playerGroup.position, "#ffd700");
             }
             updateUI();
@@ -429,7 +596,7 @@
         function setupJoystick() {
             const zone = document.getElementById('joystick-zone');
             const knob = document.getElementById('joystick-knob');
-            const maxRadius = 38;
+            const maxRadius = 40;
 
             function handleTouch(e) {
                 const touch = e.touches[0];
@@ -458,6 +625,7 @@
         }
 
         function updateGame() {
+            // Player Movement
             if (joystickInput.active) {
                 const moveX = joystickInput.x;
                 const moveZ = joystickInput.z;
@@ -468,56 +636,94 @@
                 playerGroup.position.x += moveX * player.speed;
                 playerGroup.position.z += moveZ * player.speed;
 
-                player.mp = Math.min(player.maxMp, player.mp + 0.12);
+                player.mp = Math.min(player.maxMp, player.mp + 0.15);
                 updateUI();
             }
 
             const now = Date.now();
 
-            // Monster Loop & Combat Logic
+            // Monster Logic & Boss AOE Pattern
             for (let i = monsters.length - 1; i >= 0; i--) {
                 const m = monsters[i];
 
                 if (m.hp <= 0) {
-                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0xff0055, 30);
+                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0xff0055, 35);
+                    if (m.aoeCircle) scene.remove(m.aoeCircle);
                     scene.remove(m.mesh);
                     monsters.splice(i, 1);
 
                     if (m.isBoss) {
                         activeBoss = null;
-                        document.getElementById('boss-bar-container').style.display = 'none';
-                        addExpAndGold(250, 200);
-                        setTimeout(() => spawnMonsterWave(), 3000); // Reset Wave
+                        document.getElementById('boss-hud').style.display = 'none';
+                        addExpAndGold(300, 250);
+                        setTimeout(() => spawnMonsterWave(), 3500);
                     } else {
-                        addExpAndGold(40, 25);
+                        addExpAndGold(45, 30);
                     }
                     continue;
                 }
 
                 const dist = m.mesh.position.distanceTo(playerGroup.position);
-                if (dist > 1.8) {
+
+                // Boss Red AOE Danger Pattern
+                if (m.isBoss && dist < 18 && !m.aoeCircle && Math.random() < 0.01) {
+                    const circleGeo = new THREE.RingGeometry(0.1, 5.0, 32);
+                    const circleMat = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
+                    m.aoeCircle = new THREE.Mesh(circleGeo, circleMat);
+                    m.aoeCircle.rotation.x = Math.PI / 2;
+                    m.aoeCircle.position.set(playerGroup.position.x, 0.05, playerGroup.position.z);
+                    scene.add(m.aoeCircle);
+
+                    setTimeout(() => {
+                        if (m.aoeCircle) {
+                            if (playerGroup.position.distanceTo(m.aoeCircle.position) < 5.0) {
+                                player.hp = Math.max(0, player.hp - 60);
+                                triggerScreenShake(0.6);
+                                showDamageText(`💣-60`, playerGroup.position, '#ff0000');
+                                updateUI();
+                            }
+                            scene.remove(m.aoeCircle);
+                            m.aoeCircle = null;
+                        }
+                    }, 1200);
+                }
+
+                if (dist > 2.0) {
                     m.mesh.position.x += ((playerGroup.position.x - m.mesh.position.x) / dist) * m.speed;
                     m.mesh.position.z += ((playerGroup.position.z - m.mesh.position.z) / dist) * m.speed;
                     m.mesh.lookAt(playerGroup.position);
                 } else {
-                    if (now - m.lastAttack > 1200) {
+                    if (now - m.lastAttack > 1100) {
                         m.lastAttack = now;
                         player.hp = Math.max(0, player.hp - m.atk);
+                        triggerScreenShake(0.3);
                         showDamageText(`-${m.atk}`, playerGroup.position, '#ff0000');
                         updateUI();
                     }
                 }
             }
 
-            camera.position.set(playerGroup.position.x, playerGroup.position.y + 17, playerGroup.position.z + 19);
+            // Sakura Petals Animate
+            sakuraGroup.children.forEach(p => {
+                p.position.y -= p.userData.speedY;
+                p.rotation.x += p.userData.rotSpeed;
+                if (p.position.y < 0) p.position.y = 20;
+            });
+
+            // Camera Follow & Screen Shake
+            let shakeX = (Math.random() - 0.5) * shakeIntensity;
+            let shakeY = (Math.random() - 0.5) * shakeIntensity;
+            if (shakeIntensity > 0) shakeIntensity -= 0.05;
+
+            camera.position.set(playerGroup.position.x + shakeX, playerGroup.position.y + 18 + shakeY, playerGroup.position.z + 20);
             camera.lookAt(playerGroup.position);
         }
 
-        function spawnParticles(x, y, z, colorHex, count = 12) {
+        function spawnParticles(x, y, z, colorHex, count = 15) {
             for (let i = 0; i < count; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: colorHex }));
+                const p = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), new THREE.MeshBasicMaterial({ color: colorHex }));
                 p.position.set(x, y, z);
-                p.userData = { vx: (Math.random() - 0.5) * 0.4, vy: Math.random() * 0.4, vz: (Math.random() - 0.5) * 0.4, life: 1.0 };
+                p.userData = { vx: (Math.random() - 0.5) * 0.45, vy: Math.random() * 0.45, vz: (Math.random() - 0.5) * 0.45, life: 1.0 };
                 particleGroup.add(p);
             }
         }
@@ -534,7 +740,7 @@
 
             el.style.left = `${x}px`; el.style.top = `${y}px`;
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 600);
+            setTimeout(() => el.remove(), 650);
         }
 
         function updateUI() {
@@ -547,7 +753,7 @@
 
             document.getElementById('info-atk').innerText = `현재: ${player.atk}`;
             document.getElementById('info-hp').innerText = `현재: ${player.maxHp}`;
-            document.getElementById('info-spd').innerText = `현재: ${Math.round((player.speed / 0.32) * 100)}%`;
+            document.getElementById('info-spd').innerText = `현재: ${Math.round((player.speed / 0.35) * 100)}%`;
         }
 
         function updateBossUI() {
@@ -563,7 +769,7 @@
             for (let i = particleGroup.children.length - 1; i >= 0; i--) {
                 let p = particleGroup.children[i];
                 p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
-                p.userData.life -= 0.05; p.scale.setScalar(p.userData.life);
+                p.userData.life -= 0.04; p.scale.setScalar(p.userData.life);
                 if (p.userData.life <= 0) particleGroup.remove(p);
             }
 
