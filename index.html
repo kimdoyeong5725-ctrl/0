@@ -3,69 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>블리치: 삼포검수 - 풀 3D 퀄리티 RPG</title>
+    <title>블리치: 정령정 대전 - 참백도 & 입체 배경 RPG</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; color: #fff; }
         #webgl-container { width: 100%; height: 100%; display: block; }
 
-        /* Game Start Title Overlay */
-        #title-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(10,5,20,0.95), rgba(30,10,40,0.95)); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(8px); }
-        #title-screen h1 { font-size: 2.8rem; color: #ff1493; text-shadow: 0 0 20px #ff1493, 0 0 40px #8a2be2; margin-bottom: 10px; letter-spacing: 2px; text-align: center; }
-        #title-screen p { color: #aaa; margin-bottom: 30px; font-size: 1rem; }
-        .btn-start { padding: 16px 45px; font-size: 1.2rem; font-weight: bold; color: #fff; background: linear-gradient(90deg, #ff1493, #8a2be2); border: none; border-radius: 30px; cursor: pointer; box-shadow: 0 0 25px rgba(255,20,147,0.6); transition: transform 0.2s; }
-        .btn-start:active { transform: scale(0.95); }
+        /* 🏛️ Main Lobby UI */
+        #lobby-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(8, 5, 20, 0.96), rgba(30, 8, 45, 0.96)); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(12px); }
+        #lobby-screen h1 { font-size: 2.5rem; color: #ff1493; text-shadow: 0 0 20px #ff1493, 0 0 40px #8a2be2; margin-bottom: 4px; letter-spacing: 2px; text-align: center; }
+        #lobby-screen p { color: #aaa; margin-bottom: 20px; font-size: 0.9rem; }
 
-        /* HUD UI Elements */
-        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 14px; display: none; }
+        .lobby-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 105, 180, 0.3); padding: 16px 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; min-width: 300px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .mat-row { display: flex; justify-content: space-around; margin-bottom: 10px; font-weight: bold; font-size: 0.95rem; }
+        .lobby-info { font-size: 0.82rem; color: #00e5ff; margin-top: 4px; }
+
+        .lobby-btn-group { display: flex; flex-direction: column; gap: 10px; width: 250px; }
+        .btn-lobby { padding: 12px; font-size: 1rem; font-weight: bold; color: #fff; background: linear-gradient(90deg, #8a2be2, #ff1493); border: none; border-radius: 20px; cursor: pointer; box-shadow: 0 0 15px rgba(255,20,147,0.4); transition: transform 0.15s; }
+        .btn-lobby.play { background: linear-gradient(90deg, #ff1493, #ff4500); font-size: 1.15rem; }
+        .btn-lobby:active { transform: scale(0.95); }
+
+        /* ⚔️ In-Game HUD UI */
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; display: none; }
         .top-hud { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
 
-        /* Player Stats Card */
-        .player-card { background: rgba(12, 10, 24, 0.85); border: 2px solid #ff1493; border-left: 6px solid #ff1493; padding: 10px 14px; border-radius: 10px; width: 230px; pointer-events: auto; box-shadow: 0 0 20px rgba(255, 20, 147, 0.3); backdrop-filter: blur(5px); }
-        .player-card h2 { font-size: 1rem; color: #ff69b4; margin-bottom: 6px; display: flex; justify-content: space-between; text-shadow: 0 0 5px #ff1493; }
-        .bar-bg { width: 100%; height: 10px; background: rgba(255,255,255,0.12); border-radius: 5px; overflow: hidden; margin-bottom: 5px; }
-        .bar-hp { height: 100%; background: linear-gradient(90deg, #ff0055, #ff1493); width: 100%; transition: width 0.2s; }
-        .bar-mp { height: 100%; background: linear-gradient(90deg, #7b1fa2, #ba55d3); width: 100%; transition: width 0.2s; }
-        .bar-exp { height: 100%; background: linear-gradient(90deg, #00bfff, #1e90ff); width: 0%; transition: width 0.2s; }
-        .stat-text { font-size: 0.8rem; color: #ffd700; font-weight: bold; margin-top: 4px; }
+        /* Player Card */
+        .player-card { background: rgba(10, 8, 20, 0.88); border: 2px solid #ff1493; border-left: 5px solid #ff1493; padding: 10px 12px; border-radius: 8px; width: 240px; pointer-events: auto; box-shadow: 0 0 15px rgba(255, 20, 147, 0.3); backdrop-filter: blur(6px); }
+        .player-card h2 { font-size: 0.95rem; color: #ff69b4; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+        .bar-hp { height: 100%; background: linear-gradient(90deg, #ff0055, #ff1493); width: 100%; transition: width 0.15s; }
+        .bar-mp { height: 100%; background: linear-gradient(90deg, #7b1fa2, #ba55d3); width: 100%; transition: width 0.15s; }
+        .stat-text { font-size: 0.72rem; color: #ffd700; font-weight: bold; margin-top: 2px; }
 
-        /* Boss Health Bar Overlay */
-        #boss-hud { display: none; flex-direction: column; align-items: center; width: 45%; max-width: 450px; background: rgba(10, 0, 0, 0.85); border: 2px solid #ff0000; padding: 8px 16px; border-radius: 10px; box-shadow: 0 0 20px rgba(255,0,0,0.5); }
-        #boss-name { color: #ff3333; font-weight: 900; font-size: 1rem; margin-bottom: 4px; text-shadow: 0 0 8px #ff0000; letter-spacing: 1px; }
-        .bar-boss { height: 14px; background: linear-gradient(90deg, #800000, #ff0000); width: 100%; transition: width 0.15s; }
+        /* Boss Health Bar */
+        #boss-hud { display: none; flex-direction: column; align-items: center; width: 40%; max-width: 380px; background: rgba(10, 0, 0, 0.85); border: 2px solid #ff0000; padding: 6px 12px; border-radius: 8px; box-shadow: 0 0 15px rgba(255,0,0,0.5); }
+        #boss-name { color: #ff3333; font-weight: 900; font-size: 0.88rem; margin-bottom: 3px; letter-spacing: 1px; }
+        .bar-boss { height: 10px; background: linear-gradient(90deg, #800000, #ff0000); width: 100%; transition: width 0.15s; }
 
-        /* Menu Bar */
-        .menu-btns { display: flex; gap: 8px; pointer-events: auto; }
-        .btn-menu { background: rgba(20, 15, 35, 0.85); border: 1px solid #ff69b4; color: #fff; padding: 8px 12px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 0 10px rgba(255,105,180,0.2); }
+        /* Top Menu Buttons */
+        .menu-btns { display: flex; gap: 6px; pointer-events: auto; }
+        .btn-menu { background: rgba(20, 15, 35, 0.85); border: 1px solid #ff69b4; color: #fff; padding: 8px 10px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; cursor: pointer; backdrop-filter: blur(4px); }
         .btn-menu:active { background: #ff1493; }
 
-        /* Dynamic Combo Display */
-        #combo-box { position: absolute; top: 110px; right: 20px; text-align: right; pointer-events: none; opacity: 0; transition: opacity 0.2s, transform 0.1s; }
-        #combo-count { font-size: 3rem; font-weight: 900; color: #ff007f; text-shadow: 0 0 15px #ff007f, 0 0 30px #ffffff; font-style: italic; }
-        #combo-label { font-size: 1rem; color: #ffd700; font-weight: bold; letter-spacing: 2px; }
+        /* Modals */
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); display: none; justify-content: center; align-items: center; z-index: 300; pointer-events: auto; backdrop-filter: blur(8px); }
+        .modal-box { background: #120e24; border: 2px solid #ff1493; padding: 20px; border-radius: 14px; width: 92%; max-width: 440px; box-shadow: 0 0 30px rgba(255, 20, 147, 0.4); max-height: 85vh; overflow-y: auto; }
+        .modal-box h3 { color: #ff69b4; text-align: center; margin-bottom: 12px; font-size: 1.25rem; border-bottom: 1px solid rgba(255,105,180,0.3); padding-bottom: 6px; }
 
-        /* Shop Modal */
-        #shop-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.92); display: none; justify-content: center; align-items: center; z-index: 100; pointer-events: auto; backdrop-filter: blur(10px); }
-        .shop-box { background: #120e24; border: 2px solid #ff1493; padding: 24px; border-radius: 16px; width: 90%; max-width: 440px; box-shadow: 0 0 35px rgba(255, 20, 147, 0.5); }
-        .shop-box h3 { color: #ff69b4; text-align: center; margin-bottom: 18px; font-size: 1.4rem; border-bottom: 1px solid rgba(255,105,180,0.3); padding-bottom: 10px; text-shadow: 0 0 8px #ff1493; }
-        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); }
-        .shop-item span { font-size: 0.9rem; color: #eee; }
-        .btn-buy { background: linear-gradient(135deg, #8a2be2, #ff1493); border: none; color: #fff; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .btn-close-shop { width: 100%; margin-top: 12px; background: #222; border: 1px solid #555; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        /* Gacha Cards */
+        .gacha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .gacha-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; text-align: center; }
+        .gacha-card h4 { color: #ffd700; font-size: 0.88rem; margin-bottom: 4px; }
+        .btn-gacha { width: 100%; background: linear-gradient(135deg, #8a2be2, #ff1493); border: none; color: #fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
 
-        /* Mobile Controls */
+        #gacha-result { font-weight: bold; text-align: center; min-height: 28px; margin-bottom: 10px; font-size: 0.9rem; }
+
+        /* In-game Upgrades */
+        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: rgba(255,255,255,0.05); padding: 8px 10px; border-radius: 6px; font-size: 0.82rem; }
+        .btn-buy { background: linear-gradient(135deg, #8a2be2, #ff1493); border: none; color: #fff; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
+        .btn-buy-shard { background: linear-gradient(135deg, #00bfff, #8a2be2); border: none; color: #fff; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
+
+        .btn-close { width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+
+        /* Tiers */
+        .tier-normal { color: #b0bec5; }
+        .tier-rare { color: #1e88e5; }
+        .tier-epic { color: #ab47bc; }
+        .tier-legendary { color: #ffd700; text-shadow: 0 0 8px #ffd700; }
+
+        /* Controls */
         .bottom-hud { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; pointer-events: auto; }
-        #joystick-zone { width: 130px; height: 130px; background: rgba(255, 255, 255, 0.06); border: 2px solid rgba(255, 105, 180, 0.4); border-radius: 50%; position: relative; touch-action: none; }
-        #joystick-knob { width: 48px; height: 48px; background: radial-gradient(circle, #ff1493, #7b1fa2); border: 2px solid #fff; border-radius: 50%; position: absolute; top: 41px; left: 41px; box-shadow: 0 0 10px #ff1493; }
+        #joystick-zone { width: 110px; height: 110px; background: rgba(255, 255, 255, 0.06); border: 2px solid rgba(255, 105, 180, 0.4); border-radius: 50%; position: relative; touch-action: none; }
+        #joystick-knob { width: 40px; height: 40px; background: radial-gradient(circle, #ff1493, #7b1fa2); border: 2px solid #fff; border-radius: 50%; position: absolute; top: 35px; left: 35px; }
 
-        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .btn-act { width: 56px; height: 56px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(15, 10, 25, 0.9); color: #ff69b4; font-weight: bold; font-size: 0.72rem; display: flex; flex-direction: column; justify-content: center; align-items: center; touch-action: manipulation; box-shadow: 0 0 12px rgba(255,105,180,0.3); }
+        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .btn-act { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(15, 10, 25, 0.9); color: #ff69b4; font-weight: bold; font-size: 0.65rem; display: flex; flex-direction: column; justify-content: center; align-items: center; touch-action: manipulation; }
         .btn-act:active { transform: scale(0.92); background: #ff1493; color: #fff; }
-        .btn-act.main-atk { width: 72px; height: 72px; background: linear-gradient(135deg, #ff1493, #8a2be2); color: #fff; border: 2px solid #fff; grid-column: span 3; justify-self: center; font-size: 0.9rem; box-shadow: 0 0 20px rgba(255,20,147,0.7); }
+        .btn-act.main-atk { width: 64px; height: 64px; background: linear-gradient(135deg, #ff1493, #8a2be2); color: #fff; border: 2px solid #fff; grid-column: span 3; justify-self: center; font-size: 0.8rem; }
+        .btn-act.weapon-skill { border-color: #00e5ff; color: #00e5ff; }
 
-        /* Floating Damage Text */
-        .dmg-float { position: absolute; font-weight: 900; font-size: 1.6rem; pointer-events: none; animation: floatUp 0.65s ease-out forwards; text-shadow: 0 0 10px #000, 0 0 5px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1.3); } 100% { opacity: 0; transform: translateY(-40px) scale(0.8); } }
+        .dmg-float { position: absolute; font-weight: 900; font-size: 1.4rem; pointer-events: none; animation: floatUp 0.6s ease-out forwards; text-shadow: 0 0 8px #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1.2); } 100% { opacity: 0; transform: translateY(-35px) scale(0.8); } }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -74,13 +92,26 @@
 <body>
 
     <div id="webgl-container"></div>
-
     <input type="file" id="glb-file-input" accept=".glb,.gltf" style="display:none;" onchange="handleGLBUpload(event)">
 
-    <div id="title-screen">
-        <h1>BLEACH: 삼포검수</h1>
-        <p>풀 액션 3D RPG 에디션</p>
-        <button class="btn-start" onclick="startGame()">⚔️ 게임 시작</button>
+    <div id="lobby-screen">
+        <h1>BLEACH: 정령정 대전</h1>
+        <p>3D 참백도 고유 스킬 & 정령정 무대 RPG</p>
+
+        <div class="lobby-card">
+            <div class="mat-row">
+                <span>💎 영자: <span id="lobby-gold" style="color:#ffd700;">200</span></span>
+                <span>🔮 혼백의 조각: <span id="lobby-shards" style="color:#00e5ff;">5</span>개</span>
+            </div>
+            <div class="lobby-info">✨ 특성: <span id="lobby-trait" class="tier-normal">없음</span></div>
+            <div class="lobby-info">⚔️ 참백도: <span id="lobby-weapon" class="tier-legendary">🌸 삼포검수 (야치루)</span></div>
+        </div>
+
+        <div class="lobby-btn-group">
+            <button class="btn-lobby play" onclick="startGame()">🎮 출격 (게임 시작)</button>
+            <button class="btn-lobby" onclick="toggleModal('gacha-modal', true)">🎰 운빨 뽑기 (로비)</button>
+            <button class="btn-lobby" style="background:#2d1b4e;" onclick="document.getElementById('glb-file-input').click()">📁 커스텀 GLB 로드</button>
+        </div>
     </div>
 
     <div id="hud">
@@ -89,8 +120,8 @@
                 <h2><span>🌸 야치루</span><span id="ui-level">Lv.1</span></h2>
                 <div class="bar-bg"><div class="bar-hp" id="ui-hp-bar"></div></div>
                 <div class="bar-bg"><div class="bar-mp" id="ui-mp-bar"></div></div>
-                <div class="bar-bg"><div class="bar-exp" id="ui-exp-bar"></div></div>
-                <div class="stat-text">💎 영자: <span id="ui-gold">0</span> | 🧪 포션: <span id="ui-potion">2</span>개</div>
+                <div class="stat-text">💎 영자: <span id="ui-gold">0</span> | 🔮 조각: <span id="ui-shards">0</span></div>
+                <div class="stat-text">🧪 포션: <span id="ui-potion">2</span>개 | ⭐ 무기돌파: <span id="ui-wp-lvl">+0</span></div>
             </div>
 
             <div id="boss-hud">
@@ -99,15 +130,9 @@
             </div>
 
             <div class="menu-btns">
-                <button class="btn-menu" onclick="switchMap()">📍 맵 변경</button>
-                <button class="btn-menu" onclick="document.getElementById('glb-file-input').click()">📁 GLB 로드</button>
-                <button class="btn-menu" onclick="toggleShop(true)">🛒 상점</button>
+                <button class="btn-menu" onclick="toggleModal('shop-modal', true)">🛒 인게임 강화</button>
+                <button class="btn-menu" onclick="returnToLobby()">🏛️ 로비</button>
             </div>
-        </div>
-
-        <div id="combo-box">
-            <div id="combo-count">0</div>
-            <div id="combo-label">COMBO</div>
         </div>
 
         <div class="bottom-hud">
@@ -115,261 +140,245 @@
             <div class="action-grid">
                 <button class="btn-act" onclick="usePotion()">🧪<br>포션</button>
                 <button class="btn-act" onclick="useDash()">⚡<br>순보</button>
-                <button class="btn-act" onclick="useUltimate()">🌀<br>영압해방</button>
-                <button class="btn-act main-atk" onclick="playerAttack()">⚔️<br>삼포참격</button>
+                <button class="btn-act weapon-skill" onclick="useWeaponSkill()">🔥<br><span id="skill-btn-name">고유스킬</span></button>
+                <button class="btn-act main-atk" onclick="playerAttack()">⚔️<br>참격</button>
             </div>
         </div>
     </div>
 
-    <div id="shop-modal">
-        <div class="shop-box">
-            <h3>⚔️ 영압 강화 & 상점</h3>
+    <div id="gacha-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>🎰 로비 - 운빨 참백도 & 특성 뽑기</h3>
+            <div class="gacha-grid">
+                <div class="gacha-card">
+                    <h4>✨ 특성 뽑기</h4>
+                    <p style="font-size: 0.72rem; color:#aaa; margin-bottom:6px;">기초 스탯 패시브</p>
+                    <button class="btn-gacha" onclick="rollGacha('trait')">50 영자</button>
+                </div>
+                <div class="gacha-card">
+                    <h4>⚔️ 참백도 뽑기</h4>
+                    <p style="font-size: 0.72rem; color:#aaa; margin-bottom:6px;">원작 7대 참백도</p>
+                    <button class="btn-gacha" onclick="rollGacha('weapon')">80 영자</button>
+                </div>
+            </div>
+            <div id="gacha-result">원하는 뽑기를 선택하세요!</div>
+            <button class="btn-close" onclick="toggleModal('gacha-modal', false)">닫기</button>
+        </div>
+    </div>
+
+    <div id="shop-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>🛒 인게임 스탯 & 참백도 강화</h3>
+            <p style="font-size: 0.75rem; color:#00e5ff; text-align:center; margin-bottom:10px;">
+                영자(💎) = 기초 스탯 | 혼백의 조각(🔮) = 참백도 한계 돌파
+            </p>
             <div class="shop-item">
-                <span>⚔️ 공격력 (+15) <br><small id="info-atk">현재: 70</small></span>
-                <button class="btn-buy" onclick="buyUpgrade('atk')">50 영자</button>
+                <span>⚔️ 공격력 +15 <br><small id="info-atk">현재: 70</small></span>
+                <button class="btn-buy" onclick="buyInGameUpgrade('atk')">50 💎</button>
             </div>
             <div class="shop-item">
-                <span>❤️ 최대 체력 (+50) <br><small id="info-hp">현재: 250</small></span>
-                <button class="btn-buy" onclick="buyUpgrade('hp')">60 영자</button>
+                <span>❤️ 최대 체력 +50 <br><small id="info-hp">현재: 250</small></span>
+                <button class="btn-buy" onclick="buyInGameUpgrade('hp')">60 💎</button>
             </div>
             <div class="shop-item">
-                <span>⚡ 이동 속도 (+10%) <br><small id="info-spd">현재: 100%</small></span>
-                <button class="btn-buy" onclick="buyUpgrade('spd')">80 영자</button>
+                <span>🧪 회복 포션 +1개</span>
+                <button class="btn-buy" onclick="buyInGameUpgrade('potion')">30 💎</button>
             </div>
-            <div class="shop-item">
-                <span>🧪 영압 회복 포션 (+1)</span>
-                <button class="btn-buy" onclick="buyUpgrade('potion')">30 영자</button>
+            <div class="shop-item" style="border:1px solid #00bfff;">
+                <span>🌟 참백도 한계 돌파 (+15% 뎀증) <br><small id="info-wplvl">현재: +0</small></span>
+                <button class="btn-buy-shard" onclick="upgradeWeaponWithShard()">2 🔮</button>
             </div>
-            <button class="btn-close-shop" onclick="toggleShop(false)">닫기</button>
+            <button class="btn-close" onclick="toggleModal('shop-modal', false)">닫기</button>
         </div>
     </div>
 
     <script>
         let scene, camera, renderer, gltfLoader;
-        let playerGroup, frontBeastMesh, backBeastMesh, particleGroup, sakuraGroup, mapGroup;
+        let playerGroup, frontBeastMesh, backBeastMesh, particleGroup, portalGroup, sceneryGroup;
         let monsters = [];
         let joystickInput = { x: 0, z: 0, active: false };
         let activeBoss = null;
-        let shakeIntensity = 0;
-        let comboCount = 0, comboTimer = null;
-        let currentMapTheme = 0; // 0: Soul Society, 1: Hueco Mundo
+        let isPlaying = false;
 
-        // Player Stats
+        // Player Data & Material Separated
         let player = {
-            level: 1, exp: 0, maxExp: 100, gold: 0, potions: 2,
+            level: 1, exp: 0, maxExp: 100,
+            gold: 200,          // 💎 영자 (Gold/Gacha material)
+            soulShards: 5,      // 🔮 혼백의 조각 (Shard for limit break)
+            potions: 2,
             hp: 250, maxHp: 250, mp: 100, maxMp: 100,
-            atk: 70, speed: 0.35, angle: 0,
-            attackCooldown: false, isDashing: false
+            baseAtk: 70, speed: 0.35, angle: 0,
+            weaponUpgradeLvl: 0,
+            attackCooldown: false, skillCooldown: false, isDashing: false,
+            trait: null, weapon: null
         };
 
-        function startGame() {
-            document.getElementById('title-screen').style.display = 'none';
-            document.getElementById('hud').style.display = 'flex';
-        }
+        // 7 Major Zanpakuto Database with Unique Skills & Color
+        const WEAPONS = [
+            { id: "sanpo", name: "🌸 삼포검수 (야치루)", tier: "tier-legendary", color: 0xff1493, mult: 2.2, skillName: "삼포연격", skillCd: 3000, desc: "야수 소환 3중 참격" },
+            { id: "zangetsu", name: "⚡ 천쇄참월 (이치고)", tier: "tier-legendary", color: 0x111111, mult: 2.5, skillName: "월아천충", skillCd: 2500, desc: "전방 검은 검기 파동" },
+            { id: "hyorin", name: "❄️ 빙륜환 (토시로)", tier: "tier-epic", color: 0x00bfff, mult: 1.8, skillName: "용빙천흔", skillCd: 4000, desc: "범위 얼음 폭발 및 둔화" },
+            { id: "ryujin", name: "🔥 류진자카 (야마모토)", tier: "tier-legendary", color: 0xff4500, mult: 2.6, skillName: "잔화태도", skillCd: 4500, desc: "초고열 화염 폭발" },
+            { id: "senbon", name: "🌸 천본앵 (바쿠야)", tier: "tier-epic", color: 0xff69b4, mult: 1.9, skillName: "섬경·천본앵", skillCd: 3500, desc: "벚꽃 칼날 다단히트" },
+            { id: "kyoka", name: "👁️ 경화수월 (아이젠)", tier: "tier-epic", color: 0x9370db, mult: 2.0, skillName: "완전최면", skillCd: 5000, desc: "적 전체 마비 및 스턴" },
+            { id: "shin", name: "🗡️ 신살창 (긴)", tier: "tier-rare", color: 0xe0e0e0, mult: 1.6, skillName: "신살극창", skillCd: 2000, desc: "초고속 관통 찌르기" }
+        ];
+
+        const TRAITS = [
+            { name: "둔감 (Normal)", tier: "tier-normal", atkBonus: 0, spdBonus: 0, rate: 50 },
+            { name: "민첩함 (Rare)", tier: "tier-rare", atkBonus: 15, spdBonus: 0.05, rate: 30 },
+            { name: "사신의 영압 (Epic)", tier: "tier-epic", atkBonus: 40, spdBonus: 0.08, rate: 15 },
+            { name: "🔥 전설: 신속의 사신", tier: "tier-legendary", atkBonus: 90, spdBonus: 0.15, rate: 5 }
+        ];
 
         function init() {
             const container = document.getElementById('webgl-container');
             scene = new THREE.Scene();
-            
+            scene.background = new THREE.Color(0x0a0614);
+            scene.fog = new THREE.FogExp2(0x0a0614, 0.01);
+
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
 
             gltfLoader = new THREE.GLTFLoader();
 
-            // Lighting Setup
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-            scene.add(ambientLight);
-
-            const dirLight = new THREE.DirectionalLight(0xfff0f5, 1.8);
+            // Lights
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            const dirLight = new THREE.DirectionalLight(0xffe6ff, 1.5);
             dirLight.position.set(40, 80, 40);
             dirLight.castShadow = true;
-            dirLight.shadow.mapSize.width = 2048;
-            dirLight.shadow.mapSize.height = 2048;
             scene.add(dirLight);
 
             particleGroup = new THREE.Group();
-            sakuraGroup = new THREE.Group();
-            mapGroup = new THREE.Group();
+            portalGroup = new THREE.Group();
+            sceneryGroup = new THREE.Group();
             scene.add(particleGroup);
-            scene.add(sakuraGroup);
-            scene.add(mapGroup);
+            scene.add(portalGroup);
+            scene.add(sceneryGroup);
 
-            buildHighQualityMap(0); // Default: Soul Society
+            // Default Weapon: Sanpo Kenju
+            player.weapon = WEAPONS[0];
+
+            createSoulSocietyStageMap();
             createYachiruCharacter();
-            spawnMonsterWave();
             setupJoystick();
 
             window.addEventListener('resize', onWindowResize);
             animate();
+            updateUI();
         }
 
-        // 🎨 Procedural High-Res Stone Texture Generator
-        function createProceduralStoneTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
+        // 🏛️ Soul Society Scenery & Environment (입체 배경 연출)
+        function createSoulSocietyStageMap() {
+            // Main Plaza Floor
+            const floorGeo = new THREE.CircleGeometry(110, 64);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x222233, roughness: 0.6 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
 
-            ctx.fillStyle = "#22222c"; ctx.fillRect(0, 0, 512, 512);
-            ctx.strokeStyle = "#111116"; ctx.lineWidth = 4;
+            // Decorative Inner Ring (Seireitei Emblems)
+            const ringGeo = new THREE.RingGeometry(25, 27, 32);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x8a2be2, side: THREE.DoubleSide });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = 0.08;
+            scene.add(ring);
 
-            const tileSize = 64;
-            for (let x = 0; x <= 512; x += tileSize) {
-                for (let y = 0; y <= 512; y += tileSize) {
-                    ctx.fillStyle = `rgb(${30 + Math.random()*15}, ${28 + Math.random()*15}, ${38 + Math.random()*15})`;
-                    ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
-                    ctx.strokeRect(x, y, tileSize, tileSize);
-                }
+            // Outer Fortress Stone Walls & Spiritual Pillars
+            for (let i = 0; i < 16; i++) {
+                const angle = (i / 16) * Math.PI * 2;
+                const radius = 95;
+                const x = Math.sin(angle) * radius;
+                const z = Math.cos(angle) * radius;
+
+                // Spiritual Pillars
+                const pillarGeo = new THREE.CylinderGeometry(2.5, 3.5, 28, 8);
+                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x3a3352, roughness: 0.5 });
+                const pillar = new THREE.Mesh(pillarGeo, pillarMat);
+                pillar.position.set(x, 14, z);
+                pillar.castShadow = true;
+                sceneryGroup.add(pillar);
+
+                // Top Glowing Orbs (Soul Orbs)
+                const orbGeo = new THREE.SphereGeometry(1.5, 12, 12);
+                const orbMat = new THREE.MeshBasicMaterial({ color: (i % 2 === 0) ? 0xff1493 : 0x00bfff });
+                const orb = new THREE.Mesh(orbGeo, orbMat);
+                orb.position.set(x, 29, z);
+                sceneryGroup.add(orb);
             }
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.wrapS = THREE.RepeatWrapping;
-            texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(12, 12);
-            return texture;
-        }
 
-        // 🏰 High-Quality Map Builder (Soul Society & Hueco Mundo)
-        function buildHighQualityMap(theme) {
-            while(mapGroup.children.length > 0) mapGroup.remove(mapGroup.children[0]);
-            while(sakuraGroup.children.length > 0) sakuraGroup.remove(sakuraGroup.children[0]);
+            // Japanese Stone Lanterns (석등) Scattered Around
+            for (let j = 0; j < 8; j++) {
+                const angle = (j / 8) * Math.PI * 2 + 0.2;
+                const radius = 45;
+                const lx = Math.sin(angle) * radius;
+                const lz = Math.cos(angle) * radius;
 
-            if (theme === 0) { // 🌸 Soul Society (Seireitei)
-                scene.background = new THREE.Color(0x0a0a16);
-                scene.fog = new THREE.FogExp2(0x0a0a16, 0.009);
-
-                // Stone Floor
-                const stoneTexture = createProceduralStoneTexture();
-                const floorGeo = new THREE.PlaneGeometry(260, 260);
-                const floorMat = new THREE.MeshStandardMaterial({ map: stoneTexture, roughness: 0.6, metalness: 0.1 });
-                const floor = new THREE.Mesh(floorGeo, floorMat);
-                floor.rotation.x = -Math.PI / 2;
-                floor.receiveShadow = true;
-                mapGroup.add(floor);
-
-                // Boundary Seireitei Japanese Walls
-                const wallMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.5 });
-                const roofMat = new THREE.MeshStandardMaterial({ color: 0x1f1f2e, roughness: 0.3 });
-
-                createWallBorder(-120, 120, true, wallMat, roofMat);
-                createWallBorder(-120, 120, false, wallMat, roofMat);
-
-                // Torii Gate Structure
-                const toriiMat = new THREE.MeshStandardMaterial({ color: 0xb22222, roughness: 0.4 });
-                const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 12), toriiMat); p1.position.set(-8, 6, -60);
-                const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 12), toriiMat); p2.position.set(8, 6, -60);
-                const topBeam = new THREE.Mesh(new THREE.BoxGeometry(22, 1.2, 1.6), toriiMat); topBeam.position.set(0, 11.5, -60);
-                mapGroup.add(p1, p2, topBeam);
-
-                // Sakura Trees & Flying Petals
-                for (let i = 0; i < 18; i++) {
-                    let sx = (Math.random() - 0.5) * 200;
-                    let sz = (Math.random() - 0.5) * 200;
-                    if (Math.abs(sx) > 20 || Math.abs(sz) > 20) createSakuraTree(sx, sz);
-                }
-
-                // Falling Sakura Particles
-                for (let i = 0; i < 150; i++) {
-                    const p = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 0.25), new THREE.MeshBasicMaterial({ color: 0xffb6c1, side: THREE.DoubleSide }));
-                    p.position.set((Math.random() - 0.5) * 220, Math.random() * 20 + 2, (Math.random() - 0.5) * 220);
-                    p.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-                    p.userData = { speedY: Math.random() * 0.05 + 0.02, rotSpeed: Math.random() * 0.02 };
-                    sakuraGroup.add(p);
-                }
-
-            } else { // 🌙 Hueco Mundo (Las Noches)
-                scene.background = new THREE.Color(0x030611);
-                scene.fog = new THREE.FogExp2(0x030611, 0.008);
-
-                // White Sand Floor
-                const floorGeo = new THREE.PlaneGeometry(260, 260);
-                const floorMat = new THREE.MeshStandardMaterial({ color: 0xdcdcdc, roughness: 0.9 });
-                const floor = new THREE.Mesh(floorGeo, floorMat);
-                floor.rotation.x = -Math.PI / 2;
-                floor.receiveShadow = true;
-                mapGroup.add(floor);
-
-                // White Quartz Pillars
-                const pillarMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.3 });
-                for (let i = 0; i < 24; i++) {
-                    const pillar = new THREE.Mesh(new THREE.BoxGeometry(4, 35, 4), pillarMat);
-                    let px = (Math.random() - 0.5) * 210;
-                    let pz = (Math.random() - 0.5) * 210;
-                    pillar.position.set(px, 17.5, pz);
-                    mapGroup.add(pillar);
-                }
+                const lantern = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 6, 2),
+                    new THREE.MeshStandardMaterial({ color: 0x555566 })
+                );
+                lantern.position.set(lx, 3, lz);
+                sceneryGroup.add(lantern);
             }
         }
 
-        function createWallBorder(min, max, isHorizontal, wallMat, roofMat) {
-            [-120, 120].forEach(pos => {
-                const wall = new THREE.Mesh(new THREE.BoxGeometry(isHorizontal ? 240 : 3, 6, isHorizontal ? 3 : 240), wallMat);
-                const roof = new THREE.Mesh(new THREE.BoxGeometry(isHorizontal ? 242 : 4, 1.2, isHorizontal ? 4 : 242), roofMat);
-                wall.position.set(isHorizontal ? 0 : pos, 3, isHorizontal ? pos : 0);
-                roof.position.set(isHorizontal ? 0 : pos, 6.4, isHorizontal ? pos : 0);
-                mapGroup.add(wall, roof);
-            });
-        }
+        // 🎮 Game Flow
+        function startGame() {
+            isPlaying = true;
+            document.getElementById('lobby-screen').style.display = 'none';
+            document.getElementById('hud').style.display = 'flex';
 
-        function createSakuraTree(x, z) {
-            const trunkGeo = new THREE.CylinderGeometry(0.6, 1.0, 7);
-            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2314 });
-            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.set(x, 3.5, z);
-
-            const foliageMat = new THREE.MeshStandardMaterial({ color: 0xff69b4, roughness: 0.8 });
-            for(let i = 0; i < 4; i++) {
-                const foliage = new THREE.Mesh(new THREE.SphereGeometry(2.2 - i*0.3, 8, 8), foliageMat);
-                foliage.position.set(x + (Math.random()-0.5)*1.5, 6.5 + i*1.2, z + (Math.random()-0.5)*1.5);
-                mapGroup.add(foliage);
+            if (monsters.length === 0) {
+                spawnBleach3DFormationWave();
             }
-            mapGroup.add(trunk);
         }
 
-        function switchMap() {
-            currentMapTheme = currentMapTheme === 0 ? 1 : 0;
-            buildHighQualityMap(currentMapTheme);
+        function returnToLobby() {
+            isPlaying = false;
+            document.getElementById('hud').style.display = 'none';
+            document.getElementById('lobby-screen').style.display = 'flex';
+            updateUI();
         }
 
-        // 🌸 Character Creation
+        // 🌸 Character & Beast Creation
         function createYachiruCharacter() {
             playerGroup = new THREE.Group();
 
-            const defaultMesh = new THREE.Group();
             const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x111116 }));
             body.position.y = 0.75;
-            defaultMesh.add(body);
+            playerGroup.add(body);
 
-            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff1493, roughness: 0.4 }));
+            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff1493 }));
             hair.position.y = 1.65;
-            defaultMesh.add(hair);
+            playerGroup.add(hair);
 
-            playerGroup.add(defaultMesh);
-
-            // Triple-Blade Beast Meshes (삼포검수 야수)
+            // Beasts for Sanpo Kenju
             frontBeastMesh = new THREE.Group();
-            const fMesh = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.5, 8), new THREE.MeshStandardMaterial({ color: 0x8a2be2 }));
-            fMesh.rotation.x = -Math.PI / 2; fMesh.position.y = 0.9;
+            const fMesh = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.4, 8), new THREE.MeshStandardMaterial({ color: 0x8a2be2 }));
+            fMesh.rotation.x = -Math.PI / 2; fMesh.position.y = 0.8;
             frontBeastMesh.add(fMesh);
-            frontBeastMesh.position.set(0, 0, 2.0);
+            frontBeastMesh.position.set(0, 0, 1.8);
             frontBeastMesh.scale.set(0.001, 0.001, 0.001);
             playerGroup.add(frontBeastMesh);
 
             backBeastMesh = new THREE.Group();
-            const bMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.8), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
-            bMesh.position.y = 0.9;
+            const bMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7), new THREE.MeshStandardMaterial({ color: 0xffd700 }));
+            bMesh.position.y = 0.8;
             backBeastMesh.add(bMesh);
-            backBeastMesh.position.set(0, 0, -2.0);
+            backBeastMesh.position.set(0, 0, -1.8);
             backBeastMesh.scale.set(0.001, 0.001, 0.001);
             playerGroup.add(backBeastMesh);
 
             scene.add(playerGroup);
         }
 
-        // 📁 User GLB Upload Loader
         function handleGLBUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -377,59 +386,70 @@
             const url = URL.createObjectURL(file);
             gltfLoader.load(url, (gltf) => {
                 const model = gltf.scene;
-
                 const box = new THREE.Box3().setFromObject(model);
                 const size = box.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const scale = 2.4 / (maxDim || 1);
+                const scale = 2.4 / (Math.max(size.x, size.y, size.z) || 1);
                 model.scale.set(scale, scale, scale);
 
-                const adjustedBox = new THREE.Box3().setFromObject(model);
-                model.position.y = -adjustedBox.min.y;
+                model.traverse(child => { if (child.isMesh) child.castShadow = true; });
 
-                model.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
-
-                playerGroup.children.forEach(child => {
-                    if (child !== frontBeastMesh && child !== backBeastMesh) playerGroup.remove(child);
+                playerGroup.children.forEach(c => {
+                    if (c !== frontBeastMesh && c !== backBeastMesh) playerGroup.remove(c);
                 });
-
                 playerGroup.add(model);
-                spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00e5ff, 40);
-                alert("🎉 커스텀 3D GLB 모델이 정상 반영되었습니다!");
-            }, undefined, (err) => { alert("⚠️ GLB 파일 로드 중 오류 발생."); });
+                alert("🎉 커스텀 3D 모델이 적용되었습니다!");
+            });
         }
 
-        // 👹 Spawn Monsters & Boss
-        function spawnMonsterWave() {
-            for (let i = 0; i < 6; i++) spawnMonster(false);
-            spawnMonster(true);
+        // 👹 Enemy Spawning
+        function spawnBleach3DFormationWave() {
+            createSpawningPortal(0, -35);
+
+            setTimeout(() => {
+                spawnMonsterAt(0, -35, true);
+                const offsets = [[-9, -30], [9, -30], [-12, -42], [12, -42]];
+                offsets.forEach(pos => spawnMonsterAt(pos[0], pos[1], false));
+            }, 800);
         }
 
-        function spawnMonster(isBoss) {
+        function createSpawningPortal(x, z) {
+            const portalGeo = new THREE.RingGeometry(0.5, 6.0, 32);
+            const portalMat = new THREE.MeshBasicMaterial({ color: 0x8a2be2, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+            const portal = new THREE.Mesh(portalGeo, portalMat);
+            portal.rotation.x = Math.PI / 2;
+            portal.position.set(x, 0.05, z);
+            portalGroup.add(portal);
+
+            let scale = 0.1;
+            const expand = setInterval(() => {
+                scale += 0.1;
+                portal.scale.set(scale, scale, scale);
+                if (scale >= 1.2) {
+                    clearInterval(expand);
+                    setTimeout(() => portalGroup.remove(portal), 1200);
+                }
+            }, 30);
+        }
+
+        function spawnMonsterAt(x, z, isBoss) {
             const mGroup = new THREE.Group();
             const body = new THREE.Mesh(
-                new THREE.BoxGeometry(isBoss ? 2.5 : 1.0, isBoss ? 5.5 : 1.6, isBoss ? 2.5 : 1.0),
-                new THREE.MeshStandardMaterial({ color: isBoss ? 0xa00000 : 0x3a0066, roughness: 0.4 })
+                new THREE.BoxGeometry(isBoss ? 2.4 : 1.0, isBoss ? 4.8 : 1.5, isBoss ? 2.4 : 1.0),
+                new THREE.MeshStandardMaterial({ color: isBoss ? 0xb00000 : 0x4a148c })
             );
-            body.position.y = isBoss ? 2.75 : 0.8;
-            body.castShadow = true;
+            body.position.y = isBoss ? 2.4 : 0.75;
             mGroup.add(body);
 
-            // Hollow Mask
-            const mask = new THREE.Mesh(new THREE.SphereGeometry(isBoss ? 1.2 : 0.5, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-            mask.position.set(0, isBoss ? 4.8 : 1.4, isBoss ? 1.0 : 0.4);
+            const mask = new THREE.Mesh(new THREE.SphereGeometry(isBoss ? 1.0 : 0.45, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            mask.position.set(0, isBoss ? 4.2 : 1.3, isBoss ? 0.95 : 0.35);
             mGroup.add(mask);
 
-            let rx = (Math.random() - 0.5) * 120;
-            let rz = (Math.random() - 0.5) * 120;
-            if (Math.abs(rx) < 20) rx += 30;
-            mGroup.position.set(rx, 0, rz);
-
+            mGroup.position.set(x, 0, z);
             scene.add(mGroup);
+
             const mData = {
                 mesh: mGroup, hp: isBoss ? 2000 : 220, maxHp: isBoss ? 2000 : 220,
-                atk: isBoss ? 40 : 14, speed: isBoss ? 0.08 : 0.12, isBoss: isBoss,
-                lastAttack: 0, aoeCircle: null
+                atk: isBoss ? 38 : 14, speed: isBoss ? 0.08 : 0.11, isBoss: isBoss, lastAttack: 0, frozen: false
             };
 
             monsters.push(mData);
@@ -440,91 +460,135 @@
             }
         }
 
-        // ⚔️ Combat Actions
-        function triggerCombo() {
-            comboCount++;
-            const box = document.getElementById('combo-box');
-            document.getElementById('combo-count').innerText = comboCount;
-            box.style.opacity = '1';
-            box.style.transform = 'scale(1.2)';
-            setTimeout(() => { box.style.transform = 'scale(1.0)'; }, 100);
+        // 🎰 Lobby Gacha
+        function rollGacha(type) {
+            const cost = type === 'trait' ? 50 : 80;
+            if (player.gold < cost) return alert("영자가 부족합니다!");
 
-            clearTimeout(comboTimer);
-            comboTimer = setTimeout(() => {
-                comboCount = 0;
-                box.style.opacity = '0';
-            }, 2000);
-        }
+            player.gold -= cost;
+            const rand = Math.random() * 100;
 
-        function triggerScreenShake(amount) {
-            shakeIntensity = amount;
-        }
-
-        function playerAttack() {
-            if (player.attackCooldown) return;
-            player.attackCooldown = true;
-
-            spawnSlashArc(playerGroup.position, player.angle, 0, 0xff1493);
-            executeHit(0, 1.0);
-
-            setTimeout(() => {
-                frontBeastMesh.scale.set(1.5, 1.5, 1.5);
-                spawnSlashArc(playerGroup.position, player.angle, 2.4, 0x8a2be2);
-                executeHit(2.4, 1.25);
-            }, 100);
-
-            setTimeout(() => {
-                backBeastMesh.scale.set(1.6, 1.6, 1.6);
-                spawnSlashArc(playerGroup.position, player.angle, -2.0, 0xffd700);
-                executeHit(-2.0, 1.4);
-            }, 200);
-
-            setTimeout(() => {
-                frontBeastMesh.scale.set(0.001, 0.001, 0.001);
-                backBeastMesh.scale.set(0.001, 0.001, 0.001);
-                player.attackCooldown = false;
-            }, 360);
-        }
-
-        function useUltimate() {
-            if (player.mp < 40 || player.attackCooldown) return;
-            player.mp -= 40;
-            player.attackCooldown = true;
-
-            triggerScreenShake(0.8);
-            spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0x8a2be2, 100);
-
-            monsters.forEach(m => {
-                if (playerGroup.position.distanceTo(m.mesh.position) < 16.0) {
-                    let dmg = Math.floor(player.atk * 4.5);
-                    m.hp -= dmg;
-                    triggerCombo();
-                    showDamageText(`💥${dmg}`, m.mesh.position, '#ba55d3');
+            if (type === 'trait') {
+                let cumulative = 0;
+                let res = TRAITS[0];
+                for (let t of TRAITS) {
+                    cumulative += t.rate;
+                    if (rand <= cumulative) { res = t; break; }
                 }
-            });
+                player.trait = res;
+                document.getElementById('lobby-trait').innerText = res.name;
+                document.getElementById('lobby-trait').className = res.tier;
+                document.getElementById('gacha-result').innerHTML = `🎉 당첨: <span class="${res.tier}">${res.name}</span>!`;
+            } else {
+                const picked = WEAPONS[Math.floor(Math.random() * WEAPONS.length)];
+                player.weapon = picked;
+                document.getElementById('lobby-weapon').innerText = picked.name;
+                document.getElementById('lobby-weapon').className = picked.tier;
+                document.getElementById('gacha-result').innerHTML = `⚔️ 당첨: <span class="${picked.tier}">${picked.name}</span>!`;
+            }
 
-            setTimeout(() => { player.attackCooldown = false; }, 400);
             updateUI();
         }
 
+        // 🛒 In-Game Upgrade Logic (Material Separated)
+        function buyInGameUpgrade(type) {
+            if (type === 'atk' && player.gold >= 50) { player.gold -= 50; player.baseAtk += 15; }
+            else if (type === 'hp' && player.gold >= 60) { player.gold -= 60; player.maxHp += 50; player.hp += 50; }
+            else if (type === 'potion' && player.gold >= 30) { player.gold -= 30; player.potions++; }
+            else { return alert("영자가 부족합니다!"); }
+            updateUI();
+        }
+
+        function upgradeWeaponWithShard() {
+            if (player.soulShards >= 2) {
+                player.soulShards -= 2;
+                player.weaponUpgradeLvl++;
+                alert(`✨ 참백도가 +${player.weaponUpgradeLvl} 단계로 한계 돌파되었습니다!`);
+                updateUI();
+            } else {
+                alert("🔮 혼백의 조각이 부족합니다! (호로/보스 처치 시 획득)");
+            }
+        }
+
+        // ⚔️ Weapon Unique Skill & Attack Logic
+        function playerAttack() {
+            if (!isPlaying || player.attackCooldown) return;
+            player.attackCooldown = true;
+
+            const w = player.weapon || WEAPONS[0];
+            spawnSlashArc(playerGroup.position, player.angle, 0, w.color);
+            executeHit(0, 1.0);
+
+            // Sanpo Kenju Special Visual Triple Attack
+            if (w.id === 'sanpo') {
+                setTimeout(() => {
+                    frontBeastMesh.scale.set(1.4, 1.4, 1.4);
+                    spawnSlashArc(playerGroup.position, player.angle, 2.2, 0x8a2be2);
+                    executeHit(2.2, 1.2);
+                }, 90);
+
+                setTimeout(() => {
+                    backBeastMesh.scale.set(1.5, 1.5, 1.5);
+                    spawnSlashArc(playerGroup.position, player.angle, -1.8, 0xffd700);
+                    executeHit(-1.8, 1.3);
+                }, 180);
+
+                setTimeout(() => {
+                    frontBeastMesh.scale.set(0.001, 0.001, 0.001);
+                    backBeastMesh.scale.set(0.001, 0.001, 0.001);
+                }, 340);
+            }
+
+            setTimeout(() => { player.attackCooldown = false; }, 320);
+        }
+
+        function useWeaponSkill() {
+            if (!isPlaying || player.skillCooldown) return;
+            player.skillCooldown = true;
+
+            const w = player.weapon || WEAPONS[0];
+            let mult = w.mult * (1 + player.weaponUpgradeLvl * 0.15);
+            let totalAtk = (player.baseAtk + (player.trait ? player.trait.atkBonus : 0)) * mult;
+
+            spawnParticles(playerGroup.position.x, 1.5, playerGroup.position.z, w.color, 50);
+
+            monsters.forEach(m => {
+                let dist = playerGroup.position.distanceTo(m.mesh.position);
+                if (dist < (w.id === 'shin' || w.id === 'zangetsu' ? 22.0 : 12.0)) {
+                    let dmg = Math.floor(totalAtk * 2.2 + Math.random() * 20);
+                    m.hp -= dmg;
+                    showDamageText(`🔥${w.skillName} ${dmg}`, m.mesh.position, '#00e5ff');
+
+                    // Unique Skill Side Effects
+                    if (w.id === 'hyorin') {
+                        m.frozen = true;
+                        setTimeout(() => { m.frozen = false; }, 2500);
+                    } else if (w.id === 'kyoka') {
+                        m.lastAttack = Date.now() + 3000; // Stun Enemy
+                    }
+                    if (m.isBoss) updateBossUI();
+                }
+            });
+
+            setTimeout(() => { player.skillCooldown = false; }, w.skillCd || 3000);
+        }
+
         function useDash() {
-            if (player.mp < 10 || player.isDashing) return;
+            if (!isPlaying || player.mp < 10 || player.isDashing) return;
             player.mp -= 10;
             player.isDashing = true;
-
-            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0xff1493, 20);
-            playerGroup.position.x += Math.sin(player.angle) * 9.5;
-            playerGroup.position.z += Math.cos(player.angle) * 9.5;
-
+            playerGroup.position.x += Math.sin(player.angle) * 8.5;
+            playerGroup.position.z += Math.cos(player.angle) * 8.5;
             setTimeout(() => { player.isDashing = false; }, 180);
             updateUI();
         }
 
         function usePotion() {
-            if (player.potions <= 0) return alert("포션이 부족합니다! 상점에서 구매하세요.");
+            if (!isPlaying) return;
+            if (player.potions <= 0) return alert("포션이 없습니다!");
             player.potions--;
-            player.hp = Math.min(player.maxHp, player.hp + 140);
-            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00ff7f, 35);
+            player.hp = Math.min(player.maxHp, player.hp + 120);
+            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00ff00, 30);
             updateUI();
         }
 
@@ -535,12 +599,13 @@
                 playerGroup.position.z + Math.cos(player.angle) * offsetZ
             );
 
+            const w = player.weapon || WEAPONS[0];
+            let totalAtk = (player.baseAtk + (player.trait ? player.trait.atkBonus : 0)) * w.mult * (1 + player.weaponUpgradeLvl * 0.15);
+
             monsters.forEach(m => {
-                if (hitPos.distanceTo(m.mesh.position) < 5.5) {
-                    let dmg = Math.floor(player.atk * mult + Math.random() * 12);
+                if (hitPos.distanceTo(m.mesh.position) < 5.0) {
+                    let dmg = Math.floor(totalAtk * mult + Math.random() * 10);
                     m.hp -= dmg;
-                    triggerCombo();
-                    triggerScreenShake(0.2);
                     showDamageText(dmg, m.mesh.position, m.isBoss ? '#ff0000' : '#ff1493');
                     if (m.isBoss) updateBossUI();
                 }
@@ -548,15 +613,15 @@
         }
 
         function spawnSlashArc(pos, angle, offsetZ, colorHex) {
-            const arcGeo = new THREE.RingGeometry(2.0, 3.6, 16, 1, 0, Math.PI);
-            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.95 });
+            const arcGeo = new THREE.RingGeometry(1.8, 3.2, 16, 1, 0, Math.PI);
+            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
             const arcMesh = new THREE.Mesh(arcGeo, arcMat);
             arcMesh.rotation.x = Math.PI / 2;
             arcMesh.rotation.z = -angle + Math.PI / 2;
             arcMesh.position.set(pos.x + Math.sin(angle) * offsetZ, pos.y + 1.2, pos.z + Math.cos(angle) * offsetZ);
 
             scene.add(arcMesh);
-            let opacity = 0.95;
+            let opacity = 0.9;
             const fade = setInterval(() => {
                 opacity -= 0.18;
                 arcMesh.material.opacity = opacity;
@@ -564,41 +629,17 @@
             }, 30);
         }
 
-        // 🛒 Shop System
-        function toggleShop(show) { document.getElementById('shop-modal').style.display = show ? 'flex' : 'none'; }
-
-        function buyUpgrade(type) {
-            if (type === 'atk' && player.gold >= 50) { player.gold -= 50; player.atk += 15; }
-            else if (type === 'hp' && player.gold >= 60) { player.gold -= 60; player.maxHp += 50; player.hp += 50; }
-            else if (type === 'spd' && player.gold >= 80) { player.gold -= 80; player.speed += 0.04; }
-            else if (type === 'potion' && player.gold >= 30) { player.gold -= 30; player.potions++; }
-            else { return alert("영자가 부족합니다!"); }
-            updateUI();
-        }
-
-        function addExpAndGold(expGained, goldGained) {
-            player.gold += goldGained;
-            player.exp += expGained;
-
-            if (player.exp >= player.maxExp) {
-                player.level++;
-                player.exp -= player.maxExp;
-                player.maxExp = Math.floor(player.maxExp * 1.4);
-                player.hp = player.maxHp;
-                player.mp = player.maxMp;
-                player.atk += 12;
-                spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0xffd700, 60);
-                showDamageText("LEVEL UP!", playerGroup.position, "#ffd700");
-            }
-            updateUI();
+        function toggleModal(id, show) {
+            document.getElementById(id).style.display = show ? 'flex' : 'none';
         }
 
         function setupJoystick() {
             const zone = document.getElementById('joystick-zone');
             const knob = document.getElementById('joystick-knob');
-            const maxRadius = 40;
+            const maxRadius = 35;
 
             function handleTouch(e) {
+                if (!isPlaying) return;
                 const touch = e.touches[0];
                 const rect = zone.getBoundingClientRect();
                 let dx = touch.clientX - (rect.left + rect.width / 2);
@@ -625,7 +666,10 @@
         }
 
         function updateGame() {
-            // Player Movement
+            if (!isPlaying) return;
+
+            let currentSpeed = player.speed + (player.trait ? player.trait.spdBonus : 0);
+
             if (joystickInput.active) {
                 const moveX = joystickInput.x;
                 const moveZ = joystickInput.z;
@@ -633,97 +677,63 @@
 
                 player.angle = angle;
                 playerGroup.rotation.y = angle;
-                playerGroup.position.x += moveX * player.speed;
-                playerGroup.position.z += moveZ * player.speed;
+                playerGroup.position.x += moveX * currentSpeed;
+                playerGroup.position.z += moveZ * currentSpeed;
 
-                player.mp = Math.min(player.maxMp, player.mp + 0.15);
+                player.mp = Math.min(player.maxMp, player.mp + 0.12);
                 updateUI();
             }
 
             const now = Date.now();
 
-            // Monster Logic & Boss AOE Pattern
             for (let i = monsters.length - 1; i >= 0; i--) {
                 const m = monsters[i];
 
                 if (m.hp <= 0) {
-                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0xff0055, 35);
-                    if (m.aoeCircle) scene.remove(m.aoeCircle);
+                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0xff0055, 30);
                     scene.remove(m.mesh);
                     monsters.splice(i, 1);
 
                     if (m.isBoss) {
                         activeBoss = null;
                         document.getElementById('boss-hud').style.display = 'none';
-                        addExpAndGold(300, 250);
-                        setTimeout(() => spawnMonsterWave(), 3500);
+                        player.gold += 200;
+                        player.soulShards += 3; // Boss drops Shards!
+                        setTimeout(() => spawnBleach3DFormationWave(), 3000);
                     } else {
-                        addExpAndGold(45, 30);
+                        player.gold += 25;
+                        if (Math.random() < 0.4) player.soulShards += 1; // Enemy Shard drop chance
                     }
+                    updateUI();
                     continue;
                 }
 
+                if (m.frozen) continue; // Skip frozen movement
+
                 const dist = m.mesh.position.distanceTo(playerGroup.position);
-
-                // Boss Red AOE Danger Pattern
-                if (m.isBoss && dist < 18 && !m.aoeCircle && Math.random() < 0.01) {
-                    const circleGeo = new THREE.RingGeometry(0.1, 5.0, 32);
-                    const circleMat = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide, transparent: true, opacity: 0.6 });
-                    m.aoeCircle = new THREE.Mesh(circleGeo, circleMat);
-                    m.aoeCircle.rotation.x = Math.PI / 2;
-                    m.aoeCircle.position.set(playerGroup.position.x, 0.05, playerGroup.position.z);
-                    scene.add(m.aoeCircle);
-
-                    setTimeout(() => {
-                        if (m.aoeCircle) {
-                            if (playerGroup.position.distanceTo(m.aoeCircle.position) < 5.0) {
-                                player.hp = Math.max(0, player.hp - 60);
-                                triggerScreenShake(0.6);
-                                showDamageText(`💣-60`, playerGroup.position, '#ff0000');
-                                updateUI();
-                            }
-                            scene.remove(m.aoeCircle);
-                            m.aoeCircle = null;
-                        }
-                    }, 1200);
-                }
-
-                if (dist > 2.0) {
+                if (dist > 1.8) {
                     m.mesh.position.x += ((playerGroup.position.x - m.mesh.position.x) / dist) * m.speed;
                     m.mesh.position.z += ((playerGroup.position.z - m.mesh.position.z) / dist) * m.speed;
                     m.mesh.lookAt(playerGroup.position);
                 } else {
-                    if (now - m.lastAttack > 1100) {
+                    if (now - m.lastAttack > 1200) {
                         m.lastAttack = now;
                         player.hp = Math.max(0, player.hp - m.atk);
-                        triggerScreenShake(0.3);
                         showDamageText(`-${m.atk}`, playerGroup.position, '#ff0000');
                         updateUI();
                     }
                 }
             }
 
-            // Sakura Petals Animate
-            sakuraGroup.children.forEach(p => {
-                p.position.y -= p.userData.speedY;
-                p.rotation.x += p.userData.rotSpeed;
-                if (p.position.y < 0) p.position.y = 20;
-            });
-
-            // Camera Follow & Screen Shake
-            let shakeX = (Math.random() - 0.5) * shakeIntensity;
-            let shakeY = (Math.random() - 0.5) * shakeIntensity;
-            if (shakeIntensity > 0) shakeIntensity -= 0.05;
-
-            camera.position.set(playerGroup.position.x + shakeX, playerGroup.position.y + 18 + shakeY, playerGroup.position.z + 20);
+            camera.position.set(playerGroup.position.x, playerGroup.position.y + 16, playerGroup.position.z + 18);
             camera.lookAt(playerGroup.position);
         }
 
-        function spawnParticles(x, y, z, colorHex, count = 15) {
+        function spawnParticles(x, y, z, colorHex, count = 12) {
             for (let i = 0; i < count; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), new THREE.MeshBasicMaterial({ color: colorHex }));
+                const p = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: colorHex }));
                 p.position.set(x, y, z);
-                p.userData = { vx: (Math.random() - 0.5) * 0.45, vy: Math.random() * 0.45, vz: (Math.random() - 0.5) * 0.45, life: 1.0 };
+                p.userData = { vx: (Math.random() - 0.5) * 0.4, vy: Math.random() * 0.4, vz: (Math.random() - 0.5) * 0.4, life: 1.0 };
                 particleGroup.add(p);
             }
         }
@@ -740,20 +750,27 @@
 
             el.style.left = `${x}px`; el.style.top = `${y}px`;
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 650);
+            setTimeout(() => el.remove(), 600);
         }
 
         function updateUI() {
+            document.getElementById('lobby-gold').innerText = player.gold;
+            document.getElementById('lobby-shards').innerText = player.soulShards;
+            document.getElementById('ui-gold').innerText = player.gold;
+            document.getElementById('ui-shards').innerText = player.soulShards;
+
             document.getElementById('ui-level').innerText = `Lv.${player.level}`;
             document.getElementById('ui-hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
             document.getElementById('ui-mp-bar').style.width = `${(player.mp / player.maxMp) * 100}%`;
-            document.getElementById('ui-exp-bar').style.width = `${(player.exp / player.maxExp) * 100}%`;
-            document.getElementById('ui-gold').innerText = player.gold;
             document.getElementById('ui-potion').innerText = player.potions;
+            document.getElementById('ui-wp-lvl').innerText = `+${player.weaponUpgradeLvl}`;
 
-            document.getElementById('info-atk').innerText = `현재: ${player.atk}`;
+            const w = player.weapon || WEAPONS[0];
+            document.getElementById('skill-btn-name').innerText = w.skillName;
+
+            document.getElementById('info-atk').innerText = `현재: ${Math.floor((player.baseAtk + (player.trait ? player.trait.atkBonus : 0)) * w.mult * (1 + player.weaponUpgradeLvl * 0.15))}`;
             document.getElementById('info-hp').innerText = `현재: ${player.maxHp}`;
-            document.getElementById('info-spd').innerText = `현재: ${Math.round((player.speed / 0.35) * 100)}%`;
+            document.getElementById('info-wplvl').innerText = `현재: +${player.weaponUpgradeLvl}`;
         }
 
         function updateBossUI() {
@@ -769,7 +786,7 @@
             for (let i = particleGroup.children.length - 1; i >= 0; i--) {
                 let p = particleGroup.children[i];
                 p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
-                p.userData.life -= 0.04; p.scale.setScalar(p.userData.life);
+                p.userData.life -= 0.05; p.scale.setScalar(p.userData.life);
                 if (p.userData.life <= 0) particleGroup.remove(p);
             }
 
