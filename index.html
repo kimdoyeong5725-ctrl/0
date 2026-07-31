@@ -1,1052 +1,11296 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>블리치: 삼포검수 - 디스 아더 월드 에디션</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; color: #fff; }
-        #webgl-container { width: 100%; height: 100%; display: block; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BLEACH RPG WORLD</title>
 
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-4px, 1px) rotate(-1.5deg); }
-            40% { transform: translate(2px, -3px) rotate(1.5deg); }
-            60% { transform: translate(-3px, 3px) rotate(0deg); }
-            80% { transform: translate(3px, -2px) rotate(-1deg); }
-            100% { transform: translate(0, 0) rotate(0deg); }
-        }
-        .screen-shake { animation: shake 0.22s ease-in-out; }
+<style>
+html,body{
+margin:0;
+overflow:hidden;
+background:#000;
+}
 
-        /* 🏛️ Lobby Screen */
-        #lobby-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #1b0c2e 0%, #030206 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(14px); }
-        #lobby-screen h1 { font-size: 3.4rem; color: #ff1493; text-shadow: 0 0 35px #ff1493, 0 0 70px #8a2be2; margin-bottom: 6px; letter-spacing: 5px; text-align: center; }
-        #lobby-screen p { color: #aaa; margin-bottom: 25px; font-size: 0.98rem; letter-spacing: 1px; }
+canvas{
+display:block;
+}
 
-        .lobby-card { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 105, 180, 0.4); padding: 18px 28px; border-radius: 14px; text-align: center; margin-bottom: 25px; min-width: 340px; box-shadow: inset 0 0 20px rgba(255,20,147,0.12); }
-        .lobby-info { font-size: 0.9rem; color: #ffd700; margin-top: 8px; font-weight: bold; }
+#ui{
+position:absolute;
+top:15px;
+left:15px;
+color:white;
+font-size:20px;
+font-weight:bold;
+z-index:5;
+text-shadow:0 0 10px black;
+}
 
-        .lobby-btn-group { display: flex; flex-direction: column; gap: 12px; width: 260px; }
-        .btn-lobby { padding: 14px; font-size: 1.1rem; font-weight: bold; color: #fff; background: linear-gradient(90deg, #8a2be2, #ff1493); border: none; border-radius: 25px; cursor: pointer; box-shadow: 0 0 20px rgba(255,20,147,0.6); transition: transform 0.15s, box-shadow 0.15s; }
-        .btn-lobby.play { background: linear-gradient(90deg, #ff1493, #ff4500); font-size: 1.25rem; box-shadow: 0 0 30px rgba(255,69,0,0.8); }
-        .btn-lobby:active { transform: scale(0.94); }
-
-        /* ⚔️ In-Game HUD */
-        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 14px; display: none; }
-        .top-hud { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
-
-        .player-card { background: rgba(10, 8, 20, 0.9); border: 2px solid #ff1493; border-left: 6px solid #ff1493; padding: 12px 14px; border-radius: 10px; width: 260px; pointer-events: auto; box-shadow: 0 0 20px rgba(255, 20, 147, 0.4); backdrop-filter: blur(8px); }
-        .player-card h2 { font-size: 1.05rem; color: #ff69b4; margin-bottom: 6px; display: flex; justify-content: space-between; }
-        .bar-bg { width: 100%; height: 10px; background: rgba(255,255,255,0.12); border-radius: 5px; overflow: hidden; margin-bottom: 5px; position: relative; }
-        .bar-hp { height: 100%; background: linear-gradient(90deg, #ff0055, #ff1493); width: 100%; transition: width 0.15s; }
-        .bar-mp { height: 100%; background: linear-gradient(90deg, #7b1fa2, #ba55d3); width: 100%; transition: width 0.15s; }
-        .bar-exp { height: 100%; background: linear-gradient(90deg, #00bfff, #1e90ff); width: 0%; transition: width 0.15s; }
-        .stat-text { font-size: 0.8rem; color: #ffd700; font-weight: bold; margin-top: 5px; }
-
-        /* Combo Counter */
-        #combo-display { position: absolute; top: 100px; right: 20px; text-align: right; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
-        #combo-num { font-size: 3rem; font-weight: 900; color: #ff1493; text-shadow: 0 0 25px #ff1493; font-style: italic; }
-        #combo-text { font-size: 0.95rem; color: #ffd700; font-weight: bold; letter-spacing: 2px; }
-
-        /* Achievement Toast Notification */
-        #achievement-toast { position: absolute; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: linear-gradient(135deg, #140f29, #3b185e); border: 2px solid #ffd700; padding: 12px 24px; border-radius: 30px; box-shadow: 0 0 30px rgba(255,215,0,0.7); z-index: 500; font-weight: bold; font-size: 1rem; color: #ffd700; transition: transform 0.4s ease; pointer-events: none; text-align: center; }
-        #achievement-toast.show { transform: translateX(-50%) translateY(0); }
-
-        /* Stage / Boss HUD */
-        #stage-info-hud { display: flex; flex-direction: column; align-items: center; background: rgba(10, 5, 20, 0.88); border: 2px solid #8a2be2; padding: 8px 18px; border-radius: 10px; box-shadow: 0 0 18px rgba(138,43,226,0.6); }
-        #stage-title { color: #00bfff; font-weight: bold; font-size: 0.95rem; margin-bottom: 3px; }
-
-        #boss-hud { display: none; flex-direction: column; align-items: center; width: 42%; max-width: 400px; background: rgba(15, 0, 0, 0.92); border: 2px solid #ff0000; padding: 6px 12px; border-radius: 10px; box-shadow: 0 0 25px rgba(255,0,0,0.7); margin-top: 6px; }
-        #boss-name { color: #ff3333; font-weight: 900; font-size: 0.9rem; margin-bottom: 3px; }
-        .bar-boss { height: 10px; background: linear-gradient(90deg, #800000, #ff0000); width: 100%; transition: width 0.15s; }
-
-        .menu-btns { display: flex; gap: 8px; pointer-events: auto; }
-        .btn-menu { background: rgba(20, 15, 35, 0.9); border: 1.5px solid #ff69b4; color: #fff; padding: 10px 14px; border-radius: 8px; font-weight: bold; font-size: 0.82rem; cursor: pointer; backdrop-filter: blur(6px); box-shadow: 0 0 10px rgba(255,105,180,0.3); }
-        .btn-menu:active { background: #ff1493; }
-
-        /* Modals */
-        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5, 5, 12, 0.95); display: none; justify-content: center; align-items: center; z-index: 300; pointer-events: auto; backdrop-filter: blur(10px); }
-        .modal-box { background: #140f29; border: 2px solid #ff1493; padding: 24px; border-radius: 16px; width: 92%; max-width: 460px; box-shadow: 0 0 45px rgba(255, 20, 147, 0.6); }
-        .modal-box h3 { color: #ff69b4; text-align: center; margin-bottom: 16px; font-size: 1.45rem; border-bottom: 1px solid rgba(255,105,180,0.3); padding-bottom: 10px; }
-        
-        .gacha-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-        .gacha-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 14px; text-align: center; }
-        .gacha-card h4 { color: #ffd700; font-size: 0.98rem; margin-bottom: 6px; }
-        .btn-gacha { width: 100%; background: linear-gradient(135deg, #8a2be2, #ff1493); border: none; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.88rem; box-shadow: 0 0 12px rgba(255,20,147,0.5); }
-
-        #gacha-result { font-weight: bold; text-align: center; min-height: 35px; margin-bottom: 12px; font-size: 1rem; }
-        
-        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: rgba(255,255,255,0.06); padding: 10px 14px; border-radius: 8px; font-size: 0.92rem; border: 1px solid rgba(255,255,255,0.08); }
-        .btn-buy { background: linear-gradient(135deg, #8a2be2, #ff1493); border: none; color: #fff; padding: 8px 14px; border-radius: 7px; font-weight: bold; cursor: pointer; font-size: 0.88rem; }
-
-        .btn-close { width: 100%; background: #222; border: 1px solid #555; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-
-        .tier-normal { color: #b0bec5; }
-        .tier-rare { color: #1e88e5; }
-        .tier-epic { color: #ab47bc; }
-        .tier-legendary { color: #ffd700; text-shadow: 0 0 12px #ffd700; }
-
-        /* Controls */
-        .bottom-hud { display: flex; justify-content: space-between; align-items: flex-end; width: 100%; pointer-events: auto; }
-        #joystick-zone { width: 130px; height: 130px; background: rgba(255, 255, 255, 0.06); border: 2px solid rgba(255, 105, 180, 0.45); border-radius: 50%; position: relative; touch-action: none; box-shadow: 0 0 15px rgba(255,105,180,0.2); }
-        #joystick-knob { width: 48px; height: 48px; background: radial-gradient(circle, #ff1493, #7b1fa2); border: 2px solid #fff; border-radius: 50%; position: absolute; top: 39px; left: 39px; box-shadow: 0 0 10px #ff1493; }
-
-        .action-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .btn-act { width: 58px; height: 58px; border-radius: 50%; border: 2px solid #ff69b4; background: rgba(15, 10, 25, 0.92); color: #ff69b4; font-weight: bold; font-size: 0.75rem; display: flex; flex-direction: column; justify-content: center; align-items: center; touch-action: manipulation; box-shadow: 0 0 12px rgba(255,105,180,0.3); position: relative; overflow: hidden; }
-        .btn-act:active { transform: scale(0.92); background: #ff1493; color: #fff; }
-        .btn-act.main-atk { width: 78px; height: 78px; background: linear-gradient(135deg, #ff1493, #8a2be2); color: #fff; border: 2px solid #fff; grid-column: span 3; justify-self: center; font-size: 0.95rem; box-shadow: 0 0 25px rgba(255,20,147,0.8); }
-
-        /* Cooldown overlay animation */
-        .cooldown-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: rgba(0, 0, 0, 0.6); pointer-events: none; transition: height 0.05s linear; }
-
-        #end-game-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 400; backdrop-filter: blur(12px); }
-        .end-box { text-align: center; background: #140f29; border: 3px solid #ff1493; padding: 32px; border-radius: 20px; box-shadow: 0 0 60px rgba(255,20,147,0.8); }
-        .end-box h2 { font-size: 2.6rem; color: #ff1493; margin-bottom: 12px; text-shadow: 0 0 20px #ff1493; }
-
-        .dmg-float { position: absolute; font-weight: 900; font-size: 1.7rem; pointer-events: none; animation: floatUp 0.65s ease-out forwards; text-shadow: 0 0 12px #000; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1.3); } 100% { opacity: 0; transform: translateY(-45px) scale(0.8); } }
-    </style>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+button{
+font-size:20px;
+margin:5px;
+}
+</style>
 </head>
+
 <body>
 
-    <div id="webgl-container"></div>
-    <input type="file" id="glb-file-input" accept=".glb,.gltf" style="display:none;" onchange="handleGLBUpload(event)">
-
-    <div id="achievement-toast">🏆 업적 달성: <span id="toast-text">소울 소사이어티 입성</span></div>
-
-    <div id="lobby-screen">
-        <h1>BLEACH: 삼포검수</h1>
-        <p>얼티밋 마스터피스 3D RPG (실시간 오디오, 스킬 쿨타임, 풀 오토 세이브 시스템)</p>
-
-        <div class="lobby-card">
-            <div>💎 보유 영자: <span id="lobby-gold" style="color:#ffd700;">300</span></div>
-            <div class="lobby-info">✨ 특성: <span id="lobby-trait" class="tier-normal">없음</span></div>
-            <div class="lobby-info">⚔️ 무기: <span id="lobby-weapon" class="tier-normal">기본 참백도</span></div>
-        </div>
-
-        <div class="lobby-btn-group">
-            <button class="btn-lobby play" onclick="startGame()">🎮 게임 시작</button>
-            <button class="btn-lobby" onclick="toggleModal('gacha-modal', true)">🎰 운빨 뽑기</button>
-            <button class="btn-lobby" style="background:#333;" onclick="document.getElementById('glb-file-input').click()">📁 GLB 로드</button>
-        </div>
-    </div>
-
-    <div id="hud">
-        <div class="top-hud">
-            <div class="player-card">
-                <h2><span>🌸 야치루</span><span id="ui-level">Lv.1</span></h2>
-                <div class="bar-bg"><div class="bar-hp" id="ui-hp-bar"></div></div>
-                <div class="bar-bg"><div class="bar-mp" id="ui-mp-bar"></div></div>
-                <div class="bar-bg"><div class="bar-exp" id="ui-exp-bar"></div></div>
-                <div class="stat-text">💎 영자: <span id="ui-gold">300</span> | 🧪 포션: <span id="ui-potion">3</span>개</div>
-            </div>
-
-            <div style="display: flex; flex-direction: column; align-items: center;">
-                <div id="stage-info-hud">
-                    <div id="stage-title">STAGE 1: 소울 소사이어티 입구</div>
-                    <div id="stage-objective" style="font-size: 0.78rem; color:#aaa;">남은 적: 5마리</div>
-                </div>
-                <div id="boss-hud">
-                    <div id="boss-name">☠️ 메노스 그란데 (BOSS)</div>
-                    <div class="bar-bg"><div class="bar-boss" id="ui-boss-hp"></div></div>
-                </div>
-            </div>
-
-            <div class="menu-btns">
-                <button class="btn-menu" onclick="toggleModal('shop-modal', true)">🛒 강화</button>
-                <button class="btn-menu" onclick="returnToLobby()">🏛️ 로비</button>
-            </div>
-        </div>
-
-        <div id="combo-display">
-            <div id="combo-num">0</div>
-            <div id="combo-text">COMBO HIT</div>
-        </div>
-
-        <div class="bottom-hud">
-            <div id="joystick-zone"><div id="joystick-knob"></div></div>
-            <div class="action-grid">
-                <button class="btn-act" onclick="usePotion()">🧪<br>포션</button>
-                <button class="btn-act" onclick="useDash()" id="btn-dash">⚡<br>순보<div class="cooldown-overlay" id="cd-dash"></div></button>
-                <button class="btn-act" onclick="useUltimate()" id="btn-ult">🌀<br>영압<div class="cooldown-overlay" id="cd-ult"></div></button>
-                <button class="btn-act main-atk" onclick="playerAttack()">⚔️<br>삼포참격</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="gacha-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🎰 운빨 뽑기</h3>
-            <div class="gacha-grid">
-                <div class="gacha-card">
-                    <h4>✨ 특성 뽑기</h4>
-                    <p style="font-size: 0.78rem; color:#aaa; margin-bottom:8px;">랜덤 능력치 부여</p>
-                    <button class="btn-gacha" onclick="rollGacha('trait')">50 영자</button>
-                </div>
-                <div class="gacha-card">
-                    <h4>⚔️ 무기 뽑기</h4>
-                    <p style="font-size: 0.78rem; color:#aaa; margin-bottom:8px;">이펙트 & 공격력 상승</p>
-                    <button class="btn-gacha" onclick="rollGacha('weapon')">80 영자</button>
-                </div>
-            </div>
-            <div id="gacha-result">원하는 뽑기를 선택하세요!</div>
-            <button class="btn-close" onclick="toggleModal('gacha-modal', false)">닫기</button>
-        </div>
-    </div>
-
-    <div id="shop-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🛒 스탯 강화 상점</h3>
-            <div class="shop-item">
-                <span>⚔️ 공격력 +15 <br><small id="info-atk">현재: 70</small></span>
-                <button class="btn-buy" onclick="buyUpgrade('atk')">50 영자</button>
-            </div>
-            <div class="shop-item">
-                <span>❤️ 최대 체력 +50 <br><small id="info-hp">현재: 250</small></span>
-                <button class="btn-buy" onclick="buyUpgrade('hp')">60 영자</button>
-            </div>
-            <div class="shop-item">
-                <span>⚡ 이동 속도 +10% <br><small id="info-spd">현재: 100%</small></span>
-                <button class="btn-buy" onclick="buyUpgrade('spd')">80 영자</button>
-            </div>
-            <div class="shop-item">
-                <span>🧪 회복 포션 +1개</span>
-                <button class="btn-buy" onclick="buyUpgrade('potion')">30 영자</button>
-            </div>
-            <button class="btn-close" onclick="toggleModal('shop-modal', false)">닫기</button>
-        </div>
-    </div>
-
-    <div id="end-game-modal" class="modal-overlay">
-        <div class="end-box">
-            <h2 id="end-title">GAME OVER</h2>
-            <p id="end-desc" style="color:#aaa; margin-bottom:20px;">영압이 소진되어 쓰러졌습니다.</p>
-            <button class="btn-lobby" onclick="returnToLobby()">🏛️ 로비로 돌아가기</button>
-        </div>
-    </div>
-
-    <script>
-        let scene, camera, renderer, gltfLoader;
-        let playerGroup, frontBeastMesh, backBeastMesh, particleGroup, portalGroup;
-        let monsters = [];
-        let joystickInput = { x: 0, z: 0, active: false };
-        let keyboardKeys = { w: false, a: false, s: false, d: false };
-        let activeBoss = null;
-        let isPlaying = false;
-        let audioCtx = null;
-        let currentStage = 1;
-        let enemiesRemaining = 5;
-        let comboCount = 0;
-        let comboTimer = null;
-        let bgmInterval = null;
-
-        let player = {
-            level: 1, exp: 0, maxExp: 100, gold: 300, potions: 3,
-            hp: 250, maxHp: 250, mp: 100, maxMp: 100,
-            baseAtk: 70, atkMult: 1.0, speed: 0.38, angle: 0,
-            attackCooldown: false, isDashing: false, dashCooldown: false, ultCooldown: false,
-            trait: null, weapon: null
-        };
-
-        const TRAITS = [
-            { name: "둔감 (Normal)", tier: "tier-normal", atkBonus: 0, spdBonus: 0, rate: 50 },
-            { name: "민첩함 (Rare)", tier: "tier-rare", atkBonus: 12, spdBonus: 0.05, rate: 30 },
-            { name: "사신의 영압 (Epic)", tier: "tier-epic", atkBonus: 35, spdBonus: 0.08, rate: 15 },
-            { name: "🔥 전설: 신속의 사신", tier: "tier-legendary", atkBonus: 85, spdBonus: 0.15, rate: 5 }
-        ];
-
-        const WEAPONS = [
-            { name: "기본 참백도", tier: "tier-normal", color: 0xff1493, mult: 1.0, rate: 50 },
-            { name: "빙륜환 (Ice)", tier: "tier-rare", color: 0x00bfff, mult: 1.35, rate: 30 },
-            { name: "류진자카 (Flame)", tier: "tier-epic", color: 0xff4500, mult: 1.75, rate: 15 },
-            { name: "⚡ 전설: 천쇄참월", tier: "tier-legendary", color: 0ffd700, mult: 2.5, rate: 5 }
-        ];
-
-        const STAGES = [
-            { id: 1, title: "STAGE 1: 소울 소사이어티 입구", count: 5, boss: false },
-            { id: 2, title: "STAGE 2: 루콘가 황야", count: 8, boss: false },
-            { id: 3, title: "STAGE 3: 대호울 격전지", count: 1, boss: true, bossName: "☠️ 거대 호울 (BOSS)" },
-            { id: 4, title: "STAGE 4: 웨코문드 사막", count: 12, boss: false },
-            { id: 5, title: "STAGE 5: 라스 노체스 최후 결전", count: 1, boss: true, bossName: "☠️ 메노스 그란데 (FINAL BOSS)" }
-        ];
-
-        function loadGameData() {
-            const saved = localStorage.getItem('bleach_save_ultimate');
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    player.gold = data.gold || 300;
-                    player.level = data.level || 1;
-                    player.baseAtk = data.baseAtk || 70;
-                    player.maxHp = data.maxHp || 250;
-                    player.hp = player.maxHp;
-                    player.trait = data.trait || null;
-                    player.weapon = data.weapon || null;
-                    if (player.weapon) player.atkMult = player.weapon.mult;
-
-                    if (player.trait) {
-                        document.getElementById('lobby-trait').innerText = player.trait.name;
-                        document.getElementById('lobby-trait').className = player.trait.tier;
-                    }
-                    if (player.weapon) {
-                        document.getElementById('lobby-weapon').innerText = player.weapon.name;
-                        document.getElementById('lobby-weapon').className = player.weapon.tier;
-                    }
-                } catch(e) {}
-            }
-            updateUI();
-        }
-
-        function saveGameData() {
-            const data = {
-                gold: player.gold,
-                level: player.level,
-                baseAtk: player.baseAtk,
-                maxHp: player.maxHp,
-                trait: player.trait,
-                weapon: player.weapon
-            };
-            localStorage.setItem('bleach_save_ultimate', JSON.stringify(data));
-        }
-
-        function showAchievement(msg) {
-            const toast = document.getElementById('achievement-toast');
-            document.getElementById('toast-text').innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
-        function playSound(type) {
-            try {
-                initAudio();
-                if (!audioCtx) return;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-
-                if (type === 'slash') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(520, now);
-                    osc.frequency.exponentialRampToValueAtTime(80, now + 0.12);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
-                    osc.start(now); osc.stop(now + 0.12);
-                } else if (type === 'hit') {
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(180, now);
-                    osc.frequency.linearRampToValueAtTime(30, now + 0.09);
-                    gain.gain.setValueAtTime(0.35, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.09);
-                    osc.start(now); osc.stop(now + 0.09);
-                } else if (type === 'ultimate') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(220, now);
-                    osc.frequency.exponentialRampToValueAtTime(1100, now + 0.4);
-                    gain.gain.setValueAtTime(0.5, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now); osc.stop(now + 0.4);
-                } else if (type === 'gacha') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.setValueAtTime(800, now + 0.1);
-                    osc.frequency.setValueAtTime(1200, now + 0.2);
-                    gain.gain.setValueAtTime(0.32, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.38);
-                    osc.start(now); osc.stop(now + 0.38);
-                }
-            } catch(e) {}
-        }
-
-        function startBGM() {
-            if (bgmInterval) return;
-            const notes = [130.81, 146.83, 164.81, 196.00, 220.00];
-            bgmInterval = setInterval(() => {
-                if (!isPlaying || !audioCtx) return;
-                try {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.value = notes[Math.floor(Math.random() * notes.length)] * 1.5;
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    const now = audioCtx.currentTime;
-                    gain.gain.setValueAtTime(0.04, now);
-                    gain.gain.linearRampToValueAtTime(0.001, now + 0.6);
-                    osc.start(now); osc.stop(now + 0.6);
-                } catch(e) {}
-            }, 700);
-        }
-
-        function stopBGM() {
-            if (bgmInterval) {
-                clearInterval(bgmInterval);
-                bgmInterval = null;
-            }
-        }
-
-        function triggerScreenShake() {
-            const container = document.body;
-            container.classList.add('screen-shake');
-            setTimeout(() => container.classList.remove('screen-shake'), 220);
-        }
-
-        function init() {
-            const container = document.getElementById('webgl-container');
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x06060f);
-            scene.fog = new THREE.FogExp2(0x06060f, 0.012);
-
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            container.appendChild(renderer.domElement);
-
-            gltfLoader = new THREE.GLTFLoader();
-
-            scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-            const dirLight = new THREE.DirectionalLight(0xfff0f5, 1.8);
-            dirLight.position.set(30, 60, 30);
-            dirLight.castShadow = true;
-            scene.add(dirLight);
-
-            particleGroup = new THREE.Group();
-            portalGroup = new THREE.Group();
-            scene.add(particleGroup);
-            scene.add(portalGroup);
-
-            createStageMap();
-            createYachiruCharacter();
-            setupJoystick();
-            setupKeyboard();
-            loadGameData();
-
-            window.addEventListener('resize', onWindowResize);
-            animate();
-        }
-
-        function startGame() {
-            initAudio();
-            startBGM();
-            isPlaying = true;
-            currentStage = 1;
-            player.hp = player.maxHp;
-            player.mp = player.maxMp;
-            document.getElementById('lobby-screen').style.display = 'none';
-            document.getElementById('end-game-modal').style.display = 'none';
-            document.getElementById('hud').style.display = 'flex';
-
-            loadStage(currentStage);
-            showAchievement("소울 소사이어티 전장 진입!");
-        }
-
-        function returnToLobby() {
-            isPlaying = false;
-            stopBGM();
-            monsters.forEach(m => scene.remove(m.mesh));
-            monsters = [];
-            activeBoss = null;
-            saveGameData();
-            document.getElementById('hud').style.display = 'none';
-            document.getElementById('end-game-modal').style.display = 'none';
-            document.getElementById('lobby-screen').style.display = 'flex';
-            updateUI();
-        }
-
-        function loadStage(stNum) {
-            monsters.forEach(m => scene.remove(m.mesh));
-            monsters = [];
-            activeBoss = null;
-            document.getElementById('boss-hud').style.display = 'none';
-
-            const stageData = STAGES[stNum - 1] || STAGES[STAGES.length - 1];
-            document.getElementById('stage-title').innerText = stageData.title;
-            enemiesRemaining = stageData.count;
-            document.getElementById('stage-objective').innerText = stageData.boss ? "보스를 처치하세요!" : `남은 적: ${enemiesRemaining}마리`;
-
-            playerGroup.position.set(0, 0, 0);
-
-            if (stageData.boss) {
-                createSpawningPortal(0, -32);
-                setTimeout(() => spawnMonsterAt(0, -32, true, stageData.bossName), 800);
-            } else {
-                for (let i = 0; i < stageData.count; i++) {
-                    const angle = (i / stageData.count) * Math.PI * 2;
-                    const dist = 22 + Math.random() * 8;
-                    const x = Math.sin(angle) * dist;
-                    const z = Math.cos(angle) * dist;
-                    createSpawningPortal(x, z);
-                    setTimeout(() => spawnMonsterAt(x, z, false), 600);
-                }
-            }
-        }
-
-        function createStageMap() {
-            const floorGeo = new THREE.PlaneGeometry(300, 300);
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x141420, roughness: 0.7 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            floor.receiveShadow = true;
-            scene.add(floor);
-
-            for (let i = 0; i < 8; i++) {
-                const angle = (i / 8) * Math.PI * 2;
-                const pillarGeo = new THREE.BoxGeometry(2, 9, 2);
-                const pillarMat = new THREE.MeshStandardMaterial({ color: 0x241d38 });
-                const pillar = new THREE.Mesh(pillarGeo, pillarMat);
-                pillar.position.set(Math.sin(angle) * 110, 4.5, Math.cos(angle) * 110);
-                scene.add(pillar);
-            }
-        }
-
-        function createYachiruCharacter() {
-            playerGroup = new THREE.Group();
-
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.5, 16), new THREE.MeshStandardMaterial({ color: 0x111116 }));
-            body.position.y = 0.75;
-            playerGroup.add(body);
-
-            const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), new THREE.MeshStandardMaterial({ color: 0xff1493 }));
-            hair.position.y = 1.65;
-            playerGroup.add(hair);
-
-            frontBeastMesh = new THREE.Group();
-            const fMesh = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.4, 8), new THREE.MeshStandardMaterial({ color: 0x8a2be2 }));
-            fMesh.rotation.x = -Math.PI / 2; fMesh.position.y = 0.8;
-            frontBeastMesh.add(fMesh);
-            frontBeastMesh.position.set(0, 0, 1.8);
-            frontBeastMesh.scale.set(0.001, 0.001, 0.001);
-            playerGroup.add(frontBeastMesh);
-
-            backBeastMesh = new THREE.Group();
-            const bMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7), new THREE.MeshStandardMaterial({ color: 0ffd700 }));
-            bMesh.position.y = 0.8;
-            backBeastMesh.add(bMesh);
-            backBeastMesh.position.set(0, 0, -1.8);
-            backBeastMesh.scale.set(0.001, 0.001, 0.001);
-            playerGroup.add(backBeastMesh);
-
-            scene.add(playerGroup);
-        }
-
-        function handleGLBUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const url = URL.createObjectURL(file);
-            gltfLoader.load(url, (gltf) => {
-                const model = gltf.scene;
-                const box = new THREE.Box3().setFromObject(model);
-                const size = box.getSize(new THREE.Vector3());
-                const scale = 2.4 / (Math.max(size.x, size.y, size.z) || 1);
-                model.scale.set(scale, scale, scale);
-
-                model.traverse(child => { if (child.isMesh) child.castShadow = true; });
-
-                playerGroup.children.forEach(c => {
-                    if (c !== frontBeastMesh && c !== backBeastMesh) playerGroup.remove(c);
-                });
-                playerGroup.add(model);
-                showAchievement("커스텀 3D 모델 적용 완료!");
-            });
-        }
-
-        function createSpawningPortal(x, z) {
-            const portalGeo = new THREE.RingGeometry(0.5, 5.0, 32);
-            const portalMat = new THREE.MeshBasicMaterial({ color: 0x8a2be2, side: THREE.DoubleSide, transparent: true, opacity: 0.88 });
-            const portal = new THREE.Mesh(portalGeo, portalMat);
-            portal.rotation.x = Math.PI / 2;
-            portal.position.set(x, 0.05, z);
-            portalGroup.add(portal);
-
-            let scale = 0.1;
-            const expand = setInterval(() => {
-                scale += 0.14;
-                portal.scale.set(scale, scale, scale);
-                if (scale >= 1.25) {
-                    clearInterval(expand);
-                    setTimeout(() => portalGroup.remove(portal), 1200);
-                }
-            }, 30);
-        }
-
-        function spawnMonsterAt(x, z, isBoss, customBossName) {
-            const mGroup = new THREE.Group();
-            const body = new THREE.Mesh(
-                new THREE.BoxGeometry(isBoss ? 2.6 : 1.0, isBoss ? 5.2 : 1.5, isBoss ? 2.6 : 1.0),
-                new THREE.MeshStandardMaterial({ color: isBoss ? 0xa00020 : 0x4a148c })
-            );
-            body.position.y = isBoss ? 2.6 : 0.75;
-            mGroup.add(body);
-
-            const mask = new THREE.Mesh(new THREE.SphereGeometry(isBoss ? 1.25 : 0.45, 12, 12), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-            mask.position.set(0, isBoss ? 4.5 : 1.3, isBoss ? 1.15 : 0.35);
-            mGroup.add(mask);
-
-            mGroup.position.set(x, 0, z);
-            scene.add(mGroup);
-
-            const mData = {
-                mesh: mGroup, hp: isBoss ? 3000 : 220, maxHp: isBoss ? 3000 : 220,
-                atk: isBoss ? 50 : 16, speed: isBoss ? 0.09 : 0.12, isBoss: isBoss, lastAttack: 0
-            };
-
-            monsters.push(mData);
-            if (isBoss) {
-                activeBoss = mData;
-                document.getElementById('boss-name').innerText = customBossName || "☠️ 보스 호울";
-                document.getElementById('boss-hud').style.display = 'flex';
-                updateBossUI();
-            }
-        }
-
-        function rollGacha(type) {
-            playSound('gacha');
-            const cost = type === 'trait' ? 50 : 80;
-            if (player.gold < cost) return alert("영자가 부족합니다!");
-
-            player.gold -= cost;
-            const rand = Math.random() * 100;
-            let cumulative = 0;
-            const pool = type === 'trait' ? TRAITS : WEAPONS;
-            let resultItem = pool[0];
-
-            for (let item of pool) {
-                cumulative += item.rate;
-                if (rand <= cumulative) { resultItem = item; break; }
-            }
-
-            const resDiv = document.getElementById('gacha-result');
-            resDiv.innerHTML = `🎉 당첨: <span class="${resultItem.tier}">${resultItem.name}</span>!`;
-
-            if (type === 'trait') {
-                player.trait = resultItem;
-                document.getElementById('lobby-trait').innerText = resultItem.name;
-                document.getElementById('lobby-trait').className = resultItem.tier;
-                showAchievement(`특성 획득: ${resultItem.name}`);
-            } else {
-                player.weapon = resultItem;
-                player.atkMult = resultItem.mult;
-                document.getElementById('lobby-weapon').innerText = resultItem.name;
-                document.getElementById('lobby-weapon').className = resultItem.tier;
-                showAchievement(`무기 획득: ${resultItem.name}`);
-            }
-            saveGameData();
-            updateUI();
-        }
-
-        function buyUpgrade(type) {
-            if (type === 'atk' && player.gold >= 50) { player.gold -= 50; player.baseAtk += 15; }
-            else if (type === 'hp' && player.gold >= 60) { player.gold -= 60; player.maxHp += 50; player.hp += 50; }
-            else if (type === 'spd' && player.gold >= 80) { player.gold -= 80; player.speed += 0.035; }
-            else if (type === 'potion' && player.gold >= 30) { player.gold -= 30; player.potions++; }
-            else { return alert("영자가 부족합니다!"); }
-            saveGameData();
-            updateUI();
-        }
-
-        function playerAttack() {
-            if (!isPlaying || player.attackCooldown) return;
-            player.attackCooldown = true;
-            playSound('slash');
-
-            const weaponColor = player.weapon ? player.weapon.color : 0xff1493;
-
-            spawnSlashArc(playerGroup.position, player.angle, 0, weaponColor);
-            executeHit(0, 1.0);
-
-            setTimeout(() => {
-                frontBeastMesh.scale.set(1.4, 1.4, 1.4);
-                spawnSlashArc(playerGroup.position, player.angle, 2.2, 0x8a2be2);
-                executeHit(2.2, 1.25);
-            }, 85);
-
-            setTimeout(() => {
-                backBeastMesh.scale.set(1.5, 1.5, 1.5);
-                spawnSlashArc(playerGroup.position, player.angle, -1.8, 0ffd700);
-                executeHit(-1.8, 1.35);
-            }, 170);
-
-            setTimeout(() => {
-                frontBeastMesh.scale.set(0.001, 0.001, 0.001);
-                backBeastMesh.scale.set(0.001, 0.001, 0.001);
-                player.attackCooldown = false;
-            }, 320);
-        }
-
-        function useUltimate() {
-            if (!isPlaying || player.mp < 40 || player.ultCooldown) return;
-            player.mp -= 40;
-            player.ultCooldown = true;
-            applyCooldownUI('cd-ult', 2500);
-            playSound('ultimate');
-            triggerScreenShake();
-            addCombo(5);
-
-            spawnParticles(playerGroup.position.x, 2, playerGroup.position.z, 0x8a2be2, 120);
-            monsters.forEach(m => {
-                if (playerGroup.position.distanceTo(m.mesh.position) < 22.0) {
-                    let totalAtk = (player.baseAtk + (player.trait ? player.trait.atkBonus : 0)) * player.atkMult;
-                    let dmg = Math.floor(totalAtk * 6.0);
-                    m.hp -= dmg;
-                    showDamageText(`💥${dmg}`, m.mesh.position, '#ba55d3');
-                    if (m.isBoss) updateBossUI();
-                }
-            });
-
-            setTimeout(() => { player.ultCooldown = false; }, 2500);
-            updateUI();
-        }
-
-        function useDash() {
-            if (!isPlaying || player.mp < 10 || player.dashCooldown || player.isDashing) return;
-            player.mp -= 10;
-            player.dashCooldown = true;
-            player.isDashing = true;
-            applyCooldownUI('cd-dash', 1200);
-            playSound('slash');
-            
-            playerGroup.position.x += Math.sin(player.angle) * 12.0;
-            playerGroup.position.z += Math.cos(player.angle) * 12.0;
-
-            setTimeout(() => { player.isDashing = false; }, 160);
-            setTimeout(() => { player.dashCooldown = false; }, 1200);
-            updateUI();
-        }
-
-        function applyCooldownUI(id, duration) {
-            const el = document.getElementById(id);
-            let start = Date.now();
-            function step() {
-                let elapsed = Date.now() - start;
-                let pct = Math.max(0, 100 - (elapsed / duration) * 100);
-                el.style.height = `${pct}%`;
-                if (pct > 0) requestAnimationFrame(step);
-            }
-            requestAnimationFrame(step);
-        }
-
-        function usePotion() {
-            if (!isPlaying) return;
-            if (player.potions <= 0) return alert("포션이 없습니다!");
-            player.potions--;
-            player.hp = Math.min(player.maxHp, player.hp + 160);
-            spawnParticles(playerGroup.position.x, 1, playerGroup.position.z, 0x00ff00, 45);
-            updateUI();
-        }
-
-        function executeHit(offsetZ, mult) {
-            const hitPos = new THREE.Vector3(
-                playerGroup.position.x + Math.sin(player.angle) * offsetZ,
-                playerGroup.position.y + 1.0,
-                playerGroup.position.z + Math.cos(player.angle) * offsetZ
-            );
-
-            let totalAtk = (player.baseAtk + (player.trait ? player.trait.atkBonus : 0)) * player.atkMult;
-            let hitAny = false;
-
-            monsters.forEach(m => {
-                if (hitPos.distanceTo(m.mesh.position) < 6.0) {
-                    hitAny = true;
-                    let dmg = Math.floor(totalAtk * mult + Math.random() * 20);
-                    m.hp -= dmg;
-                    showDamageText(dmg, m.mesh.position, m.isBoss ? '#ff0000' : '#ff1493');
-                    if (m.isBoss) updateBossUI();
-                }
-            });
-
-            if (hitAny) addCombo(1);
-        }
-
-        function addCombo(val) {
-            comboCount += val;
-            const disp = document.getElementById('combo-display');
-            document.getElementById('combo-num').innerText = comboCount;
-            disp.style.opacity = '1';
-
-            if (comboCount === 10) showAchievement("10 콤보 달성!");
-            if (comboCount === 30) showAchievement("30 콤보 마스터!");
-
-            if (comboTimer) clearTimeout(comboTimer);
-            comboTimer = setTimeout(() => {
-                comboCount = 0;
-                disp.style.opacity = '0';
-            }, 2400);
-        }
-
-        function spawnSlashArc(pos, angle, offsetZ, colorHex) {
-            const arcGeo = new THREE.RingGeometry(1.8, 3.6, 16, 1, 0, Math.PI);
-            const arcMat = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.95 });
-            const arcMesh = new THREE.Mesh(arcGeo, arcMat);
-            arcMesh.rotation.x = Math.PI / 2;
-            arcMesh.rotation.z = -angle + Math.PI / 2;
-            arcMesh.position.set(pos.x + Math.sin(angle) * offsetZ, pos.y + 1.2, pos.z + Math.cos(angle) * offsetZ);
-
-            scene.add(arcMesh);
-            let opacity = 0.95;
-            const fade = setInterval(() => {
-                opacity -= 0.22;
-                arcMesh.material.opacity = opacity;
-                if (opacity <= 0) { clearInterval(fade); scene.remove(arcMesh); }
-            }, 25);
-        }
-
-        function toggleModal(id, show) {
-            document.getElementById(id).style.display = show ? 'flex' : 'none';
-        }
-
-        function setupJoystick() {
-            const zone = document.getElementById('joystick-zone');
-            const knob = document.getElementById('joystick-knob');
-            const maxRadius = 40;
-
-            function handleTouch(e) {
-                if (!isPlaying) return;
-                const touch = e.touches[0];
-                const rect = zone.getBoundingClientRect();
-                let dx = touch.clientX - (rect.left + rect.width / 2);
-                let dy = touch.clientY - (rect.top + rect.height / 2);
-                let dist = Math.hypot(dx, dy);
-
-                if (dist > maxRadius) {
-                    dx = (dx / dist) * maxRadius;
-                    dy = (dy / dist) * maxRadius;
-                }
-
-                knob.style.transform = `translate(${dx}px, ${dy}px)`;
-                joystickInput.x = dx / maxRadius;
-                joystickInput.z = dy / maxRadius;
-                joystickInput.active = true;
-            }
-
-            zone.addEventListener('touchstart', handleTouch, { passive: false });
-            zone.addEventListener('touchmove', (e) => { e.preventDefault(); handleTouch(e); }, { passive: false });
-            zone.addEventListener('touchend', () => {
-                knob.style.transform = `translate(0px, 0px)`;
-                joystickInput = { x: 0, z: 0, active: false };
-            });
-        }
-
-        function setupKeyboard() {
-            window.addEventListener('keydown', (e) => {
-                if (!isPlaying) return;
-                const key = e.key.toLowerCase();
-                if (key === 'w' || key === 'arrowup') keyboardKeys.w = true;
-                if (key === 's' || key === 'arrowdown') keyboardKeys.s = true;
-                if (key === 'a' || key === 'arrowleft') keyboardKeys.a = true;
-                if (key === 'd' || key === 'arrowright') keyboardKeys.d = true;
-                if (key === ' ') { e.preventDefault(); playerAttack(); }
-                if (key === 'q') useUltimate();
-                if (key === 'e') useDash();
-                if (key === 'p') usePotion();
-            });
-
-            window.addEventListener('keyup', (e) => {
-                const key = e.key.toLowerCase();
-                if (key === 'w' || key === 'arrowup') keyboardKeys.w = false;
-                if (key === 's' || key === 'arrowdown') keyboardKeys.s = false;
-                if (key === 'a' || key === 'arrowleft') keyboardKeys.a = false;
-                if (key === 'd' || key === 'arrowright') keyboardKeys.d = false;
-            });
-        }
-
-        function updateGame() {
-            if (!isPlaying) return;
-
-            let currentSpeed = player.speed + (player.trait ? player.trait.spdBonus : 0);
-            let moveX = 0, moveZ = 0;
-
-            if (joystickInput.active) {
-                moveX = joystickInput.x;
-                moveZ = joystickInput.z;
-            } else {
-                if (keyboardKeys.a) moveX -= 1;
-                if (keyboardKeys.d) moveX += 1;
-                if (keyboardKeys.w) moveZ -= 1;
-                if (keyboardKeys.s) moveZ += 1;
-            }
-
-            if (moveX !== 0 || moveZ !== 0) {
-                const angle = Math.atan2(moveX, moveZ);
-                player.angle = angle;
-                playerGroup.rotation.y = angle;
-                playerGroup.position.x += moveX * currentSpeed;
-                playerGroup.position.z += moveZ * currentSpeed;
-
-                player.mp = Math.min(player.maxMp, player.mp + 0.18);
-                updateUI();
-            }
-
-            const now = Date.now();
-
-            for (let i = monsters.length - 1; i >= 0; i--) {
-                const m = monsters[i];
-
-                if (m.hp <= 0) {
-                    spawnParticles(m.mesh.position.x, 1, m.mesh.position.z, 0xff0055, 50);
-                    scene.remove(m.mesh);
-                    monsters.splice(i, 1);
-
-                    player.exp += m.isBoss ? 100 : 35;
-                    if (player.exp >= player.maxExp) {
-                        player.level++;
-                        player.exp -= player.maxExp;
-                        player.maxExp = Math.floor(player.maxExp * 1.45);
-                        player.hp = player.maxHp;
-                        playSound('gacha');
-                        showAchievement(`레벨 업! Lv.${player.level}`);
-                    }
-
-                    if (m.isBoss) {
-                        activeBoss = null;
-                        document.getElementById('boss-hud').style.display = 'none';
-                        player.gold += 400;
-                        saveGameData();
-                        if (currentStage < STAGES.length) {
-                            currentStage++;
-                            setTimeout(() => {
-                                showAchievement(`STAGE ${currentStage - 1} 클리어!`);
-                                loadStage(currentStage);
-                            }, 500);
-                        } else {
-                            stopBGM();
-                            document.getElementById('end-title').innerText = "VICTORY!";
-                            document.getElementById('end-desc').innerText = "모든 스테이지를 완벽하게 정복하고 최강의 사신이 되었습니다!";
-                            document.getElementById('end-game-modal').style.display = 'flex';
-                            isPlaying = false;
-                        }
-                    } else {
-                        enemiesRemaining--;
-                        player.gold += 45;
-                        saveGameData();
-                        if (enemiesRemaining <= 0) {
-                            currentStage++;
-                            if (currentStage <= STAGES.length) {
-                                setTimeout(() => {
-                                    showAchievement(`웨이브 클리어! STAGE ${currentStage} 진입`);
-                                    loadStage(currentStage);
-                                }, 500);
-                            } else {
-                                stopBGM();
-                                document.getElementById('end-title').innerText = "VICTORY!";
-                                document.getElementById('end-desc').innerText = "모든 스테이지를 완벽하게 클리어했습니다!";
-                                document.getElementById('end-game-modal').style.display = 'flex';
-                                isPlaying = false;
-                            }
-                        } else {
-                            document.getElementById('stage-objective').innerText = `남은 적: ${enemiesRemaining}마리`;
-                        }
-                    }
-                    updateUI();
-                    continue;
-                }
-
-                const dist = m.mesh.position.distanceTo(playerGroup.position);
-                if (dist > 1.8) {
-                    m.mesh.position.x += ((playerGroup.position.x - m.mesh.position.x) / dist) * m.speed;
-                    m.mesh.position.z += ((playerGroup.position.z - m.mesh.position.z) / dist) * m.speed;
-                    m.mesh.lookAt(playerGroup.position);
-                } else {
-                    if (now - m.lastAttack > 950) {
-                        m.lastAttack = now;
-                        player.hp = Math.max(0, player.hp - m.atk);
-                        playSound('hit');
-                        triggerScreenShake();
-                        showDamageText(`-${m.atk}`, playerGroup.position, '#ff0000');
-                        updateUI();
-
-                        if (player.hp <= 0) {
-                            stopBGM();
-                            document.getElementById('end-title').innerText = "GAME OVER";
-                            document.getElementById('end-desc').innerText = "영압이 소진되어 쓰러졌습니다.";
-                            document.getElementById('end-game-modal').style.display = 'flex';
-                            isPlaying = false;
-                        }
-                    }
-                }
-            }
-
-            camera.position.set(playerGroup.position.x, playerGroup.position.y + 16, playerGroup.position.z + 18);
-            camera.lookAt(playerGroup.position);
-        }
-
-        function spawnParticles(x, y, z, colorHex, count = 18) {
-            for (let i = 0; i < count; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 0.22), new THREE.MeshBasicMaterial({ color: colorHex }));
-                p.position.set(x, y, z);
-                p.userData = { vx: (Math.random() - 0.5) * 0.6, vy: Math.random() * 0.6, vz: (Math.random() - 0.5) * 0.6, life: 1.0 };
-                particleGroup.add(p);
-            }
-        }
-
-        function showDamageText(dmg, pos, color = '#ff1493') {
-            const el = document.createElement('div');
-            el.className = 'dmg-float';
-            el.innerText = `${dmg}`;
-            el.style.color = color;
-
-            const vector = pos.clone().project(camera);
-            const x = (vector.x * .5 + .5) * window.innerWidth;
-            const y = (-(vector.y * .5) + .5) * window.innerHeight;
-
-            el.style.left = `${x}px`; el.style.top = `${y}px`;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 650);
-        }
-
-        function updateUI() {
-            document.getElementById('lobby-gold').innerText = player.gold;
-            document.getElementById('ui-gold').innerText = player.gold;
-
-            document.getElementById('ui-level').innerText = `Lv.${player.level}`;
-            document.getElementById('ui-hp-bar').style.width = `${(player.hp / player.maxHp) * 100}%`;
-            document.getElementById('ui-mp-bar').style.width = `${(player.mp / player.maxMp) * 100}%`;
-            document.getElementById('ui-exp-bar').style.width = `${(player.exp / player.maxExp) * 100}%`;
-            document.getElementById('ui-potion').innerText = player.potions;
-
-            document.getElementById('info-atk').innerText = `현재: ${Math.floor((player.baseAtk + (player.trait ? player.trait.atkBonus : 0)) * player.atkMult)}`;
-            document.getElementById('info-hp').innerText = `현재: ${player.maxHp}`;
-            document.getElementById('info-spd').innerText = `현재: ${Math.round((player.speed / 0.38) * 100)}%`;
-        }
-
-        function updateBossUI() {
-            if (activeBoss) {
-                document.getElementById('ui-boss-hp').style.width = `${Math.max(0, (activeBoss.hp / activeBoss.maxHp)) * 100}%`;
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            updateGame();
-
-            for (let i = particleGroup.children.length - 1; i >= 0; i--) {
-                let p = particleGroup.children[i];
-                p.position.x += p.userData.vx; p.position.y += p.userData.vy; p.position.z += p.userData.vz;
-                p.userData.life -= 0.045; p.scale.setScalar(p.userData.life);
-                if (p.userData.life <= 0) particleGroup.remove(p);
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        window.onload = init;
-    </script>
+<div id="ui">
+BLEACH RPG<br>
+HP : <span id="hp">100</span><br>
+WORLD : <span id="world">카라쿠라</span>
+<br>
+<button onclick="nextWorld()">다음 맵</button>
+</div>
+
+
+<script type="module">
+
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js";
+
+
+// =================
+// 기본 엔진
+// =================
+
+const scene=new THREE.Scene();
+
+const camera=
+new THREE.PerspectiveCamera(
+60,
+innerWidth/innerHeight,
+0.1,
+1000
+);
+
+
+const renderer=
+new THREE.WebGLRenderer({
+antialias:true
+});
+
+
+renderer.setSize(
+innerWidth,
+innerHeight
+);
+
+
+document.body.appendChild(
+renderer.domElement
+);
+
+
+
+// 빛
+
+scene.add(
+new THREE.AmbientLight(
+0xffffff,
+1
+)
+);
+
+
+const light=
+new THREE.DirectionalLight(
+0xffffff,
+2
+);
+
+light.position.set(
+30,50,20
+);
+
+scene.add(light);
+
+
+
+// =================
+// 플레이어
+// =================
+
+const player=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+0.7,
+1.5,
+4,
+8
+),
+
+new THREE.MeshStandardMaterial({
+color:0xff66cc
+})
+
+);
+
+
+player.position.y=1;
+
+scene.add(player);
+
+
+
+
+// =================
+// 맵 시스템
+// =================
+
+let world=0;
+
+
+const worlds=[
+"카라쿠라",
+"소울 소사이어티",
+"소쿄쿠",
+"웨코문도",
+"라스 노체스",
+"반덴라이히",
+"영왕궁"
+];
+
+
+
+function clearMap(){
+
+while(scene.children.length>3){
+
+scene.remove(
+scene.children[3]
+);
+
+}
+
+}
+
+
+
+// =================
+// 공통 맵 생성
+// =================
+
+function createWorld(name,color){
+
+clearMap();
+
+
+scene.background=
+new THREE.Color(color);
+
+
+
+const ground=
+new THREE.Mesh(
+
+new THREE.PlaneGeometry(
+300,
+300
+),
+
+new THREE.MeshStandardMaterial({
+color:0xdddddd
+})
+
+);
+
+
+ground.rotation.x=-Math.PI/2;
+
+scene.add(ground);
+
+
+
+for(let i=0;i<20;i++){
+
+const obj=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+5,
+Math.random()*20+5,
+5
+),
+
+new THREE.MeshStandardMaterial({
+color:0xffffff
+})
+
+);
+
+
+obj.position.set(
+Math.random()*100-50,
+obj.geometry.parameters.height/2,
+Math.random()*100-50
+);
+
+
+scene.add(obj);
+
+}
+
+
+document.getElementById(
+"world"
+).innerText=name;
+
+
+player.position.set(
+0,
+1,
+0
+);
+
+
+}
+
+
+
+
+function nextWorld(){
+
+world++;
+
+if(world>=7)
+world=0;
+
+
+createWorld(
+worlds[world],
+0x111111+world*100000
+);
+
+}
+
+
+// 시작
+
+createWorld(
+worlds[0],
+0x77aaff
+);
+
+
+
+
+// =================
+// 이동
+// =================
+
+
+let keys={};
+
+
+addEventListener(
+"keydown",
+e=>keys[e.key]=true
+);
+
+
+addEventListener(
+"keyup",
+e=>keys[e.key]=false
+);
+
+
+
+function move(){
+
+if(keys.w)
+player.position.z-=0.2;
+
+if(keys.s)
+player.position.z+=0.2;
+
+if(keys.a)
+player.position.x-=0.2;
+
+if(keys.d)
+player.position.x+=0.2;
+
+
+}
+
+
+
+// =================
+// 카메라
+// =================
+
+
+function animate(){
+
+requestAnimationFrame(
+animate
+);
+
+
+move();
+
+
+camera.position.set(
+player.position.x,
+8,
+player.position.z+12
+);
+
+
+camera.lookAt(
+player.position
+);
+
+
+
+renderer.render(
+scene,
+camera
+);
+
+}
+
+
+animate();
+
+
+
+addEventListener(
+"resize",
+()=>{
+
+camera.aspect=
+innerWidth/innerHeight;
+
+camera.updateProjectionMatrix();
+
+renderer.setSize(
+innerWidth,
+innerHeight
+);
+
+});
+
+
+</script>
+
 </body>
-</html>
+</html><!-- 추가 : 전투 시스템 -->
+
+<script>
+
+// =======================
+// 적 시스템
+// =======================
+
+let enemies=[];
+
+
+function spawnEnemy(){
+
+const enemy=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+1.5,
+16,
+16
+),
+
+new THREE.MeshStandardMaterial({
+color:0x111111
+})
+
+);
+
+
+enemy.position.set(
+Math.random()*40-20,
+1.5,
+Math.random()*40-20
+);
+
+
+scene.add(enemy);
+
+
+enemies.push({
+
+mesh:enemy,
+hp:100
+
+});
+
+
+}
+
+
+
+for(let i=0;i<5;i++)
+spawnEnemy();
+
+
+
+// =======================
+// 검
+// =======================
+
+const sword=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+0.15,
+2.5,
+0.15
+),
+
+new THREE.MeshStandardMaterial({
+color:0xffffff
+})
+
+);
+
+
+sword.position.set(
+0.8,
+1.5,
+0
+);
+
+
+player.add(sword);
+
+
+
+// =======================
+// 공격
+// =======================
+
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.code==="Space"){
+
+
+sword.rotation.z=-1;
+
+
+
+setTimeout(()=>{
+
+sword.rotation.z=0;
+
+},200);
+
+
+
+enemies.forEach((enemy,i)=>{
+
+
+let d=
+player.position.distanceTo(
+enemy.mesh.position
+);
+
+
+
+if(d<4){
+
+
+enemy.hp-=50;
+
+
+
+enemy.mesh.position.x+=3;
+
+
+
+if(enemy.hp<=0){
+
+
+scene.remove(
+enemy.mesh
+);
+
+
+enemies.splice(
+i,
+1
+);
+
+
+}
+
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+});
+
+
+
+
+// =======================
+// 적 AI
+// =======================
+
+function enemyAI(){
+
+enemies.forEach(e=>{
+
+
+let dir=
+new THREE.Vector3()
+.subVectors(
+player.position,
+e.mesh.position
+)
+.normalize();
+
+
+let d=
+player.position.distanceTo(
+e.mesh.position
+);
+
+
+
+if(d<20){
+
+e.mesh.position.addScaledVector(
+dir,
+0.03
+);
+
+}
+
+
+
+});
+
+}
+
+
+
+// 기존 animate에 추가
+
+const oldAnimate2=animate;
+
+
+animate=function(){
+
+enemyAI();
+
+oldAnimate2();
+
+};
+
+
+
+</script><!-- 추가 : 월드 포탈 시스템 -->
+
+<script>
+
+
+// =======================
+// 포탈
+// =======================
+
+
+let portal;
+
+
+function createPortal(){
+
+
+portal=
+new THREE.Mesh(
+
+new THREE.TorusGeometry(
+3,
+0.5,
+16,
+40
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0x00ffff
+
+})
+
+);
+
+
+
+portal.rotation.x=
+Math.PI/2;
+
+
+portal.position.set(
+0,
+3,
+-20
+);
+
+
+scene.add(portal);
+
+
+
+}
+
+
+
+createPortal();
+
+
+
+
+// =======================
+// 월드별 맵 생성 강화
+// =======================
+
+
+function buildSpecialWorld(){
+
+clearMap();
+
+
+// 카라쿠라
+
+if(world===0){
+
+
+scene.background=
+new THREE.Color(
+0x4488ff
+);
+
+
+
+for(let i=0;i<20;i++){
+
+
+let house=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+10,
+20,
+10
+),
+
+new THREE.MeshStandardMaterial({
+color:0xffffff
+})
+
+);
+
+
+house.position.set(
+Math.random()*100-50,
+10,
+Math.random()*100-50
+);
+
+
+scene.add(house);
+
+}
+
+
+}
+
+
+
+// 소울 소사이어티
+
+if(world===1){
+
+
+scene.background=
+new THREE.Color(
+0xffddaa
+);
+
+
+
+const wall=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+200,
+20,
+5
+),
+
+new THREE.MeshStandardMaterial({
+color:0xffffff
+})
+
+);
+
+
+wall.position.z=-50;
+wall.position.y=10;
+
+scene.add(wall);
+
+
+
+for(let i=0;i<30;i++){
+
+
+let tree=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+2
+),
+
+new THREE.MeshStandardMaterial({
+color:0xff99cc
+})
+
+);
+
+
+tree.position.set(
+Math.random()*100-50,
+3,
+Math.random()*100-50
+);
+
+
+scene.add(tree);
+
+
+}
+
+
+
+}
+
+
+
+
+// 웨코문도
+
+if(world===3){
+
+
+scene.background=
+new THREE.Color(
+0x111122
+);
+
+
+
+const moon=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+20
+),
+
+new THREE.MeshBasicMaterial({
+color:0xffffdd
+})
+
+);
+
+
+moon.position.set(
+0,
+60,
+-100
+);
+
+
+scene.add(moon);
+
+
+
+const sand=
+new THREE.Mesh(
+
+new THREE.PlaneGeometry(
+300,
+300
+),
+
+new THREE.MeshStandardMaterial({
+color:0xffffff
+})
+
+);
+
+
+sand.rotation.x=-Math.PI/2;
+
+scene.add(sand);
+
+
+}
+
+
+
+createPortal();
+
+
+
+}
+
+
+
+// 다음 맵 버튼 수정
+
+window.nextWorld=function(){
+
+
+world++;
+
+
+if(world>=7)
+world=0;
+
+
+buildSpecialWorld();
+
+
+document.getElementById(
+"world"
+).innerText=
+worlds[world];
+
+
+
+};
+
+
+
+// 포탈 이동
+
+function portalCheck(){
+
+
+if(
+player.position.distanceTo(
+portal.position
+)<4
+){
+
+
+nextWorld();
+
+
+}
+
+
+}
+
+
+
+const oldAnimate3=animate;
+
+
+animate=function(){
+
+portal.rotation.z+=0.05;
+
+portalCheck();
+
+oldAnimate3();
+
+};
+
+
+
+</script><!-- 추가 : 참백도 / 시해 / 만해 시스템 -->
+
+<script>
+
+
+// =======================
+// 상태
+// =======================
+
+let shikai=false;
+let bankai=false;
+
+
+// =======================
+// 시해
+// =======================
+
+function activateShikai(){
+
+
+shikai=!shikai;
+
+
+if(shikai){
+
+sword.scale.set(
+1,
+1.5,
+1
+);
+
+sword.material.color.setHex(
+0x00ffff
+);
+
+
+}else{
+
+
+sword.scale.set(
+1,
+1,
+1
+);
+
+sword.material.color.setHex(
+0xffffff
+);
+
+
+}
+
+
+}
+
+
+
+// =======================
+// 만해
+// =======================
+
+
+function activateBankai(){
+
+
+bankai=!bankai;
+
+
+
+if(bankai){
+
+
+player.material.color.setHex(
+0xff0000
+);
+
+
+
+sword.scale.set(
+1,
+3,
+1
+);
+
+
+
+}else{
+
+
+player.material.color.setHex(
+0xff66cc
+);
+
+
+
+sword.scale.set(
+1,
+1,
+1
+);
+
+
+
+}
+
+
+}
+
+
+
+// =======================
+// 기술 버튼
+// =======================
+
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.key==="1"){
+
+activateShikai();
+
+}
+
+
+
+if(e.key==="2"){
+
+activateBankai();
+
+}
+
+
+
+});
+
+
+
+
+// =======================
+// 월아천충
+// =======================
+
+
+function getsugaTensho(){
+
+
+const wave=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+1,
+2,
+10
+),
+
+new THREE.MeshBasicMaterial({
+
+color:
+bankai?
+0xff0000:
+0x00ffff
+
+})
+
+);
+
+
+
+wave.position.copy(
+player.position
+);
+
+
+
+wave.position.z-=5;
+
+
+
+scene.add(wave);
+
+
+
+let move=0;
+
+
+
+let timer=setInterval(()=>{
+
+
+wave.position.z-=2;
+
+
+enemies.forEach(
+(e,i)=>{
+
+
+if(
+wave.position.distanceTo(
+e.mesh.position
+)<5
+){
+
+
+e.hp-=200;
+
+
+}
+
+
+
+});
+
+
+
+move++;
+
+
+
+if(move>30){
+
+
+scene.remove(
+wave
+);
+
+
+clearInterval(
+timer
+);
+
+
+}
+
+
+
+},30);
+
+
+
+}
+
+
+
+// Q키
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.key==="q"){
+
+getsugaTensho();
+
+}
+
+
+});
+
+
+
+// =======================
+// 이펙트
+// =======================
+
+function reiatsu(){
+
+
+const aura=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+2,
+32,
+32
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0x00ffff,
+transparent:true,
+opacity:0.3
+
+})
+
+);
+
+
+
+aura.position.copy(
+player.position
+);
+
+
+scene.add(aura);
+
+
+
+let size=1;
+
+
+
+let t=setInterval(()=>{
+
+
+size+=0.1;
+
+
+aura.scale.set(
+size,
+size,
+size
+);
+
+
+
+aura.material.opacity-=0.03;
+
+
+
+if(
+aura.material.opacity<=0
+){
+
+scene.remove(aura);
+
+clearInterval(t);
+
+}
+
+
+},30);
+
+
+}
+
+
+
+// 만해 사용시
+
+addEventListener(
+"keydown",
+e=>{
+
+if(
+e.key==="2" &&
+bankai
+){
+
+reiatsu();
+
+}
+
+});
+
+
+
+</script><!-- 추가 : 보스전 시스템 -->
+
+<script>
+
+
+// =======================
+// 보스 데이터
+// =======================
+
+let boss=null;
+
+
+
+function spawnBoss(name,color,hp){
+
+
+const group=
+new THREE.Group();
+
+
+
+const body=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+3,
+5,
+8,
+16
+),
+
+new THREE.MeshStandardMaterial({
+
+color:color
+
+})
+
+);
+
+
+
+body.position.y=5;
+
+
+group.add(body);
+
+
+
+group.position.set(
+0,
+0,
+-40
+);
+
+
+scene.add(group);
+
+
+
+boss={
+
+name:name,
+
+mesh:group,
+
+hp:hp,
+
+maxHp:hp
+
+};
+
+
+
+}
+
+
+
+// =======================
+// 스테이지별 보스
+// =======================
+
+
+function checkBoss(){
+
+
+if(world===2){
+
+spawnBoss(
+"소쿄쿠 수호자",
+0xff0000,
+1000
+);
+
+}
+
+
+if(world===3){
+
+spawnBoss(
+"울키오라",
+0x222222,
+1500
+);
+
+}
+
+
+if(world===6){
+
+spawnBoss(
+"영왕궁 수호자",
+0xffffff,
+3000
+);
+
+}
+
+
+}
+
+
+
+// =======================
+// 보스 AI
+// =======================
+
+
+function bossAI(){
+
+
+if(!boss)return;
+
+
+
+let dir=
+new THREE.Vector3()
+.subVectors(
+player.position,
+boss.mesh.position
+)
+.normalize();
+
+
+
+let distance=
+player.position.distanceTo(
+boss.mesh.position
+);
+
+
+
+if(distance<50){
+
+boss.mesh.position.addScaledVector(
+dir,
+0.03
+);
+
+}
+
+
+
+if(distance<5){
+
+
+let hpEl=
+document.getElementById(
+"hp"
+);
+
+
+let hp=
+Number(
+hpEl.innerText
+);
+
+
+hp-=0.2;
+
+
+hpEl.innerText=
+Math.max(
+0,
+Math.floor(hp)
+);
+
+
+
+}
+
+
+
+}
+
+
+
+
+// =======================
+// 공격 보스 판정
+// =======================
+
+
+function hitBoss(){
+
+
+if(!boss)return;
+
+
+let d=
+player.position.distanceTo(
+boss.mesh.position
+);
+
+
+if(d<6){
+
+
+let damage=
+bankai?
+150:
+shikai?
+80:
+40;
+
+
+boss.hp-=damage;
+
+
+
+if(boss.hp<=0){
+
+
+scene.remove(
+boss.mesh
+);
+
+
+alert(
+boss.name+
+" 격파!"
+);
+
+
+boss=null;
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
+
+// 스페이스 공격 연결
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.code==="Space"){
+
+hitBoss();
+
+}
+
+
+});
+
+
+
+
+
+// 보스 표시
+
+const bossUI=
+document.createElement(
+"div"
+);
+
+
+bossUI.style.position=
+"absolute";
+
+
+bossUI.style.top=
+"70px";
+
+
+bossUI.style.left=
+"50%";
+
+
+bossUI.style.transform=
+"translateX(-50%)";
+
+
+bossUI.style.color=
+"red";
+
+
+bossUI.style.fontSize=
+"25px";
+
+
+bossUI.style.fontWeight=
+"bold";
+
+
+document.body.appendChild(
+bossUI
+);
+
+
+
+setInterval(()=>{
+
+
+if(boss){
+
+bossUI.innerText=
+boss.name+
+" HP : "+
+Math.floor(boss.hp)
+;
+
+
+}else{
+
+
+bossUI.innerText="";
+
+
+}
+
+
+bossAI();
+
+
+},50);
+
+
+
+// 맵 변경 후 보스 생성
+
+const oldBuild=
+buildSpecialWorld;
+
+
+buildSpecialWorld=function(){
+
+oldBuild();
+
+boss=null;
+
+setTimeout(
+checkBoss,
+500
+);
+
+
+};
+
+
+
+</script><!-- 추가 : 레벨 / 경험치 / 저장 시스템 -->
+
+<script>
+
+
+// =======================
+// 플레이어 성장
+// =======================
+
+let playerData={
+
+level:1,
+exp:0,
+gold:0
+
+};
+
+
+
+// UI 추가
+
+const levelUI=
+document.createElement("div");
+
+
+levelUI.style.position=
+"absolute";
+
+levelUI.style.top=
+"120px";
+
+levelUI.style.left=
+"15px";
+
+levelUI.style.color=
+"white";
+
+levelUI.style.fontSize=
+"18px";
+
+levelUI.style.fontWeight=
+"bold";
+
+document.body.appendChild(
+levelUI
+);
+
+
+
+function updateLevelUI(){
+
+levelUI.innerHTML=
+
+"Lv : "+
+playerData.level+
+"<br>EXP : "+
+playerData.exp+
+"/100"+
+"<br>💰 "+
+playerData.gold;
+
+}
+
+
+
+updateLevelUI();
+
+
+
+
+// =======================
+// 경험치 획득
+// =======================
+
+
+function getEXP(value){
+
+
+playerData.exp+=value;
+
+
+
+if(playerData.exp>=100){
+
+
+playerData.exp-=100;
+
+
+playerData.level++;
+
+
+document.getElementById(
+"hp"
+).innerText=100;
+
+
+alert(
+"레벨 UP!! Lv "+
+playerData.level
+);
+
+
+}
+
+
+
+updateLevelUI();
+
+
+}
+
+
+
+// 적 처치 보상
+
+function enemyReward(){
+
+
+getEXP(20);
+
+
+playerData.gold+=50;
+
+
+updateLevelUI();
+
+
+}
+
+
+
+// 기존 적 제거 시 보상 추가
+
+const oldSpawnEnemy=spawnEnemy;
+
+
+spawnEnemy=function(){
+
+
+oldSpawnEnemy();
+
+
+
+};
+
+
+
+
+// =======================
+// 저장
+// =======================
+
+
+function saveGame(){
+
+
+const save={
+
+
+world:world,
+
+playerX:
+player.position.x,
+
+playerZ:
+player.position.z,
+
+level:
+playerData.level,
+
+exp:
+playerData.exp,
+
+gold:
+playerData.gold
+
+
+};
+
+
+
+localStorage.setItem(
+
+"BLEACH_RPG_SAVE",
+
+JSON.stringify(save)
+
+);
+
+
+alert(
+"저장 완료"
+);
+
+
+
+}
+
+
+
+
+// =======================
+// 불러오기
+// =======================
+
+
+function loadGame(){
+
+
+const data=
+localStorage.getItem(
+"BLEACH_RPG_SAVE"
+);
+
+
+
+if(!data)return;
+
+
+
+const save=
+JSON.parse(data);
+
+
+
+world=
+save.world;
+
+
+player.position.set(
+
+save.playerX,
+
+1,
+
+save.playerZ
+
+);
+
+
+
+playerData.level=
+save.level;
+
+
+playerData.exp=
+save.exp;
+
+
+playerData.gold=
+save.gold;
+
+
+
+buildSpecialWorld();
+
+
+updateLevelUI();
+
+
+
+alert(
+"불러오기 완료"
+);
+
+
+
+}
+
+
+
+
+// 버튼 생성
+
+const saveBtn=
+document.createElement(
+"button"
+);
+
+
+saveBtn.innerText=
+"저장";
+
+
+saveBtn.style.position=
+"absolute";
+
+
+saveBtn.style.top=
+"170px";
+
+
+saveBtn.style.left=
+"15px";
+
+
+saveBtn.onclick=
+saveGame;
+
+
+document.body.appendChild(
+saveBtn
+);
+
+
+
+const loadBtn=
+document.createElement(
+"button"
+);
+
+
+loadBtn.innerText=
+"불러오기";
+
+
+loadBtn.style.position=
+"absolute";
+
+
+loadBtn.style.top=
+"215px";
+
+
+loadBtn.style.left=
+"15px";
+
+
+loadBtn.onclick=
+loadGame;
+
+
+document.body.appendChild(
+loadBtn
+);
+
+
+
+// 키 저장
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.key==="p")
+saveGame();
+
+
+if(e.key==="o")
+loadGame();
+
+
+
+});
+
+
+
+</script><!-- 추가 : 모바일 조이스틱 + 터치 공격 시스템 -->
+
+<script>
+
+
+// =======================
+// 모바일 이동
+// =======================
+
+
+let moveX=0;
+let moveZ=0;
+
+
+const joystick=
+document.createElement("div");
+
+
+joystick.style.position="absolute";
+joystick.style.bottom="30px";
+joystick.style.left="30px";
+joystick.style.width="130px";
+joystick.style.height="130px";
+joystick.style.borderRadius="50%";
+joystick.style.background="rgba(0,255,255,0.2)";
+joystick.style.border="3px solid cyan";
+joystick.style.zIndex="10";
+
+
+document.body.appendChild(
+joystick
+);
+
+
+
+let touchStartX=0;
+let touchStartY=0;
+
+
+
+joystick.addEventListener(
+"touchstart",
+e=>{
+
+touchStartX=
+e.touches[0].clientX;
+
+touchStartY=
+e.touches[0].clientY;
+
+
+}
+);
+
+
+
+joystick.addEventListener(
+"touchmove",
+e=>{
+
+
+let x=
+e.touches[0].clientX-
+touchStartX;
+
+
+let y=
+e.touches[0].clientY-
+touchStartY;
+
+
+
+moveX=
+Math.max(
+-1,
+Math.min(
+1,
+x/50
+)
+);
+
+
+moveZ=
+Math.max(
+-1,
+Math.min(
+1,
+y/50
+)
+);
+
+
+
+}
+);
+
+
+
+joystick.addEventListener(
+"touchend",
+()=>{
+
+moveX=0;
+moveZ=0;
+
+
+}
+);
+
+
+
+
+// =======================
+// 이동 적용
+// =======================
+
+
+function mobileMove(){
+
+
+player.position.x+=
+moveX*0.3;
+
+
+player.position.z+=
+moveZ*0.3;
+
+
+
+if(moveX||moveZ){
+
+player.rotation.y=
+Math.atan2(
+moveX,
+moveZ
+);
+
+}
+
+
+}
+
+
+
+// =======================
+// 공격 버튼
+// =======================
+
+
+const attackBtn=
+document.createElement("button");
+
+
+attackBtn.innerText=
+"⚔️ 공격";
+
+
+attackBtn.style.position=
+"absolute";
+
+
+attackBtn.style.right="40px";
+
+
+attackBtn.style.bottom="50px";
+
+
+attackBtn.style.width="100px";
+
+
+attackBtn.style.height="100px";
+
+
+attackBtn.style.borderRadius="50%";
+
+
+attackBtn.style.background=
+"red";
+
+
+attackBtn.style.color=
+"white";
+
+
+attackBtn.style.fontSize=
+"22px";
+
+
+attackBtn.style.zIndex="10";
+
+
+document.body.appendChild(
+attackBtn
+);
+
+
+
+attackBtn.onclick=()=>{
+
+
+sword.rotation.z=-1;
+
+
+setTimeout(()=>{
+
+sword.rotation.z=0;
+
+},200);
+
+
+
+enemies.forEach(
+(e,i)=>{
+
+
+if(
+player.position.distanceTo(
+e.mesh.position
+)<5
+){
+
+
+e.hp-=50;
+
+
+
+if(e.hp<=0){
+
+
+scene.remove(
+e.mesh
+);
+
+
+enemies.splice(
+i,
+1
+);
+
+
+enemyReward();
+
+
+}
+
+
+}
+
+
+});
+
+
+
+hitBoss();
+
+
+};
+
+
+
+
+// =======================
+// 스킬 버튼
+// =======================
+
+
+const skillBtn=
+document.createElement("button");
+
+
+skillBtn.innerText=
+"🌙 월아";
+
+
+skillBtn.style.position=
+"absolute";
+
+
+skillBtn.style.right="150px";
+
+
+skillBtn.style.bottom="50px";
+
+
+skillBtn.style.width="80px";
+
+
+skillBtn.style.height="80px";
+
+
+skillBtn.style.borderRadius="50%";
+
+
+skillBtn.style.background=
+"blue";
+
+
+skillBtn.style.color=
+"white";
+
+
+skillBtn.style.zIndex="10";
+
+
+document.body.appendChild(
+skillBtn
+);
+
+
+
+skillBtn.onclick=
+getsugaTensho;
+
+
+
+// 기존 업데이트 연결
+
+const oldMove=
+move;
+
+
+move=function(){
+
+oldMove();
+
+mobileMove();
+
+};
+
+
+
+</script><!-- 추가 : 7개 스테이지 실제 연결 시스템 -->
+
+<script>
+
+
+// =======================
+// 스테이지 데이터
+// =======================
+
+const stageData=[
+
+{
+name:"카라쿠라 마을",
+color:0x4488ff,
+boss:"호로"
+},
+
+{
+name:"소울 소사이어티",
+color:0xffddaa,
+boss:"사신 대장"
+},
+
+{
+name:"소쿄쿠 언덕",
+color:0x330000,
+boss:"소쿄쿠 수호자"
+},
+
+{
+name:"웨코문도",
+color:0x101020,
+boss:"아란칼"
+},
+
+{
+name:"라스 노체스",
+color:0xffffff,
+boss:"울키오라"
+},
+
+{
+name:"실베른",
+color:0x99ccff,
+boss:"퀸시 기사"
+},
+
+{
+name:"영왕궁",
+color:0xbbeeff,
+boss:"영왕궁 수호자"
+}
+
+];
+
+
+
+
+// =======================
+// 스테이지 로딩
+// =======================
+
+function loadStage(id){
+
+
+world=id;
+
+
+
+clearMap();
+
+
+
+scene.background=
+new THREE.Color(
+stageData[id].color
+);
+
+
+
+// 바닥
+
+const floor=
+new THREE.Mesh(
+
+new THREE.PlaneGeometry(
+400,
+400
+),
+
+new THREE.MeshStandardMaterial({
+
+color:
+id===3?
+0xffffff:
+0x777777
+
+})
+
+);
+
+
+floor.rotation.x=-Math.PI/2;
+
+scene.add(floor);
+
+
+
+
+
+// 건축물 생성
+
+for(let i=0;i<25;i++){
+
+
+const building=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+8,
+Math.random()*20+5,
+8
+),
+
+new THREE.MeshStandardMaterial({
+
+color:
+id===1?
+0xffffff:
+0x444444
+
+})
+
+);
+
+
+building.position.set(
+
+Math.random()*120-60,
+
+building.geometry.parameters.height/2,
+
+Math.random()*120-60
+
+);
+
+
+scene.add(building);
+
+
+}
+
+
+
+
+// 포탈
+
+createPortal();
+
+
+
+document.getElementById(
+"world"
+).innerText=
+stageData[id].name;
+
+
+
+spawnStageBoss(
+stageData[id].boss
+);
+
+
+
+}
+
+
+
+// =======================
+// 스테이지 보스
+// =======================
+
+function spawnStageBoss(name){
+
+
+if(boss){
+
+scene.remove(
+boss.mesh
+);
+
+}
+
+
+
+const mesh=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+3,
+5,
+8,
+16
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0xff0000
+
+})
+
+);
+
+
+mesh.position.set(
+0,
+5,
+-40
+);
+
+
+scene.add(mesh);
+
+
+
+boss={
+
+name:name,
+
+mesh:mesh,
+
+hp:1000+(world*500)
+
+};
+
+
+
+}
+
+
+
+// =======================
+// 포탈 이동
+// =======================
+
+
+portal=null;
+
+
+
+function createPortal(){
+
+
+portal=
+new THREE.Mesh(
+
+new THREE.TorusGeometry(
+4,
+0.5,
+20,
+50
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0x00ffff
+
+})
+
+);
+
+
+portal.rotation.x=
+Math.PI/2;
+
+
+portal.position.set(
+0,
+4,
+-80
+);
+
+
+scene.add(portal);
+
+
+}
+
+
+
+
+function checkPortal(){
+
+
+if(
+portal &&
+player.position.distanceTo(
+portal.position
+)<5
+){
+
+
+loadStage(
+(world+1)%7
+);
+
+
+}
+
+
+
+}
+
+
+
+
+// 업데이트 연결
+
+const oldEnemyMove=
+enemyAI;
+
+
+enemyAI=function(){
+
+oldEnemyMove();
+
+checkPortal();
+
+
+};
+
+
+
+</script><!-- 추가 : 검 콤보 + 회피 + 필살기 시스템 -->
+
+<script>
+
+
+// =======================
+// 콤보 시스템
+// =======================
+
+let combo=0;
+let comboTime;
+
+
+
+function addComboHit(){
+
+
+combo++;
+
+
+clearTimeout(comboTime);
+
+
+
+comboTime=setTimeout(()=>{
+
+combo=0;
+
+},1500);
+
+
+
+}
+
+
+
+// =======================
+// 3연속 검격
+// =======================
+
+let attackCount=0;
+
+
+
+function swordCombo(){
+
+
+attackCount++;
+
+
+if(attackCount>3)
+attackCount=1;
+
+
+
+sword.rotation.x=
+-attackCount*0.8;
+
+
+
+setTimeout(()=>{
+
+sword.rotation.x=0;
+
+},150);
+
+
+
+let damage;
+
+
+
+if(bankai){
+
+damage=150;
+
+}
+
+else if(shikai){
+
+damage=80;
+
+}
+
+else{
+
+damage=40;
+
+}
+
+
+
+enemies.forEach(
+(e,i)=>{
+
+
+if(
+player.position.distanceTo(
+e.mesh.position
+)<5
+){
+
+
+e.hp-=damage;
+
+
+addComboHit();
+
+
+
+if(e.hp<=0){
+
+
+scene.remove(
+e.mesh
+);
+
+
+enemies.splice(
+i,
+1
+);
+
+
+enemyReward();
+
+
+}
+
+
+}
+
+
+});
+
+
+
+hitBoss();
+
+
+
+}
+
+
+
+
+// 공격 버튼 변경
+
+attackBtn.onclick=
+swordCombo;
+
+
+
+
+
+// =======================
+// 순보 대시
+// =======================
+
+
+function flashStep(){
+
+
+let dir=
+new THREE.Vector3(
+0,
+0,
+-1
+);
+
+
+dir.applyQuaternion(
+player.quaternion
+);
+
+
+
+player.position.addScaledVector(
+dir,
+10
+);
+
+
+
+const effect=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+2,
+16,
+16
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0xffff00,
+transparent:true,
+opacity:0.5
+
+})
+
+);
+
+
+
+effect.position.copy(
+player.position
+);
+
+
+scene.add(effect);
+
+
+
+setTimeout(()=>{
+
+scene.remove(effect);
+
+},300);
+
+
+
+}
+
+
+
+
+const dashBtn=
+document.createElement(
+"button"
+);
+
+
+dashBtn.innerText=
+"⚡ 순보";
+
+
+dashBtn.style.position=
+"absolute";
+
+
+dashBtn.style.right="150px";
+
+
+dashBtn.style.bottom="150px";
+
+
+dashBtn.style.width="80px";
+
+
+dashBtn.style.height="80px";
+
+
+dashBtn.style.borderRadius="50%";
+
+
+dashBtn.style.background="purple";
+
+
+dashBtn.style.color="white";
+
+
+dashBtn.style.zIndex="10";
+
+
+document.body.appendChild(
+dashBtn
+);
+
+
+dashBtn.onclick=
+flashStep;
+
+
+
+
+// =======================
+// 궁극기
+// =======================
+
+
+function ultimate(){
+
+
+if(!bankai)
+return;
+
+
+
+const blast=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+10,
+32,
+32
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0xff0000,
+transparent:true,
+opacity:0.6
+
+})
+
+);
+
+
+
+blast.position.copy(
+player.position
+);
+
+
+scene.add(blast);
+
+
+
+enemies.forEach(e=>{
+
+
+if(
+player.position.distanceTo(
+e.mesh.position
+)<20
+){
+
+e.hp-=500;
+
+
+}
+
+});
+
+
+
+if(boss){
+
+boss.hp-=500;
+
+}
+
+
+
+let size=1;
+
+
+let timer=setInterval(()=>{
+
+
+size+=0.1;
+
+
+blast.scale.set(
+size,
+size,
+size
+);
+
+
+blast.material.opacity-=0.05;
+
+
+
+if(
+blast.material.opacity<=0
+){
+
+scene.remove(blast);
+
+clearInterval(timer);
+
+}
+
+
+
+},50);
+
+
+
+}
+
+
+
+// 만해 필살기 버튼
+
+const ultBtn=
+document.createElement(
+"button"
+);
+
+
+ultBtn.innerText=
+"🔥 만해 필살";
+
+
+ultBtn.style.position=
+"absolute";
+
+
+ultBtn.style.right="250px";
+
+
+ultBtn.style.bottom="50px";
+
+
+ultBtn.style.width="100px";
+
+
+ultBtn.style.height="100px";
+
+
+ultBtn.style.borderRadius="50%";
+
+
+ultBtn.style.background="black";
+
+
+ultBtn.style.color="white";
+
+
+ultBtn.style.zIndex="10";
+
+
+document.body.appendChild(
+ultBtn
+);
+
+
+
+ultBtn.onclick=
+ultimate;
+
+
+
+</script><!-- 추가 : NPC 대화 + 퀘스트 시스템 -->
+
+<script>
+
+
+// =======================
+// NPC 시스템
+// =======================
+
+let npcList=[];
+
+
+
+function createNPC(name,x,z,text){
+
+
+const npc=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+0.8,
+1.8,
+5,
+8
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0x000000
+
+})
+
+);
+
+
+
+npc.position.set(
+x,
+1.8,
+z
+);
+
+
+scene.add(npc);
+
+
+
+npcList.push({
+
+mesh:npc,
+
+name:name,
+
+text:text,
+
+quest:false
+
+});
+
+
+}
+
+
+
+// =======================
+// 스테이지별 NPC
+// =======================
+
+
+function spawnNPC(){
+
+
+npcList.forEach(n=>{
+
+scene.remove(n.mesh);
+
+});
+
+
+npcList=[];
+
+
+
+if(world===0){
+
+
+createNPC(
+"우라하라",
+20,
+-20,
+"어서 와라. 사신의 힘을 깨워라!"
+);
+
+
+}
+
+
+
+if(world===1){
+
+
+createNPC(
+"루키아",
+-20,
+-30,
+"정령정을 지켜줘!"
+);
+
+
+}
+
+
+
+if(world===3){
+
+
+createNPC(
+"오리히메",
+30,
+-20,
+"호로를 쓰러뜨려줘!"
+);
+
+
+}
+
+
+
+}
+
+
+
+// =======================
+// 대화 UI
+// =======================
+
+
+const dialog=
+document.createElement(
+"div"
+);
+
+
+dialog.style.position=
+"absolute";
+
+
+dialog.style.bottom="180px";
+
+
+dialog.style.left="50%";
+
+
+dialog.style.transform=
+"translateX(-50%)";
+
+
+dialog.style.color="white";
+
+
+dialog.style.fontSize="22px";
+
+
+dialog.style.fontWeight="bold";
+
+
+dialog.style.textShadow=
+"0 0 10px black";
+
+
+dialog.style.zIndex="20";
+
+
+document.body.appendChild(
+dialog
+);
+
+
+
+
+// =======================
+// NPC 확인
+// =======================
+
+
+function checkNPC(){
+
+
+npcList.forEach(n=>{
+
+
+let distance=
+player.position.distanceTo(
+n.mesh.position
+);
+
+
+
+if(distance<5){
+
+
+dialog.innerText=
+
+n.name+
+" : "+
+n.text
+;
+
+
+}else{
+
+
+dialog.innerText="";
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+// =======================
+// 퀘스트
+// =======================
+
+
+let quest={
+
+active:false,
+
+target:0,
+
+kill:0
+
+};
+
+
+
+function startQuest(){
+
+
+quest.active=true;
+
+
+quest.kill=0;
+
+
+quest.target=5;
+
+
+
+alert(
+"호로 5마리를 처치하라!"
+);
+
+
+
+}
+
+
+
+function questKill(){
+
+
+if(!quest.active)
+return;
+
+
+quest.kill++;
+
+
+
+if(
+quest.kill>=quest.target
+){
+
+
+alert(
+"퀘스트 완료!"
+);
+
+
+quest.active=false;
+
+
+playerData.gold+=500;
+
+
+updateLevelUI();
+
+
+}
+
+
+
+}
+
+
+
+// 적 처치 보상 연결
+
+const oldReward=
+enemyReward;
+
+
+enemyReward=function(){
+
+
+oldReward();
+
+
+questKill();
+
+
+};
+
+
+
+// E키 대화
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.key==="e"){
+
+
+npcList.forEach(n=>{
+
+
+if(
+player.position.distanceTo(
+n.mesh.position
+)<5
+){
+
+
+startQuest();
+
+
+}
+
+
+});
+
+
+}
+
+
+});
+
+
+
+// 스테이지 변경 때 NPC 생성
+
+const oldLoadStage=
+loadStage;
+
+
+loadStage=function(id){
+
+
+oldLoadStage(id);
+
+
+setTimeout(
+spawnNPC,
+300
+);
+
+
+};
+
+
+
+// 반복 확인
+
+setInterval(
+checkNPC,
+100
+);
+
+
+
+</script><!-- 추가 : 파티원 NPC 동료 시스템 -->
+
+<script>
+
+
+// =======================
+// 동료 데이터
+// =======================
+
+let party=[];
+
+
+
+function createPartyMember(
+name,
+color,
+skill
+){
+
+
+const member=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+0.7,
+1.5,
+5,
+8
+),
+
+new THREE.MeshStandardMaterial({
+
+color:color
+
+})
+
+);
+
+
+
+member.position.set(
+player.position.x+3,
+1.5,
+player.position.z+3
+);
+
+
+
+scene.add(member);
+
+
+
+party.push({
+
+name:name,
+
+mesh:member,
+
+skill:skill,
+
+cool:0
+
+});
+
+
+
+}
+
+
+
+// =======================
+// 동료 소환
+// =======================
+
+
+function summonParty(){
+
+
+party.forEach(p=>{
+
+scene.remove(
+p.mesh
+);
+
+});
+
+
+party=[];
+
+
+
+createPartyMember(
+"루키아",
+0x99ddff,
+"빙설참"
+);
+
+
+
+createPartyMember(
+"렌지",
+0xff3333,
+"쌍왕사미환"
+);
+
+
+
+createPartyMember(
+"토시로",
+0x00ffff,
+"빙륜환"
+);
+
+
+
+}
+
+
+
+// =======================
+// 동료 AI
+// =======================
+
+
+function partyAI(){
+
+
+party.forEach(p=>{
+
+
+let target=
+p.mesh.position.clone()
+.sub(
+player.position
+);
+
+
+if(
+target.length()>5
+){
+
+
+p.mesh.position.lerp(
+player.position,
+0.02
+);
+
+
+}
+
+
+
+
+if(p.cool>0){
+
+p.cool-=0.05;
+
+return;
+
+}
+
+
+
+// 주변 적 공격
+
+enemies.forEach(e=>{
+
+
+if(
+p.mesh.position.distanceTo(
+e.mesh.position
+)<8
+){
+
+
+e.hp-=20;
+
+
+p.cool=3;
+
+
+
+}
+
+});
+
+
+});
+
+
+
+}
+
+
+
+
+
+// =======================
+// 파티 UI
+// =======================
+
+
+const partyUI=
+document.createElement(
+"div"
+);
+
+
+partyUI.style.position=
+"absolute";
+
+
+partyUI.style.top="270px";
+
+
+partyUI.style.left="15px";
+
+
+partyUI.style.color="white";
+
+
+partyUI.style.fontSize="18px";
+
+
+partyUI.style.zIndex="10";
+
+
+document.body.appendChild(
+partyUI
+);
+
+
+
+function updatePartyUI(){
+
+
+partyUI.innerHTML=
+"⚔️ 파티<br>"+
+party.map(
+p=>p.name
+).join(
+"<br>"
+);
+
+
+}
+
+
+
+updatePartyUI();
+
+
+
+
+// P키 파티 소환
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.key==="p"){
+
+summonParty();
+
+updatePartyUI();
+
+}
+
+
+
+});
+
+
+
+// 업데이트 연결
+
+const oldBossAI=
+bossAI;
+
+
+bossAI=function(){
+
+oldBossAI();
+
+partyAI();
+
+};
+
+
+
+</script><!-- 추가 : 애니메이션 / 검 이펙트 / 화면 흔들림 -->
+
+<script>
+
+
+// =======================
+// 화면 흔들림
+// =======================
+
+let shake=0;
+
+
+
+function screenShake(power){
+
+
+shake=power;
+
+
+}
+
+
+
+
+// =======================
+// 검기 생성
+// =======================
+
+
+function createSlash(){
+
+
+const slash=
+new THREE.Mesh(
+
+new THREE.PlaneGeometry(
+1,
+6
+),
+
+new THREE.MeshBasicMaterial({
+
+color:
+bankai?
+0xff0000:
+0x00ffff,
+
+transparent:true,
+opacity:0.8,
+side:THREE.DoubleSide
+
+})
+
+);
+
+
+
+slash.position.copy(
+player.position
+);
+
+
+slash.position.y=2;
+
+
+slash.rotation.x=
+Math.PI/2;
+
+
+
+scene.add(slash);
+
+
+
+let scale=1;
+
+
+
+const timer=
+setInterval(()=>{
+
+
+scale+=0.3;
+
+
+slash.scale.set(
+scale,
+scale,
+scale
+);
+
+
+
+slash.material.opacity-=0.1;
+
+
+
+if(
+slash.material.opacity<=0
+){
+
+
+scene.remove(
+slash
+);
+
+
+clearInterval(
+timer
+);
+
+
+}
+
+
+
+},50);
+
+
+
+}
+
+
+
+// =======================
+// 강화 공격
+// =======================
+
+
+const oldSwordCombo=
+swordCombo;
+
+
+swordCombo=function(){
+
+
+oldSwordCombo();
+
+
+createSlash();
+
+
+screenShake(
+0.5
+);
+
+
+};
+
+
+
+
+// =======================
+// 이동 애니메이션
+// =======================
+
+
+let walkTime=0;
+
+
+
+function playerAnimation(){
+
+
+walkTime+=0.1;
+
+
+
+if(
+moveX!==0 ||
+moveZ!==0
+){
+
+
+player.rotation.z=
+Math.sin(
+walkTime
+)*0.1;
+
+
+}
+
+
+}
+
+
+
+// =======================
+// 카메라 흔들림
+// =======================
+
+
+const oldAnimate=
+animate;
+
+
+animate=function(){
+
+
+if(shake>0){
+
+
+camera.position.x+=
+(Math.random()-0.5)
+*shake;
+
+
+camera.position.y+=
+(Math.random()-0.5)
+*shake;
+
+
+
+shake-=0.02;
+
+
+}
+
+
+
+playerAnimation();
+
+
+
+oldAnimate();
+
+
+};
+
+
+
+// =======================
+// 대시 잔상
+// =======================
+
+
+function dashEffect(){
+
+
+const ghost=
+player.clone();
+
+
+ghost.material=
+ghost.material.clone();
+
+
+ghost.material.transparent=true;
+
+ghost.material.opacity=0.4;
+
+
+scene.add(ghost);
+
+
+
+setTimeout(()=>{
+
+scene.remove(
+ghost
+);
+
+},300);
+
+
+
+}
+
+
+
+
+const oldFlash=
+flashStep;
+
+
+flashStep=function(){
+
+
+dashEffect();
+
+
+oldFlash();
+
+
+};
+
+
+
+</script><!-- 추가 : 퀘스트 보상 + 장비 + 인벤토리 시스템 -->
+
+<script>
+
+
+// =======================
+// 아이템 데이터
+// =======================
+
+let inventory=[];
+
+
+
+const items={
+
+
+"참백도 강화석":{
+type:"weapon",
+power:20
+},
+
+
+"영압 결정":{
+type:"mp",
+power:50
+},
+
+
+"회복약":{
+type:"heal",
+power:50
+}
+
+
+};
+
+
+
+
+// =======================
+// 아이템 획득
+// =======================
+
+
+function getItem(name){
+
+
+inventory.push(
+name
+);
+
+
+
+alert(
+name+
+" 획득!"
+);
+
+
+
+updateInventory();
+
+
+}
+
+
+
+
+// =======================
+// 인벤 UI
+// =======================
+
+
+const invUI=
+document.createElement(
+"div"
+);
+
+
+
+invUI.style.position=
+"absolute";
+
+
+invUI.style.top="360px";
+
+
+invUI.style.left="15px";
+
+
+invUI.style.color="white";
+
+
+invUI.style.fontSize="16px";
+
+
+document.body.appendChild(
+invUI
+);
+
+
+
+
+function updateInventory(){
+
+
+invUI.innerHTML=
+"🎒 인벤토리<br>"+
+inventory.join(
+"<br>"
+);
+
+
+}
+
+
+
+
+// =======================
+// 장비 강화
+// =======================
+
+
+let swordPower=0;
+
+
+
+function upgradeSword(){
+
+
+if(
+inventory.includes(
+"참백도 강화석"
+)
+){
+
+
+swordPower+=10;
+
+
+alert(
+"참백도 강화 +"+
+swordPower
+);
+
+
+}
+
+
+
+}
+
+
+
+
+// =======================
+// 회복
+// =======================
+
+
+function usePotion(){
+
+
+if(
+inventory.includes(
+"회복약"
+)
+){
+
+
+let hp=
+Number(
+document.getElementById(
+"hp"
+).innerText
+);
+
+
+
+hp=Math.min(
+100,
+hp+50
+);
+
+
+
+document.getElementById(
+"hp"
+).innerText=
+hp;
+
+
+
+}
+
+
+}
+
+
+
+
+// =======================
+// 보스 처치 보상
+// =======================
+
+
+const oldBossAI2=
+bossAI;
+
+
+
+bossAI=function(){
+
+
+oldBossAI2();
+
+
+
+if(
+boss &&
+boss.hp<=0
+){
+
+
+getItem(
+"참백도 강화석"
+);
+
+
+playerData.gold+=1000;
+
+
+updateLevelUI();
+
+
+
+}
+
+
+};
+
+
+
+
+// =======================
+// 랜덤 드랍
+// =======================
+
+
+function randomDrop(){
+
+
+let r=
+Math.random();
+
+
+
+if(r<0.3){
+
+getItem(
+"회복약"
+);
+
+}
+
+else if(r<0.5){
+
+getItem(
+"영압 결정"
+);
+
+}
+
+
+}
+
+
+
+// 적 보상 추가
+
+const oldReward2=
+enemyReward;
+
+
+enemyReward=function(){
+
+
+oldReward2();
+
+
+randomDrop();
+
+
+};
+
+
+
+</script><!-- 추가 : 영압 / 스킬 게이지 / 스킬 트리 시스템 -->
+
+<script>
+
+
+// =======================
+// 영압 시스템
+// =======================
+
+let reiatsu=100;
+
+
+
+const reiatsuUI=
+document.createElement(
+"div"
+);
+
+
+reiatsuUI.style.position=
+"absolute";
+
+
+reiatsuUI.style.top="500px";
+
+
+reiatsuUI.style.left="15px";
+
+
+reiatsuUI.style.color="#00ffff";
+
+
+reiatsuUI.style.fontSize="18px";
+
+
+reiatsuUI.style.fontWeight="bold";
+
+
+document.body.appendChild(
+reiatsuUI
+);
+
+
+
+function updateReiatsu(){
+
+
+reiatsuUI.innerHTML=
+
+"🌊 영압 : "+
+Math.floor(reiatsu)+
+"/100";
+
+
+
+}
+
+
+
+setInterval(()=>{
+
+
+reiatsu=Math.min(
+100,
+reiatsu+0.2
+);
+
+
+updateReiatsu();
+
+
+
+},50);
+
+
+
+
+// =======================
+// 스킬 데이터
+// =======================
+
+let skills={
+
+
+getsuga:{
+name:"월아천충",
+level:1,
+cost:30
+},
+
+
+flash:{
+name:"순보",
+level:1,
+cost:20
+},
+
+
+bankai:{
+name:"만해",
+level:1,
+cost:100
+}
+
+
+};
+
+
+
+
+// =======================
+// 월아 강화
+// =======================
+
+
+function upgradeSkill(name){
+
+
+if(
+skills[name]
+){
+
+
+skills[name].level++;
+
+
+alert(
+
+skills[name].name+
+" Lv "+
+skills[name].level
+
+);
+
+
+
+}
+
+
+}
+
+
+
+// =======================
+// 강화 월아
+// =======================
+
+
+const oldGetsuga=
+getsugaTensho;
+
+
+getsugaTensho=function(){
+
+
+if(
+reiatsu<
+skills.getsuga.cost
+)
+return;
+
+
+
+reiatsu-=30;
+
+
+
+oldGetsuga();
+
+
+
+let power=
+skills.getsuga.level*50;
+
+
+
+enemies.forEach(e=>{
+
+
+if(
+player.position.distanceTo(
+e.mesh.position
+)<15
+){
+
+
+e.hp-=power;
+
+
+}
+
+
+});
+
+
+
+};
+
+
+
+
+// =======================
+// 만해 강화
+// =======================
+
+
+const oldBankai=
+activateBankai;
+
+
+activateBankai=function(){
+
+
+if(
+reiatsu<100
+)
+return;
+
+
+
+reiatsu-=100;
+
+
+oldBankai();
+
+
+
+};
+
+
+
+
+// =======================
+// 스킬 버튼
+// =======================
+
+
+const skillTreeBtn=
+document.createElement(
+"button"
+);
+
+
+skillTreeBtn.innerText=
+"📖 스킬 강화";
+
+
+skillTreeBtn.style.position=
+"absolute";
+
+
+skillTreeBtn.style.right="20px";
+
+
+skillTreeBtn.style.top="20px";
+
+
+skillTreeBtn.style.zIndex="20";
+
+
+document.body.appendChild(
+skillTreeBtn
+);
+
+
+
+skillTreeBtn.onclick=
+()=>{
+
+upgradeSkill(
+"getsuga"
+);
+
+
+};
+
+
+
+
+updateReiatsu();
+
+
+
+</script><!-- 추가 : 최종 UI / 스테이지 선택 / 월드맵 -->
+
+<script>
+
+
+// =======================
+// 월드맵 UI
+// =======================
+
+
+const worldMap=
+document.createElement(
+"div"
+);
+
+
+
+worldMap.style.position=
+"absolute";
+
+
+worldMap.style.right="20px";
+
+
+worldMap.style.top="120px";
+
+
+worldMap.style.background=
+"rgba(0,0,0,0.6)";
+
+
+worldMap.style.padding="15px";
+
+
+worldMap.style.borderRadius="15px";
+
+
+worldMap.style.color="white";
+
+
+worldMap.style.zIndex="20";
+
+
+document.body.appendChild(
+worldMap
+);
+
+
+
+
+
+function updateWorldMap(){
+
+
+worldMap.innerHTML=
+
+"🌎 BLEACH WORLD<br><br>"+
+
+stageData.map(
+(s,i)=>
+
+`<button onclick="loadStage(${i})">
+${i+1}. ${s.name}
+</button><br>`
+
+).join("");
+
+
+
+}
+
+
+
+updateWorldMap();
+
+
+
+// =======================
+// 스테이지 해금
+// =======================
+
+
+let unlocked=[true,false,false,false,false,false,false];
+
+
+
+function unlockStage(id){
+
+
+unlocked[id]=true;
+
+
+updateWorldMap();
+
+
+}
+
+
+
+
+// =======================
+// 보스 클리어 체크
+// =======================
+
+
+const oldSpawnStageBoss=
+spawnStageBoss;
+
+
+spawnStageBoss=function(name){
+
+
+oldSpawnStageBoss(name);
+
+
+};
+
+
+
+
+// =======================
+// 승리 연출
+// =======================
+
+
+function victory(){
+
+
+const text=
+document.createElement(
+"div"
+);
+
+
+text.innerText=
+"⚔️ STAGE CLEAR ⚔️";
+
+
+text.style.position=
+"absolute";
+
+
+text.style.top="50%";
+
+
+text.style.left="50%";
+
+
+text.style.transform=
+"translate(-50%,-50%)";
+
+
+text.style.fontSize="50px";
+
+
+text.style.color="gold";
+
+
+text.style.fontWeight="900";
+
+
+text.style.zIndex="100";
+
+
+document.body.appendChild(
+text
+);
+
+
+
+setTimeout(()=>{
+
+
+text.remove();
+
+
+},3000);
+
+
+
+}
+
+
+
+// =======================
+// 최종 플레이어 이름
+// =======================
+
+
+const nameUI=
+document.createElement(
+"div"
+);
+
+
+
+nameUI.style.position=
+"absolute";
+
+
+nameUI.style.top="15px";
+
+
+nameUI.style.right="20px";
+
+
+nameUI.style.color="white";
+
+
+nameUI.style.fontSize="22px";
+
+
+nameUI.innerText=
+"⚔️ 쿠로사키 이치고";
+
+
+nameUI.style.zIndex="20";
+
+
+document.body.appendChild(
+nameUI
+);
+
+
+
+// =======================
+// 타이틀
+// =======================
+
+
+const title=
+document.createElement(
+"div"
+);
+
+
+
+title.innerText=
+"BLEACH : SPIRIT WORLD RPG";
+
+
+title.style.position=
+"absolute";
+
+
+title.style.top="0";
+
+
+title.style.left="50%";
+
+
+title.style.transform=
+"translateX(-50%)";
+
+
+title.style.fontSize="28px";
+
+
+title.style.color="#00ffff";
+
+
+title.style.fontWeight="900";
+
+
+title.style.zIndex="20";
+
+
+document.body.appendChild(
+title
+);
+
+
+
+</script><!-- 추가 : 저장/불러오기 + 자동 저장 시스템 -->
+
+<script>
+
+
+// =======================
+// 자동 저장
+// =======================
+
+
+function autoSave(){
+
+
+const saveData={
+
+
+world:world,
+
+
+x:player.position.x,
+
+
+z:player.position.z,
+
+
+level:playerData.level,
+
+
+exp:playerData.exp,
+
+
+gold:playerData.gold,
+
+
+inventory:inventory,
+
+
+skills:skills
+
+
+
+};
+
+
+
+localStorage.setItem(
+
+"BLEACH_RPG_DATA",
+
+JSON.stringify(saveData)
+
+);
+
+
+
+}
+
+
+
+
+setInterval(
+
+autoSave,
+
+10000
+
+);
+
+
+
+
+// =======================
+// 불러오기
+// =======================
+
+
+function autoLoad(){
+
+
+const data=
+localStorage.getItem(
+"BLEACH_RPG_DATA"
+);
+
+
+
+if(!data)
+return;
+
+
+
+const save=
+JSON.parse(data);
+
+
+
+world=
+save.world;
+
+
+
+player.position.set(
+
+save.x,
+
+1,
+
+save.z
+
+);
+
+
+
+playerData.level=
+save.level;
+
+
+
+playerData.exp=
+save.exp;
+
+
+
+playerData.gold=
+save.gold;
+
+
+
+inventory=
+save.inventory||[];
+
+
+
+skills=
+save.skills||skills;
+
+
+
+loadStage(
+world
+);
+
+
+
+updateLevelUI();
+
+
+updateInventory();
+
+
+
+}
+
+
+
+// =======================
+// 시작시 로드
+// =======================
+
+
+setTimeout(()=>{
+
+autoLoad();
+
+},500);
+
+
+
+
+// =======================
+// 저장 알림
+// =======================
+
+
+const saveText=
+document.createElement(
+"div"
+);
+
+
+
+saveText.style.position=
+"absolute";
+
+
+saveText.style.bottom="20px";
+
+
+saveText.style.left="50%";
+
+
+saveText.style.transform=
+"translateX(-50%)";
+
+
+saveText.style.color="#00ffff";
+
+
+saveText.style.fontWeight="bold";
+
+
+saveText.style.zIndex="30";
+
+
+document.body.appendChild(
+saveText
+);
+
+
+
+function showSave(){
+
+
+saveText.innerText=
+"💾 자동 저장 완료";
+
+
+setTimeout(()=>{
+
+saveText.innerText="";
+
+},1500);
+
+
+
+}
+
+
+
+setInterval(
+
+showSave,
+
+10000
+
+);
+
+
+
+</script><!-- 추가 : 사운드 / 타격 효과 시스템 -->
+
+<script>
+
+
+// =======================
+// 효과음
+// =======================
+
+const sounds={};
+
+
+
+function createSound(name,url){
+
+
+sounds[name]=
+new Audio(url);
+
+
+}
+
+
+
+
+// 무료 효과음 예시
+
+createSound(
+"sword",
+"https://cdn.pixabay.com/download/audio/2022/03/15/audio_8c8f9c9e9c.mp3"
+);
+
+
+createSound(
+"hit",
+"https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c9b5.mp3"
+);
+
+
+createSound(
+"skill",
+"https://cdn.pixabay.com/download/audio/2022/03/10/audio_3c1f9d9f1f.mp3"
+);
+
+
+
+
+// =======================
+// 재생 함수
+// =======================
+
+
+function playSound(name){
+
+
+if(
+sounds[name]
+){
+
+
+sounds[name].currentTime=0;
+
+
+sounds[name].play()
+.catch(()=>{});
+
+}
+
+
+}
+
+
+
+// =======================
+// 공격 효과 연결
+// =======================
+
+
+const oldCombo=
+swordCombo;
+
+
+swordCombo=function(){
+
+
+playSound(
+"sword"
+);
+
+
+oldCombo();
+
+
+
+};
+
+
+
+
+// =======================
+// 스킬 효과
+// =======================
+
+
+const oldGetsuga2=
+getsugaTensho;
+
+
+getsugaTensho=function(){
+
+
+playSound(
+"skill"
+);
+
+
+oldGetsuga2();
+
+
+
+};
+
+
+
+
+// =======================
+// 피격 효과
+// =======================
+
+
+function hitEffect(position){
+
+
+const flash=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+1,
+16,
+16
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0xffffff,
+transparent:true,
+opacity:0.8
+
+})
+
+);
+
+
+
+flash.position.copy(
+position
+);
+
+
+
+scene.add(
+flash
+);
+
+
+
+let scale=1;
+
+
+
+const timer=setInterval(()=>{
+
+
+scale+=0.2;
+
+
+flash.scale.set(
+scale,
+scale,
+scale
+);
+
+
+
+flash.material.opacity-=0.1;
+
+
+
+if(
+flash.material.opacity<=0
+){
+
+
+scene.remove(
+flash
+);
+
+
+clearInterval(
+timer
+);
+
+
+}
+
+
+
+},40);
+
+
+
+}
+
+
+
+
+// =======================
+// 전투 UI
+// =======================
+
+
+const battleText=
+document.createElement(
+"div"
+);
+
+
+
+battleText.style.position=
+"absolute";
+
+
+battleText.style.top="50%";
+
+
+battleText.style.left="50%";
+
+
+battleText.style.transform=
+"translate(-50%,-50%)";
+
+
+battleText.style.fontSize="45px";
+
+
+battleText.style.color="white";
+
+
+battleText.style.fontWeight="900";
+
+
+battleText.style.zIndex="50";
+
+
+document.body.appendChild(
+battleText
+);
+
+
+
+
+function showDamage(value){
+
+
+battleText.innerText=
+"-"+value;
+
+
+
+setTimeout(()=>{
+
+battleText.innerText="";
+
+},500);
+
+
+
+}
+
+
+
+</script><!-- 추가 : 퀘스트 NPC 보상 + 상점 시스템 -->
+
+<script>
+
+
+// =======================
+// 상점 데이터
+// =======================
+
+let shopItems={
+
+
+"회복약":100,
+
+"영압 결정":300,
+
+"참백도 강화석":1000
+
+};
+
+
+
+// =======================
+// 상점 NPC
+// =======================
+
+
+function createShopNPC(){
+
+
+const shop=
+new THREE.Mesh(
+
+new THREE.CylinderGeometry(
+1,
+1,
+3,
+16
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0xffcc00
+
+})
+
+);
+
+
+
+shop.position.set(
+30,
+1.5,
+0
+);
+
+
+
+scene.add(shop);
+
+
+
+shop.name=
+"우라하라 상점";
+
+
+
+}
+
+
+
+// =======================
+// 상점 UI
+// =======================
+
+
+const shopUI=
+document.createElement(
+"div"
+);
+
+
+
+shopUI.style.position=
+"absolute";
+
+
+shopUI.style.right="20px";
+
+
+shopUI.style.bottom="20px";
+
+
+shopUI.style.background=
+"rgba(0,0,0,0.7)";
+
+
+shopUI.style.color="white";
+
+
+shopUI.style.padding="15px";
+
+
+shopUI.style.zIndex="30";
+
+
+document.body.appendChild(
+shopUI
+);
+
+
+
+
+function openShop(){
+
+
+shopUI.innerHTML=
+"🏪 우라하라 상점<br><br>"+
+
+Object.keys(shopItems)
+.map(
+i=>
+
+`${i} : ${shopItems[i]}G
+<button onclick="buyItem('${i}')">
+구매
+</button><br>`
+
+).join("");
+
+
+
+}
+
+
+
+
+window.buyItem=function(name){
+
+
+let price=
+shopItems[name];
+
+
+
+if(
+playerData.gold>=price
+){
+
+
+playerData.gold-=price;
+
+
+getItem(name);
+
+
+updateLevelUI();
+
+
+
+}else{
+
+
+alert(
+"골드 부족"
+);
+
+
+
+}
+
+
+
+};
+
+
+
+
+// =======================
+// 상점 근처 확인
+// =======================
+
+
+function checkShop(){
+
+
+if(!shop)return;
+
+
+if(
+player.position.distanceTo(
+shop.position
+)<5
+){
+
+
+openShop();
+
+
+
+}else{
+
+
+shopUI.innerHTML="";
+
+
+}
+
+
+
+}
+
+
+
+
+createShopNPC();
+
+
+
+
+// =======================
+// 업데이트
+// =======================
+
+
+const oldMobileMove=
+mobileMove;
+
+
+mobileMove=function(){
+
+
+oldMobileMove();
+
+
+checkShop();
+
+
+};
+
+
+
+</script><!-- 추가 : 보스 AI / 보스 체력바 / 보스 스킬 -->
+
+<script>
+
+
+// =======================
+// 보스 체력 UI
+// =======================
+
+const bossUI=document.createElement("div");
+
+bossUI.style.position="absolute";
+bossUI.style.top="80px";
+bossUI.style.left="50%";
+bossUI.style.transform="translateX(-50%)";
+bossUI.style.width="400px";
+bossUI.style.zIndex="30";
+bossUI.style.color="white";
+bossUI.style.textAlign="center";
+
+document.body.appendChild(bossUI);
+
+
+
+function updateBossUI(){
+
+if(!boss){
+
+bossUI.innerHTML="";
+return;
+
+}
+
+
+let hp=
+Math.max(
+0,
+boss.hp
+);
+
+
+bossUI.innerHTML=
+
+"👹 "+boss.name+
+"<br>"+
+
+`<div style="
+height:20px;
+background:#222;
+border:2px solid white;
+border-radius:10px;
+">
+<div style="
+height:100%;
+width:${(hp/(1000+world*500))*100}%;
+background:red;
+border-radius:10px;
+"></div>
+</div>`;
+
+}
+
+
+
+// =======================
+// 보스 공격
+// =======================
+
+let bossTimer=0;
+
+
+function bossAttack(){
+
+
+if(!boss)
+return;
+
+
+let distance=
+boss.mesh.position.distanceTo(
+player.position
+);
+
+
+
+if(distance<25){
+
+
+let attack=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+2,
+20,
+20
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0xff0000
+
+})
+
+);
+
+
+attack.position.copy(
+boss.mesh.position
+);
+
+
+
+scene.add(
+attack
+);
+
+
+
+let dir=
+new THREE.Vector3()
+.subVectors(
+player.position,
+boss.mesh.position
+)
+.normalize();
+
+
+
+let count=0;
+
+
+
+let move=setInterval(()=>{
+
+
+attack.position.addScaledVector(
+dir,
+1
+);
+
+
+
+if(
+attack.position.distanceTo(
+player.position
+)<2
+){
+
+
+player.hp-=20;
+
+
+scene.remove(
+attack
+);
+
+
+clearInterval(move);
+
+
+}
+
+
+
+count++;
+
+
+if(count>50){
+
+
+scene.remove(
+attack
+);
+
+clearInterval(move);
+
+}
+
+
+
+},30);
+
+
+
+}
+
+
+
+}
+
+
+
+// =======================
+// 보스 이동 AI
+// =======================
+
+
+function bossMove(){
+
+
+if(!boss)
+return;
+
+
+
+let dir=
+new THREE.Vector3()
+.subVectors(
+player.position,
+boss.mesh.position
+)
+.normalize();
+
+
+
+boss.mesh.position.addScaledVector(
+dir,
+0.03
+);
+
+
+
+}
+
+
+
+
+// =======================
+// 보스 사망
+// =======================
+
+
+function bossDeadCheck(){
+
+
+if(
+boss &&
+boss.hp<=0
+){
+
+
+victory();
+
+
+unlockStage(
+world+1
+);
+
+
+
+getItem(
+"왕의 결정"
+);
+
+
+
+scene.remove(
+boss.mesh
+);
+
+
+boss=null;
+
+
+
+}
+
+
+
+}
+
+
+
+// =======================
+// 업데이트 연결
+// =======================
+
+
+setInterval(()=>{
+
+
+bossMove();
+
+bossAttack();
+
+updateBossUI();
+
+bossDeadCheck();
+
+
+},50);
+
+
+
+</script><!-- 추가 : 참백도 선택 / 해방 시스템 -->
+
+<script>
+
+
+// =======================
+// 참백도 데이터
+// =======================
+
+const zanpakuto={
+
+
+"참월":{
+shikai:"월아천충",
+bankai:"천쇄참월",
+attack:1.5
+},
+
+
+"빙륜환":{
+shikai:"용상 빙륜환",
+bankai:"대홍련빙륜환",
+attack:1.4
+},
+
+
+"쌍왕사미환":{
+shikai:"뱀왕",
+bankai:"쌍왕사미환",
+attack:1.6
+},
+
+
+"신살창":{
+shikai:"찌르면 죽인다",
+bankai:"신살창",
+attack:1.7
+}
+
+
+
+};
+
+
+
+
+let myZanpakuto=
+"참월";
+
+let shikaiLevel=false;
+let bankaiLevel=false;
+
+
+
+// =======================
+// 참백도 UI
+// =======================
+
+
+const zanUI=
+document.createElement("div");
+
+
+zanUI.style.position=
+"absolute";
+
+
+zanUI.style.left="20px";
+
+
+zanUI.style.bottom="180px";
+
+
+zanUI.style.background=
+"rgba(0,0,0,0.7)";
+
+
+zanUI.style.color="white";
+
+
+zanUI.style.padding="15px";
+
+
+zanUI.style.borderRadius="10px";
+
+
+zanUI.style.zIndex="30";
+
+
+document.body.appendChild(
+zanUI
+);
+
+
+
+function updateZanUI(){
+
+
+zanUI.innerHTML=
+
+"⚔️ 참백도 : "+
+myZanpakuto+
+"<br>"+
+
+"시해 : "+
+(shikaiLevel?"ON":"OFF")+
+"<br>"+
+
+"만해 : "+
+(bankaiLevel?"ON":"OFF");
+
+
+
+}
+
+
+
+updateZanUI();
+
+
+
+
+// =======================
+// 참백도 변경
+// =======================
+
+
+function changeZanpakuto(name){
+
+
+if(
+zanpakuto[name]
+){
+
+
+myZanpakuto=name;
+
+
+shikaiLevel=false;
+
+bankaiLevel=false;
+
+
+updateZanUI();
+
+
+
+}
+
+}
+
+
+
+
+// =======================
+// 시해
+// =======================
+
+
+function activateShikai(){
+
+
+shikaiLevel=
+!shikaiLevel;
+
+
+bankaiLevel=false;
+
+
+player.material.color.setHex(
+
+shikaiLevel?
+0x00ffff:
+0xffffff
+
+);
+
+
+
+updateZanUI();
+
+
+
+}
+
+
+
+// =======================
+// 만해
+// =======================
+
+
+function activateBankai(){
+
+
+if(
+!shikaiLevel
+)
+return;
+
+
+
+bankaiLevel=
+!bankaiLevel;
+
+
+
+player.scale.set(
+
+bankaiLevel?
+1.3:
+1,
+
+bankaiLevel?
+1.3:
+1,
+
+bankaiLevel?
+1.3:
+1
+
+);
+
+
+
+updateZanUI();
+
+
+
+}
+
+
+
+// =======================
+// 공격력 적용
+// =======================
+
+
+function getAttackPower(){
+
+
+let power=1;
+
+
+
+if(
+shikaiLevel
+){
+
+power*=1.5;
+
+}
+
+
+
+if(
+bankaiLevel
+){
+
+power*=2.5;
+
+}
+
+
+
+power*=
+
+zanpakuto[
+myZanpakuto
+].attack;
+
+
+
+return power;
+
+
+
+}
+
+
+
+// 기존 공격 연결
+
+const oldDamage=
+damage;
+
+
+damage=function(){
+
+
+return oldDamage()*
+getAttackPower();
+
+
+};
+
+
+
+</script><!-- 추가 : 적 종류 / 호로 / 아란칼 / 퀸시 몬스터 시스템 -->
+
+<script>
+
+
+// =======================
+// 몬스터 데이터
+// =======================
+
+const enemyTypes={
+
+
+"호로":{
+hp:150,
+speed:0.04,
+damage:5,
+color:0x111111
+},
+
+
+"메노스":{
+hp:800,
+speed:0.02,
+damage:20,
+color:0x222222
+},
+
+
+"아란칼":{
+hp:1200,
+speed:0.035,
+damage:30,
+color:0xffffff
+},
+
+
+"퀸시":{
+hp:1000,
+speed:0.04,
+damage:25,
+color:0x99ccff
+},
+
+
+"슈테른릿터":{
+hp:3000,
+speed:0.025,
+damage:50,
+color:0xffcc00
+}
+
+
+};
+
+
+
+
+// =======================
+// 몬스터 생성
+// =======================
+
+
+function spawnMonster(type,x,z){
+
+
+let data=
+enemyTypes[type];
+
+
+const monster=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+1.5,
+2,
+6,
+10
+),
+
+new THREE.MeshStandardMaterial({
+
+color:data.color
+
+})
+
+);
+
+
+
+monster.position.set(
+x,
+2,
+z
+);
+
+
+
+scene.add(
+monster
+);
+
+
+
+enemies.push({
+
+mesh:monster,
+
+type:type,
+
+hp:data.hp,
+
+maxHp:data.hp,
+
+damage:data.damage,
+
+speed:data.speed
+
+});
+
+
+
+}
+
+
+
+// =======================
+// 스테이지별 몬스터
+// =======================
+
+
+function spawnStageEnemies(){
+
+
+if(world===0){
+
+
+for(let i=0;i<8;i++){
+
+spawnMonster(
+"호로",
+Math.random()*50-25,
+Math.random()*50-25
+);
+
+}
+
+
+}
+
+
+
+if(world===1){
+
+
+for(let i=0;i<10;i++){
+
+spawnMonster(
+"사신",
+Math.random()*60-30,
+Math.random()*60-30
+);
+
+}
+
+
+}
+
+
+
+if(world===3){
+
+
+for(let i=0;i<8;i++){
+
+spawnMonster(
+"아란칼",
+Math.random()*60-30,
+Math.random()*60-30
+);
+
+}
+
+
+}
+
+
+
+if(world===5){
+
+
+for(let i=0;i<10;i++){
+
+spawnMonster(
+"슈테른릿터",
+Math.random()*80-40,
+Math.random()*80-40
+);
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+
+// =======================
+// 적 AI 강화
+// =======================
+
+
+function advancedEnemyAI(){
+
+
+enemies.forEach(e=>{
+
+
+let dir=
+new THREE.Vector3()
+.subVectors(
+player.position,
+e.mesh.position
+)
+.normalize();
+
+
+
+let distance=
+player.position.distanceTo(
+e.mesh.position
+);
+
+
+
+if(distance<40){
+
+
+e.mesh.position.addScaledVector(
+
+dir,
+
+e.speed
+
+);
+
+
+
+}
+
+
+
+if(distance<3){
+
+
+playerData.hp-=e.damage*0.01;
+
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+
+setInterval(()=>{
+
+
+advancedEnemyAI();
+
+
+
+},30);
+
+
+
+
+// 스테이지 변경 후 생성
+
+const oldStage=
+loadStage;
+
+
+loadStage=function(id){
+
+
+oldStage(id);
+
+
+setTimeout(()=>{
+
+spawnStageEnemies();
+
+},500);
+
+
+
+};
+
+
+
+</script><!-- 추가 : 스토리 / 컷신 / 선택지 시스템 -->
+
+<script>
+
+
+// =======================
+// 스토리 데이터
+// =======================
+
+const story={
+
+
+0:[
+"카라쿠라 마을에 이상한 영압이 감지됐다.",
+"주인공은 사신의 힘을 깨우기 시작한다.",
+"호로를 쓰러뜨리고 다음 세계로 향하라."
+],
+
+
+1:[
+"정령정에 침입자가 나타났다.",
+"13번대 사신들과 함께 적을 막아라.",
+"더 강한 힘이 필요하다."
+],
+
+
+2:[
+"소쿄쿠 언덕에서 거대한 영압이 느껴진다.",
+"처형대를 지키는 적과 싸워라."
+],
+
+
+3:[
+"웨코문도 깊은 곳.",
+"아란칼들의 왕궁으로 향한다."
+],
+
+
+4:[
+"라스 노체스 최상층.",
+"강력한 적들이 기다리고 있다."
+],
+
+
+5:[
+"실베른 침공.",
+"퀸시와 마지막 전투가 시작된다."
+],
+
+
+6:[
+"영왕궁.",
+"모든 힘을 건 마지막 싸움이다."
+]
+
+
+};
+
+
+
+
+// =======================
+// 컷신 UI
+// =======================
+
+const cutscene=
+document.createElement("div");
+
+
+cutscene.style.position=
+"absolute";
+
+
+cutscene.style.top="50%";
+
+
+cutscene.style.left="50%";
+
+
+cutscene.style.transform=
+"translate(-50%,-50%)";
+
+
+cutscene.style.width="70%";
+
+
+cutscene.style.padding="30px";
+
+
+cutscene.style.background=
+"rgba(0,0,0,0.85)";
+
+
+cutscene.style.color="white";
+
+
+cutscene.style.fontSize="28px";
+
+
+cutscene.style.textAlign="center";
+
+
+cutscene.style.border=
+"2px solid cyan";
+
+
+cutscene.style.borderRadius="20px";
+
+
+cutscene.style.display="none";
+
+
+cutscene.style.zIndex="100";
+
+
+document.body.appendChild(
+cutscene
+);
+
+
+
+
+// =======================
+// 스토리 재생
+// =======================
+
+function playStory(stage){
+
+
+let lines=
+story[stage];
+
+
+let index=0;
+
+
+
+cutscene.style.display="block";
+
+
+
+function next(){
+
+
+if(index>=lines.length){
+
+
+cutscene.style.display="none";
+
+return;
+
+}
+
+
+
+cutscene.innerHTML=
+
+lines[index]+
+
+"<br><br>터치";
+
+
+index++;
+
+
+
+}
+
+
+
+cutscene.onclick=
+next;
+
+
+next();
+
+
+
+}
+
+
+
+
+// =======================
+// 스테이지 시작 컷신
+// =======================
+
+
+const oldLoad=
+loadStage;
+
+
+loadStage=function(id){
+
+
+oldLoad(id);
+
+
+setTimeout(()=>{
+
+
+playStory(id);
+
+
+
+},700);
+
+
+
+};
+
+
+
+// =======================
+// 선택지 시스템
+// =======================
+
+
+function choice(text1,text2){
+
+
+let result=
+confirm(
+text1+
+"\n확인 = 선택1\n취소 = 선택2"
+);
+
+
+
+return result?
+1:
+2;
+
+
+
+}
+
+
+
+// 예시
+
+function storyChoice(){
+
+
+let c=
+choice(
+"적을 공격한다",
+"도망친다"
+);
+
+
+
+if(c===1){
+
+playerData.exp+=100;
+
+}else{
+
+playerData.gold+=50;
+
+}
+
+
+
+}
+
+
+
+</script><!-- 추가 : 레벨 / 스탯 / 성장 시스템 -->
+
+<script>
+
+
+// =======================
+// 플레이어 성장 데이터
+// =======================
+
+let playerData={
+
+
+level:1,
+
+exp:0,
+
+maxExp:100,
+
+
+hp:100,
+
+maxHp:100,
+
+
+attack:20,
+
+
+defense:10,
+
+
+gold:0,
+
+
+rank:"루키 사신"
+
+
+};
+
+
+
+
+// =======================
+// 경험치 획득
+// =======================
+
+
+function gainExp(value){
+
+
+playerData.exp+=value;
+
+
+
+if(
+playerData.exp>=
+playerData.maxExp
+){
+
+
+levelUp();
+
+
+
+}
+
+
+
+updateStatus();
+
+
+
+}
+
+
+
+
+// =======================
+// 레벨업
+// =======================
+
+
+function levelUp(){
+
+
+playerData.level++;
+
+
+playerData.exp-=playerData.maxExp;
+
+
+playerData.maxExp+=50;
+
+
+
+playerData.maxHp+=30;
+
+
+playerData.hp=
+playerData.maxHp;
+
+
+
+playerData.attack+=10;
+
+
+playerData.defense+=5;
+
+
+
+updateRank();
+
+
+
+showLevelUp();
+
+
+
+}
+
+
+
+// =======================
+// 등급 시스템
+// =======================
+
+
+function updateRank(){
+
+
+let lv=
+playerData.level;
+
+
+
+if(lv>=100){
+
+playerData.rank="초월 사신";
+
+}
+
+else if(lv>=70){
+
+playerData.rank="대장급";
+
+}
+
+else if(lv>=40){
+
+playerData.rank="부대장급";
+
+}
+
+else if(lv>=20){
+
+playerData.rank="석관급";
+
+}
+
+else{
+
+playerData.rank="루키 사신";
+
+}
+
+
+
+}
+
+
+
+
+// =======================
+// 레벨업 연출
+// =======================
+
+
+function showLevelUp(){
+
+
+const text=
+document.createElement("div");
+
+
+text.innerText=
+"✨ LEVEL UP ✨\nLv."
++
+playerData.level;
+
+
+
+text.style.position=
+"absolute";
+
+
+text.style.top="40%";
+
+
+text.style.left="50%";
+
+
+text.style.transform=
+"translate(-50%,-50%)";
+
+
+text.style.color="gold";
+
+
+text.style.fontSize="45px";
+
+
+text.style.fontWeight="900";
+
+
+text.style.zIndex="100";
+
+
+document.body.appendChild(
+text
+);
+
+
+
+setTimeout(()=>{
+
+text.remove();
+
+},2000);
+
+
+
+}
+
+
+
+
+// =======================
+// 상태 UI
+// =======================
+
+
+const statusUI=
+document.createElement("div");
+
+
+statusUI.style.position=
+"absolute";
+
+
+statusUI.style.left="20px";
+
+
+statusUI.style.top="560px";
+
+
+statusUI.style.color="white";
+
+
+statusUI.style.fontSize="18px";
+
+
+statusUI.style.zIndex="20";
+
+
+document.body.appendChild(
+statusUI
+);
+
+
+
+
+function updateStatus(){
+
+
+statusUI.innerHTML=
+
+"Lv : "+
+playerData.level+
+"<br>"+
+
+"등급 : "+
+playerData.rank+
+"<br>"+
+
+"공격력 : "+
+playerData.attack+
+"<br>"+
+
+"방어력 : "+
+playerData.defense+
+"<br>"+
+
+"EXP : "+
+playerData.exp+
+"/"+
+playerData.maxExp;
+
+
+
+}
+
+
+
+// =======================
+// 적 처치 보상 연결
+// =======================
+
+
+const oldEnemyReward=
+enemyReward;
+
+
+
+enemyReward=function(){
+
+
+oldEnemyReward();
+
+
+
+gainExp(50);
+
+
+playerData.gold+=20;
+
+
+updateStatus();
+
+
+
+};
+
+
+
+
+// =======================
+// 스탯 강화
+// =======================
+
+
+function upgradeStat(type){
+
+
+if(
+playerData.gold<500
+)
+return;
+
+
+
+playerData.gold-=500;
+
+
+
+if(type==="atk"){
+
+playerData.attack+=20;
+
+}
+
+
+
+if(type==="def"){
+
+playerData.defense+=20;
+
+}
+
+
+
+updateStatus();
+
+
+
+}
+
+
+
+updateStatus();
+
+
+
+</script><!-- 추가 : 사신 길드 / 임무 게시판 / 일일 퀘스트 -->
+
+<script>
+
+
+// =======================
+// 임무 데이터
+// =======================
+
+const missions=[
+
+
+{
+title:"호로 토벌",
+target:"호로",
+count:5,
+reward:300
+},
+
+
+{
+title:"아란칼 조사",
+target:"아란칼",
+count:3,
+reward:800
+},
+
+
+{
+title:"퀸시 격파",
+target:"슈테른릿터",
+count:2,
+reward:1500
+}
+
+
+];
+
+
+
+let activeMission=null;
+
+let missionCount=0;
+
+
+
+
+// =======================
+// 길드 NPC 생성
+// =======================
+
+
+let guildNPC;
+
+
+
+function createGuild(){
+
+
+guildNPC=
+new THREE.Mesh(
+
+new THREE.CylinderGeometry(
+1,
+1,
+3,
+16
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0x00ff99
+
+})
+
+);
+
+
+
+guildNPC.position.set(
+-30,
+1.5,
+20
+);
+
+
+
+scene.add(
+guildNPC
+);
+
+
+
+}
+
+
+
+// =======================
+// 임무 UI
+// =======================
+
+
+const missionUI=
+document.createElement("div");
+
+
+missionUI.style.position=
+"absolute";
+
+
+missionUI.style.right="20px";
+
+
+missionUI.style.top="350px";
+
+
+missionUI.style.background=
+"rgba(0,0,0,0.75)";
+
+
+missionUI.style.color="white";
+
+
+missionUI.style.padding="15px";
+
+
+missionUI.style.borderRadius="10px";
+
+
+missionUI.style.zIndex="40";
+
+
+document.body.appendChild(
+missionUI
+);
+
+
+
+
+// =======================
+// 게시판 열기
+// =======================
+
+
+function openMissionBoard(){
+
+
+missionUI.innerHTML=
+
+"📜 사신 임무 게시판<br><br>"+
+
+missions.map(
+(m,i)=>
+
+`
+<button onclick="acceptMission(${i})">
+${m.title}
+</button>
+<br>
+`
+
+).join("");
+
+
+
+}
+
+
+
+
+window.acceptMission=function(id){
+
+
+activeMission=
+missions[id];
+
+
+missionCount=0;
+
+
+
+missionUI.innerHTML=
+
+"수락 : "+
+activeMission.title+
+"<br>"+
+"목표 : "+
+activeMission.count+
+"마리";
+
+
+
+};
+
+
+
+
+// =======================
+// 몬스터 처치 체크
+// =======================
+
+
+function missionKill(type){
+
+
+if(!activeMission)
+return;
+
+
+
+if(
+activeMission.target===
+type
+){
+
+
+missionCount++;
+
+
+
+}
+
+
+
+if(
+missionCount>=
+activeMission.count
+){
+
+
+playerData.gold+=
+activeMission.reward;
+
+
+
+gainExp(200);
+
+
+
+alert(
+"임무 완료!"
+);
+
+
+
+activeMission=null;
+
+
+
+}
+
+
+
+
+}
+
+
+
+
+// 기존 처치 연결
+
+const oldKill=
+gainExp;
+
+
+function enemyMissionReward(type){
+
+
+missionKill(type);
+
+
+}
+
+
+
+
+// =======================
+// NPC 접근
+// =======================
+
+
+setInterval(()=>{
+
+
+if(
+guildNPC &&
+player.position.distanceTo(
+guildNPC.position
+)<5
+){
+
+
+openMissionBoard();
+
+
+}
+
+
+
+},200);
+
+
+
+
+
+createGuild();
+
+
+
+</script><!-- 추가 : 무기 강화 / 장비 등급 / 장비창 시스템 -->
+
+<script>
+
+
+// =======================
+// 장비 데이터
+// =======================
+
+let equipment={
+
+
+sword:{
+name:"참백도",
+level:1,
+grade:"일반",
+power:20
+},
+
+
+clothes:{
+name:"사신복",
+level:1,
+grade:"일반",
+defense:10
+}
+
+
+};
+
+
+
+// =======================
+// 강화 재료
+// =======================
+
+let upgradeStone=0;
+
+
+
+function addUpgradeStone(){
+
+
+upgradeStone++;
+
+
+updateEquipment();
+
+
+
+}
+
+
+
+
+// =======================
+// 무기 강화
+// =======================
+
+
+function enhanceSword(){
+
+
+if(
+upgradeStone<=0
+)
+return;
+
+
+
+upgradeStone--;
+
+
+equipment.sword.level++;
+
+
+equipment.sword.power+=15;
+
+
+
+if(
+equipment.sword.level>=5
+){
+
+equipment.sword.grade="희귀";
+
+}
+
+
+if(
+equipment.sword.level>=10
+){
+
+equipment.sword.grade="전설";
+
+}
+
+
+showUpgrade();
+
+
+
+updateEquipment();
+
+
+
+}
+
+
+
+
+// =======================
+// 방어구 강화
+// =======================
+
+
+function enhanceArmor(){
+
+
+if(
+upgradeStone<=0
+)
+return;
+
+
+
+upgradeStone--;
+
+
+equipment.clothes.level++;
+
+
+equipment.clothes.defense+=10;
+
+
+
+updateEquipment();
+
+
+
+}
+
+
+
+
+// =======================
+// 장비 UI
+// =======================
+
+
+const equipUI=
+document.createElement("div");
+
+
+equipUI.style.position=
+"absolute";
+
+
+equipUI.style.left="250px";
+
+
+equipUI.style.bottom="150px";
+
+
+equipUI.style.background=
+"rgba(0,0,0,0.7)";
+
+
+equipUI.style.color="white";
+
+
+equipUI.style.padding="15px";
+
+
+equipUI.style.zIndex="30";
+
+
+document.body.appendChild(
+equipUI
+);
+
+
+
+function updateEquipment(){
+
+
+equipUI.innerHTML=
+
+"⚔️ 장비<br><br>"+
+
+equipment.sword.name+
+"<br>등급 : "+
+equipment.sword.grade+
+"<br>Lv : "+
+equipment.sword.level+
+"<br>공격력 : "+
+equipment.sword.power+
+
+"<br><br>"+
+
+equipment.clothes.name+
+"<br>등급 : "+
+equipment.clothes.grade+
+"<br>Lv : "+
+equipment.clothes.level+
+"<br>방어력 : "+
+equipment.clothes.defense+
+
+"<br><br>강화석 : "+
+upgradeStone;
+
+
+
+}
+
+
+
+
+// =======================
+// 강화 성공 연출
+// =======================
+
+
+function showUpgrade(){
+
+
+const t=
+document.createElement("div");
+
+
+t.innerText=
+"✨ 강화 성공 ✨";
+
+
+t.style.position=
+"absolute";
+
+
+t.style.top="50%";
+
+
+t.style.left="50%";
+
+
+t.style.transform=
+"translate(-50%,-50%)";
+
+
+t.style.color="cyan";
+
+
+t.style.fontSize="40px";
+
+
+t.style.fontWeight="900";
+
+
+t.style.zIndex="100";
+
+
+document.body.appendChild(
+t
+);
+
+
+
+setTimeout(()=>{
+
+t.remove();
+
+},1500);
+
+
+
+}
+
+
+
+
+updateEquipment();
+
+
+
+</script><!-- 추가 : 전체 세이브 / 로드 확장 시스템 -->
+
+<script>
+
+
+// =======================
+// 전체 저장 데이터
+// =======================
+
+
+function saveGame(){
+
+
+const saveData={
+
+
+stage:world,
+
+
+player:{
+
+
+level:playerData.level,
+
+exp:playerData.exp,
+
+maxExp:playerData.maxExp,
+
+hp:playerData.hp,
+
+maxHp:playerData.maxHp,
+
+attack:playerData.attack,
+
+defense:playerData.defense,
+
+gold:playerData.gold,
+
+rank:playerData.rank
+
+
+},
+
+
+
+position:{
+
+
+x:player.position.x,
+
+y:player.position.y,
+
+z:player.position.z
+
+
+},
+
+
+
+zanpakuto:{
+
+
+name:myZanpakuto,
+
+shikai:shikaiLevel,
+
+bankai:bankaiLevel
+
+
+},
+
+
+
+equipment:equipment,
+
+
+inventory:inventory,
+
+
+skills:skills,
+
+
+mission:activeMission,
+
+
+missionCount:missionCount,
+
+
+upgradeStone:upgradeStone
+
+
+
+};
+
+
+
+
+localStorage.setItem(
+
+"BLEACH_FINAL_SAVE",
+
+JSON.stringify(saveData)
+
+);
+
+
+
+showSave();
+
+
+
+}
+
+
+
+
+// =======================
+// 불러오기
+// =======================
+
+
+function loadGame(){
+
+
+const data=
+localStorage.getItem(
+"BLEACH_FINAL_SAVE"
+);
+
+
+
+if(!data)
+return;
+
+
+
+const save=
+JSON.parse(data);
+
+
+
+world=
+save.stage;
+
+
+
+loadStage(
+world
+);
+
+
+
+setTimeout(()=>{
+
+
+
+player.position.set(
+
+save.position.x,
+
+save.position.y,
+
+save.position.z
+
+);
+
+
+
+Object.assign(
+
+playerData,
+
+save.player
+
+);
+
+
+
+myZanpakuto=
+save.zanpakuto.name;
+
+
+
+shikaiLevel=
+save.zanpakuto.shikai;
+
+
+
+bankaiLevel=
+save.zanpakuto.bankai;
+
+
+
+Object.assign(
+
+equipment,
+
+save.equipment
+
+);
+
+
+
+inventory=
+save.inventory||[];
+
+
+
+Object.assign(
+
+skills,
+
+save.skills
+
+);
+
+
+
+activeMission=
+save.mission;
+
+
+
+missionCount=
+save.missionCount||0;
+
+
+
+upgradeStone=
+save.upgradeStone||0;
+
+
+
+updateStatus();
+
+updateEquipment();
+
+updateInventory();
+
+updateZanUI();
+
+
+
+},500);
+
+
+
+}
+
+
+
+// =======================
+// 자동 저장
+// =======================
+
+
+setInterval(()=>{
+
+
+saveGame();
+
+
+},30000);
+
+
+
+
+// =======================
+// 키 저장/로드
+// =======================
+
+
+addEventListener(
+"keydown",
+e=>{
+
+
+if(e.key==="F5"){
+
+
+saveGame();
+
+
+}
+
+
+
+if(e.key==="F9"){
+
+
+loadGame();
+
+
+}
+
+
+
+});
+
+
+
+
+// 시작 로드
+
+setTimeout(()=>{
+
+
+loadGame();
+
+
+
+},1000);
+
+
+
+</script><!-- 추가 : 최종 보스전 연출 / 페이즈 시스템 -->
+
+<script>
+
+
+// =======================
+// 보스 페이즈
+// =======================
+
+let bossPhase=1;
+
+
+
+function checkBossPhase(){
+
+
+if(!boss)
+return;
+
+
+
+let percent=
+boss.hp /
+(1000+world*500);
+
+
+
+if(
+percent<0.7 &&
+bossPhase===1
+){
+
+
+bossPhase=2;
+
+
+boss.mesh.scale.set(
+1.5,
+1.5,
+1.5
+);
+
+
+
+boss.name+=" 각성";
+
+
+
+showBossText(
+"🔥 보스 각성!"
+);
+
+
+
+}
+
+
+
+if(
+percent<0.3 &&
+bossPhase===2
+){
+
+
+bossPhase=3;
+
+
+
+boss.mesh.scale.set(
+2,
+2,
+2
+);
+
+
+
+showBossText(
+"⚡ 최종 형태!"
+);
+
+
+
+}
+
+
+
+}
+
+
+
+// =======================
+// 보스 연출
+// =======================
+
+
+function showBossText(text){
+
+
+const t=
+document.createElement(
+"div"
+);
+
+
+
+t.innerText=text;
+
+
+
+t.style.position=
+"absolute";
+
+
+t.style.top="45%";
+
+
+t.style.left="50%";
+
+
+t.style.transform=
+"translate(-50%,-50%)";
+
+
+t.style.fontSize="55px";
+
+
+t.style.color="red";
+
+
+t.style.fontWeight="900";
+
+
+t.style.textShadow=
+"0 0 20px black";
+
+
+t.style.zIndex="200";
+
+
+document.body.appendChild(
+t
+);
+
+
+
+setTimeout(()=>{
+
+t.remove();
+
+},2000);
+
+
+
+}
+
+
+
+
+// =======================
+// 강화 보스 공격
+// =======================
+
+
+function bossUltimate(){
+
+
+if(!boss)
+return;
+
+
+
+if(
+bossPhase<3
+)
+return;
+
+
+
+const wave=
+new THREE.Mesh(
+
+new THREE.RingGeometry(
+5,
+15,
+40
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0xff0000,
+
+side:THREE.DoubleSide
+
+})
+
+);
+
+
+
+wave.rotation.x=
+Math.PI/2;
+
+
+
+wave.position.copy(
+boss.mesh.position
+);
+
+
+
+scene.add(
+wave
+);
+
+
+
+setTimeout(()=>{
+
+
+scene.remove(
+wave
+);
+
+
+},1000);
+
+
+
+if(
+player.position.distanceTo(
+boss.mesh.position
+)<20
+){
+
+
+playerData.hp-=50;
+
+
+}
+
+
+
+}
+
+
+
+
+// =======================
+// 연결
+// =======================
+
+
+setInterval(()=>{
+
+
+checkBossPhase();
+
+
+if(
+Math.random()<0.02
+){
+
+bossUltimate();
+
+
+}
+
+
+
+},100);
+
+
+
+</script><!-- 추가 : 최종 업적 / 칭호 / 랭킹 시스템 -->
+
+<script>
+
+
+// =======================
+// 칭호 데이터
+// =======================
+
+const titles=[
+
+
+{
+name:"초보 사신",
+level:1
+},
+
+
+{
+name:"호로 사냥꾼",
+level:10
+},
+
+
+{
+name:"대장 후보",
+level:30
+},
+
+
+{
+name:"최강 사신",
+level:70
+},
+
+
+{
+name:"영왕급 존재",
+level:100
+}
+
+
+];
+
+
+
+let currentTitle=
+"초보 사신";
+
+
+
+
+// =======================
+// 칭호 확인
+// =======================
+
+
+function updateTitle(){
+
+
+titles.forEach(t=>{
+
+
+if(
+playerData.level>=t.level
+){
+
+currentTitle=
+t.name;
+
+
+}
+
+
+
+});
+
+
+
+updateTitleUI();
+
+
+
+}
+
+
+
+// =======================
+// 칭호 UI
+// =======================
+
+
+const titleUI=
+document.createElement(
+"div"
+);
+
+
+
+titleUI.style.position=
+"absolute";
+
+
+titleUI.style.top="620px";
+
+
+titleUI.style.left="20px";
+
+
+titleUI.style.color="gold";
+
+
+titleUI.style.fontSize="20px";
+
+
+titleUI.style.fontWeight="bold";
+
+
+titleUI.style.zIndex="20";
+
+
+document.body.appendChild(
+titleUI
+);
+
+
+
+function updateTitleUI(){
+
+
+titleUI.innerHTML=
+
+"🏆 칭호 : "+
+currentTitle;
+
+
+
+}
+
+
+
+// =======================
+// 업적 시스템
+// =======================
+
+
+let achievements={
+
+
+firstKill:false,
+
+firstBoss:false,
+
+bankai:false,
+
+clearWorld:false
+
+
+};
+
+
+
+function checkAchievements(){
+
+
+
+if(
+playerData.level>1
+){
+
+achievements.firstKill=true;
+
+}
+
+
+
+if(
+bankaiLevel
+){
+
+achievements.bankai=true;
+
+}
+
+
+
+if(
+world>=6
+){
+
+achievements.clearWorld=true;
+
+}
+
+
+
+}
+
+
+
+
+// =======================
+// 업적 UI
+// =======================
+
+
+const achieveUI=
+document.createElement(
+"div"
+);
+
+
+
+achieveUI.style.position=
+"absolute";
+
+
+achieveUI.style.right="20px";
+
+
+achieveUI.style.bottom="330px";
+
+
+achieveUI.style.color="white";
+
+
+achieveUI.style.zIndex="20";
+
+
+document.body.appendChild(
+achieveUI
+);
+
+
+
+
+function updateAchievement(){
+
+
+achieveUI.innerHTML=
+
+"🏅 업적<br>"+
+
+(achievements.firstKill?
+"✅ 첫 전투<br>":
+"⬜ 첫 전투<br>")+
+
+(achievements.bankai?
+"✅ 만해 획득<br>":
+"⬜ 만해 획득<br>")+
+
+(achievements.clearWorld?
+"✅ 영왕궁 도달":
+"⬜ 영왕궁 도달");
+
+
+
+}
+
+
+
+// =======================
+// 반복 갱신
+// =======================
+
+
+setInterval(()=>{
+
+
+updateTitle();
+
+
+checkAchievements();
+
+
+updateAchievement();
+
+
+
+},500);
+
+
+
+</script><!-- 추가 : 날씨 / 시간 / 환경 변화 시스템 -->
+
+<script>
+
+
+// =======================
+// 시간 시스템
+// =======================
+
+let worldTime=0;
+
+
+
+function updateTime(){
+
+
+worldTime+=0.001;
+
+
+
+if(
+worldTime>1
+){
+
+worldTime=0;
+
+}
+
+
+
+let light=
+Math.sin(
+worldTime*Math.PI*2
+);
+
+
+
+scene.traverse(
+obj=>{
+
+
+if(
+obj.isDirectionalLight
+){
+
+
+obj.intensity=
+Math.max(
+0.2,
+light+1
+);
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+// =======================
+// 날씨 종류
+// =======================
+
+let weather=
+"맑음";
+
+
+
+function changeWeather(type){
+
+
+weather=type;
+
+
+
+if(type==="밤"){
+
+
+scene.background=
+new THREE.Color(
+0x050510
+);
+
+
+}
+
+
+
+if(type==="비"){
+
+
+scene.background=
+new THREE.Color(
+0x222233
+);
+
+
+createRain();
+
+
+}
+
+
+
+if(type==="맑음"){
+
+
+scene.background=
+new THREE.Color(
+0x77bbff
+);
+
+
+}
+
+
+
+}
+
+
+
+// =======================
+// 비 효과
+// =======================
+
+let rain=[];
+
+
+
+function createRain(){
+
+
+rain.forEach(r=>
+scene.remove(r)
+);
+
+
+rain=[];
+
+
+
+for(let i=0;i<300;i++){
+
+
+let drop=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+0.03,
+2,
+0.03
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0x99ccff
+
+})
+
+);
+
+
+
+drop.position.set(
+
+Math.random()*200-100,
+
+Math.random()*100,
+
+Math.random()*200-100
+
+);
+
+
+
+scene.add(drop);
+
+
+rain.push(drop);
+
+
+
+}
+
+
+
+}
+
+
+
+
+function updateRain(){
+
+
+rain.forEach(r=>{
+
+
+r.position.y-=0.5;
+
+
+
+if(
+r.position.y<0
+){
+
+r.position.y=100;
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+
+// =======================
+// 환경 이벤트
+// =======================
+
+
+function randomWeather(){
+
+
+let r=
+Math.random();
+
+
+
+if(r<0.3){
+
+changeWeather("밤");
+
+}
+
+else if(r<0.5){
+
+changeWeather("비");
+
+}
+
+else{
+
+changeWeather("맑음");
+
+}
+
+
+
+}
+
+
+
+setInterval(()=>{
+
+
+randomWeather();
+
+
+
+},60000);
+
+
+
+
+
+// 업데이트 연결
+
+setInterval(()=>{
+
+
+updateTime();
+
+updateRain();
+
+
+
+},30);
+
+
+
+</script><!-- 추가 : 7개 맵 전용 지형 생성 시스템 -->
+
+<script>
+
+
+// =======================
+// 공통 나무 생성
+// =======================
+
+function createTree(x,z,color=0x228833){
+
+
+const trunk=
+new THREE.Mesh(
+
+new THREE.CylinderGeometry(
+0.3,
+0.5,
+3,
+8
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0x663300
+
+})
+
+);
+
+
+trunk.position.set(
+x,
+1.5,
+z
+);
+
+
+
+const leaf=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+2,
+12,
+12
+),
+
+new THREE.MeshStandardMaterial({
+
+color:color
+
+})
+
+);
+
+
+
+leaf.position.set(
+x,
+3.5,
+z
+);
+
+
+
+scene.add(trunk);
+scene.add(leaf);
+
+
+}
+
+
+
+
+// =======================
+// 벚꽃 나무
+// =======================
+
+function createSakura(x,z){
+
+
+createTree(
+x,
+z,
+0xff99cc
+);
+
+
+}
+
+
+
+
+// =======================
+// 건물 생성
+// =======================
+
+function createBuilding(x,z,w,h,d,color){
+
+
+const b=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+w,
+h,
+d
+),
+
+new THREE.MeshStandardMaterial({
+
+color:color
+
+})
+
+);
+
+
+
+b.position.set(
+x,
+h/2,
+z
+);
+
+
+
+scene.add(b);
+
+
+
+}
+
+
+
+// =======================
+// 맵별 추가
+// =======================
+
+function buildSpecialMap(id){
+
+
+
+// 카라쿠라
+
+if(id===0){
+
+
+for(let i=0;i<30;i++){
+
+createBuilding(
+
+Math.random()*120-60,
+
+Math.random()*120-60,
+
+8,
+10+Math.random()*20,
+8,
+
+0x555555
+
+);
+
+}
+
+
+
+}
+
+
+
+// 소울 소사이어티
+
+if(id===1){
+
+
+for(let i=0;i<40;i++){
+
+createSakura(
+
+Math.random()*160-80,
+
+Math.random()*160-80
+
+);
+
+
+}
+
+
+
+createBuilding(
+0,
+-80,
+80,
+50,
+30,
+0xffffff
+);
+
+
+
+}
+
+
+
+
+// 소쿄쿠
+
+if(id===2){
+
+
+
+for(let i=0;i<30;i++){
+
+
+const rock=
+new THREE.Mesh(
+
+new THREE.DodecahedronGeometry(
+Math.random()*3+2
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0x555555
+
+})
+
+);
+
+
+
+rock.position.set(
+
+Math.random()*100-50,
+
+1,
+
+Math.random()*100-50
+
+);
+
+
+
+scene.add(rock);
+
+
+
+}
+
+
+
+}
+
+
+
+
+// 웨코문도
+
+if(id===3){
+
+
+for(let i=0;i<50;i++){
+
+
+createTree(
+
+Math.random()*200-100,
+
+Math.random()*200-100,
+
+0xffffff
+
+);
+
+
+}
+
+
+
+}
+
+
+
+// 라스 노체스
+
+if(id===4){
+
+
+createBuilding(
+0,
+-50,
+120,
+80,
+120,
+0xffffff
+);
+
+
+}
+
+
+
+// 실베른
+
+if(id===5){
+
+
+for(let i=0;i<30;i++){
+
+
+createBuilding(
+
+Math.random()*150-75,
+
+Math.random()*150-75,
+
+10,
+20,
+10,
+0xdddddd
+
+);
+
+
+}
+
+
+
+}
+
+
+
+// 영왕궁
+
+if(id===6){
+
+
+for(let i=0;i<20;i++){
+
+
+createBuilding(
+
+Math.random()*200-100,
+
+Math.random()*200-100,
+
+15,
+40,
+15,
+0xffffff
+
+);
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+// 기존 스테이지 뒤에 추가
+
+const oldBuild=
+loadStage;
+
+
+loadStage=function(id){
+
+
+oldBuild(id);
+
+
+setTimeout(()=>{
+
+
+buildSpecialMap(id);
+
+
+
+},200);
+
+
+
+};
+
+
+
+</script><!-- 추가 : NPC / 상점 / 대장급 캐릭터 대화 시스템 -->
+
+<script>
+
+
+// =======================
+// NPC 데이터
+// =======================
+
+
+const npcData={
+
+
+"우라하라":{
+talk:[
+"어서 와요.",
+"새로운 힘을 얻을 준비가 됐나요?"
+],
+shop:true
+},
+
+
+"루키아":{
+talk:[
+"포기하지 마.",
+"네 안의 힘을 믿어."
+],
+shop:false
+},
+
+
+"뱌쿠야":{
+talk:[
+"힘만으로는 부족하다.",
+"진정한 검의 의미를 깨달아라."
+],
+shop:false
+},
+
+
+"켄파치":{
+talk:[
+"더 강한 놈은 없나?",
+"나와 싸워라!"
+],
+boss:true
+}
+
+
+
+};
+
+
+
+
+// =======================
+// NPC 생성
+// =======================
+
+let npcList=[];
+
+
+
+function createNPC(name,x,z){
+
+
+let npc=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+0.8,
+2,
+4,
+8
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0xffaa00
+
+})
+
+);
+
+
+
+npc.position.set(
+x,
+2,
+z
+);
+
+
+
+scene.add(npc);
+
+
+
+npcList.push({
+
+mesh:npc,
+
+name:name
+
+});
+
+
+
+}
+
+
+
+
+// =======================
+// 대화창
+// =======================
+
+
+const dialogue=
+document.createElement("div");
+
+
+dialogue.style.position=
+"absolute";
+
+
+dialogue.style.bottom="200px";
+
+
+dialogue.style.left="50%";
+
+
+dialogue.style.transform=
+"translateX(-50%)";
+
+
+dialogue.style.background=
+"rgba(0,0,0,0.85)";
+
+
+dialogue.style.color="white";
+
+
+dialogue.style.padding="20px";
+
+
+dialogue.style.borderRadius="15px";
+
+
+dialogue.style.fontSize="22px";
+
+
+dialogue.style.display="none";
+
+
+dialogue.style.zIndex="200";
+
+
+document.body.appendChild(
+dialogue
+);
+
+
+
+function talkNPC(npc){
+
+
+let data=
+npcData[npc.name];
+
+
+if(!data)
+return;
+
+
+
+let i=0;
+
+
+
+dialogue.style.display="block";
+
+
+
+function next(){
+
+
+if(i>=data.talk.length){
+
+
+dialogue.style.display="none";
+
+return;
+
+
+}
+
+
+
+dialogue.innerHTML=
+
+npc.name+
+"<br><br>"+
+data.talk[i]+
+"<br><br>(터치)";
+
+
+i++;
+
+
+
+}
+
+
+
+dialogue.onclick=
+next;
+
+
+next();
+
+
+
+}
+
+
+
+
+// =======================
+// NPC 거리 체크
+// =======================
+
+
+setInterval(()=>{
+
+
+npcList.forEach(n=>{
+
+
+if(
+player.position.distanceTo(
+n.mesh.position
+)<5
+){
+
+
+talkNPC(n);
+
+
+
+}
+
+
+
+});
+
+
+
+},500);
+
+
+
+
+
+// =======================
+// 맵별 NPC 배치
+// =======================
+
+
+function spawnNPCs(stage){
+
+
+npcList.forEach(n=>
+scene.remove(n.mesh)
+);
+
+
+npcList=[];
+
+
+
+if(stage===0){
+
+createNPC(
+"우라하라",
+10,
+10
+);
+
+}
+
+
+
+if(stage===1){
+
+createNPC(
+"루키아",
+-20,
+20
+);
+
+
+createNPC(
+"뱌쿠야",
+30,
+-30
+);
+
+
+}
+
+
+
+if(stage===2){
+
+createNPC(
+"켄파치",
+0,
+-20
+);
+
+}
+
+
+
+}
+
+
+
+const oldStageLoad=
+loadStage;
+
+
+loadStage=function(id){
+
+
+oldStageLoad(id);
+
+
+setTimeout(()=>{
+
+spawnNPCs(id);
+
+},500);
+
+
+
+};
+
+
+
+</script><!-- 추가 : 상점 / 아이템 / 소비 아이템 시스템 -->
+
+<script>
+
+
+// =======================
+// 아이템 데이터
+// =======================
+
+
+const items={
+
+
+"영압 회복약":{
+price:100,
+type:"mp",
+value:50
+},
+
+
+"치유약":{
+price:150,
+type:"hp",
+value:80
+},
+
+
+"강화석":{
+price:500,
+type:"stone",
+value:1
+},
+
+
+"참백도 조각":{
+price:1000,
+type:"weapon",
+value:10
+}
+
+
+
+};
+
+
+
+let inventory=[];
+
+
+
+
+// =======================
+// 아이템 구매
+// =======================
+
+
+function buyItem(name){
+
+
+let item=
+items[name];
+
+
+if(!item)
+return;
+
+
+
+if(
+playerData.gold <
+item.price
+){
+
+
+alert(
+"돈이 부족합니다"
+);
+
+
+return;
+
+}
+
+
+
+playerData.gold-=item.price;
+
+
+inventory.push(name);
+
+
+
+if(
+item.type==="stone"
+){
+
+upgradeStone+=item.value;
+
+}
+
+
+
+if(
+item.type==="weapon"
+){
+
+equipment.sword.power+=item.value;
+
+}
+
+
+
+updateInventory();
+
+
+
+}
+
+
+
+
+// =======================
+// 아이템 사용
+// =======================
+
+
+function useItem(name){
+
+
+let index=
+inventory.indexOf(name);
+
+
+
+if(index===-1)
+return;
+
+
+
+let item=
+items[name];
+
+
+
+if(
+item.type==="hp"
+){
+
+
+playerData.hp=
+Math.min(
+
+playerData.maxHp,
+
+playerData.hp+
+item.value
+
+);
+
+
+
+}
+
+
+
+if(
+item.type==="mp"
+){
+
+
+playerStats.mp=
+Math.min(
+
+playerStats.maxMp,
+
+playerStats.mp+
+item.value
+
+);
+
+
+
+}
+
+
+
+inventory.splice(
+index,
+1
+);
+
+
+
+updateInventory();
+
+
+
+}
+
+
+
+// =======================
+// 인벤토리 UI
+// =======================
+
+
+const invUI=
+document.createElement("div");
+
+
+
+invUI.style.position=
+"absolute";
+
+
+invUI.style.right="20px";
+
+
+invUI.style.top="550px";
+
+
+invUI.style.background=
+"rgba(0,0,0,0.75)";
+
+
+invUI.style.color="white";
+
+
+invUI.style.padding="15px";
+
+
+invUI.style.borderRadius="10px";
+
+
+invUI.style.zIndex="30";
+
+
+document.body.appendChild(
+invUI
+);
+
+
+
+function updateInventory(){
+
+
+invUI.innerHTML=
+
+"🎒 인벤토리<br><br>"+
+
+(
+inventory.length?
+
+inventory.join("<br>"):
+
+"비어있음"
+
+);
+
+
+
+}
+
+
+
+
+// =======================
+// 상점 NPC
+// =======================
+
+
+function openShop(){
+
+
+let html=
+"🏪 우라하라 상점<br><br>";
+
+
+
+Object.keys(items)
+.forEach(name=>{
+
+
+html+=
+
+`
+<button onclick="buyItem('${name}')">
+${name}
+(${items[name].price}G)
+</button>
+<br>
+`;
+
+
+
+});
+
+
+
+invUI.innerHTML=html;
+
+
+
+}
+
+
+
+window.buyItem=buyItem;
+
+
+
+updateInventory();
+
+
+
+</script><script>
+
+
+// =========================
+// 전투 시스템
+// =========================
+
+
+let playerData={
+
+hp:100,
+maxHp:100,
+
+mp:100,
+maxMp:100,
+
+attack:20,
+
+level:1,
+
+exp:0
+
+};
+
+
+
+let enemies=[];
+
+
+
+// =========================
+// 적 생성
+// =========================
+
+
+function createEnemy(type,x,z){
+
+
+let data={
+
+호로:{
+hp:100,
+color:0x111111
+},
+
+아란칼:{
+hp:300,
+color:0xffffff
+},
+
+퀸시:{
+hp:500,
+color:0x88ccff
+},
+
+보스:{
+hp:2000,
+color:0xff0000
+}
+
+}[type];
+
+
+
+let mesh=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+1,
+2,
+6,
+8
+),
+
+new THREE.MeshStandardMaterial({
+
+color:data.color
+
+})
+
+);
+
+
+
+mesh.position.set(
+x,
+0,
+z
+);
+
+
+
+scene.add(mesh);
+
+
+
+enemies.push({
+
+mesh,
+
+type,
+
+hp:data.hp,
+
+max:data.hp
+
+});
+
+
+}
+
+
+
+
+function spawnEnemies(){
+
+
+for(let i=0;i<5;i++){
+
+
+createEnemy(
+
+"호로",
+
+Math.random()*50-25,
+
+Math.random()*50-25
+
+);
+
+
+}
+
+
+}
+
+
+
+spawnEnemies();
+
+
+
+
+// =========================
+// 참백도
+// =========================
+
+
+let zanpakuto="참월";
+
+let shikai=false;
+
+let bankai=false;
+
+
+
+function shikaiMode(){
+
+
+shikai=!shikai;
+
+bankai=false;
+
+
+body.material.color.setHex(
+
+shikai?
+0x00ffff:
+0xffffff
+
+);
+
+
+
+}
+
+
+
+function bankaiMode(){
+
+
+if(!shikai)
+return;
+
+
+bankai=!bankai;
+
+
+
+body.material.color.setHex(
+
+bankai?
+0xff0000:
+0x00ffff
+
+);
+
+
+
+}
+
+
+
+
+// =========================
+// 공격
+// =========================
+
+
+function attack(){
+
+
+
+let power=
+playerData.attack;
+
+
+
+if(shikai)
+power*=2;
+
+
+if(bankai)
+power*=4;
+
+
+
+enemies.forEach(e=>{
+
+
+let d=
+player.position.distanceTo(
+e.mesh.position
+);
+
+
+
+if(d<5){
+
+
+e.hp-=power;
+
+
+
+// 밀쳐내기
+
+let dir=
+new THREE.Vector3()
+.subVectors(
+e.mesh.position,
+player.position
+)
+.normalize();
+
+
+e.mesh.position.addScaledVector(
+dir,
+2
+);
+
+
+
+if(e.hp<=0){
+
+
+scene.remove(
+e.mesh
+);
+
+
+playerData.exp+=50;
+
+
+
+levelCheck();
+
+
+
+}
+
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+
+// =========================
+// 레벨
+// =========================
+
+
+function levelCheck(){
+
+
+if(
+playerData.exp>=100
+){
+
+
+playerData.level++;
+
+playerData.exp=0;
+
+playerData.attack+=10;
+
+playerData.maxHp+=20;
+
+playerData.hp=
+playerData.maxHp;
+
+
+}
+
+}
+
+
+
+// =========================
+// 스킬 월아천충
+// =========================
+
+
+function getsuga(){
+
+
+if(playerData.mp<30)
+return;
+
+
+playerData.mp-=30;
+
+
+
+let slash=
+new THREE.Mesh(
+
+new THREE.BoxGeometry(
+1,
+2,
+12
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0x00ffff
+
+})
+
+);
+
+
+
+slash.position.copy(
+player.position
+);
+
+
+
+scene.add(slash);
+
+
+
+let time=0;
+
+
+
+let move=
+setInterval(()=>{
+
+
+slash.translateZ(-2);
+
+
+
+enemies.forEach(e=>{
+
+
+if(
+slash.position.distanceTo(
+e.mesh.position
+)<5
+){
+
+
+e.hp-=150;
+
+
+}
+
+
+
+});
+
+
+
+time++;
+
+
+
+if(time>20){
+
+
+clearInterval(move);
+
+scene.remove(
+slash
+);
+
+
+}
+
+
+
+},50);
+
+
+
+}
+
+
+
+
+// =========================
+// 버튼 연결용
+// =========================
+
+
+window.attack=attack;
+
+window.shikaiMode=shikaiMode;
+
+window.bankaiMode=bankaiMode;
+
+window.getsuga=getsuga;
+
+
+
+</script><script>
+
+
+// =========================
+// NPC 시스템
+// =========================
+
+
+let npcs=[];
+
+
+
+function createNPC(name,x,z){
+
+
+let npc=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+0.8,
+1.8,
+5,
+8
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0xffcc00
+
+})
+
+);
+
+
+
+npc.position.set(
+x,
+0,
+z
+);
+
+
+
+scene.add(npc);
+
+
+
+npcs.push({
+
+mesh:npc,
+
+name:name
+
+});
+
+
+}
+
+
+
+
+createNPC(
+"우라하라",
+10,
+10
+);
+
+
+createNPC(
+"루키아",
+-20,
+20
+);
+
+
+
+
+// =========================
+// 대화
+// =========================
+
+
+let dialogueBox=
+document.createElement("div");
+
+
+dialogueBox.style.position="absolute";
+
+dialogueBox.style.bottom="100px";
+
+dialogueBox.style.left="50%";
+
+dialogueBox.style.transform="translateX(-50%)";
+
+dialogueBox.style.padding="20px";
+
+dialogueBox.style.background="rgba(0,0,0,.8)";
+
+dialogueBox.style.color="white";
+
+dialogueBox.style.fontSize="22px";
+
+dialogueBox.style.display="none";
+
+dialogueBox.style.zIndex="20";
+
+document.body.appendChild(
+dialogueBox
+);
+
+
+
+function talk(name){
+
+
+dialogueBox.style.display="block";
+
+
+dialogueBox.innerHTML=
+
+name+
+"<br><br>"+
+
+(
+name==="우라하라"
+
+?
+
+"새로운 참백도의 힘을 깨워보세요."
+
+:
+
+"포기하지 마. 앞으로 나아가."
+
+);
+
+
+
+setTimeout(()=>{
+
+
+dialogueBox.style.display="none";
+
+
+},3000);
+
+
+
+}
+
+
+
+
+
+setInterval(()=>{
+
+
+npcs.forEach(n=>{
+
+
+if(
+player.position.distanceTo(
+n.mesh.position
+)<4
+){
+
+
+talk(n.name);
+
+
+}
+
+
+});
+
+
+
+},500);
+
+
+
+
+// =========================
+// 퀘스트 시스템
+// =========================
+
+
+let quest={
+
+
+name:"호로 토벌",
+
+target:5,
+
+count:0,
+
+reward:500
+
+
+};
+
+
+
+
+function questKill(){
+
+
+quest.count++;
+
+
+
+if(
+quest.count>=quest.target
+){
+
+
+playerData.exp+=200;
+
+playerData.gold=
+(playerData.gold||0)+quest.reward;
+
+
+
+quest.count=0;
+
+
+alert(
+"퀘스트 완료!"
+);
+
+
+
+}
+
+
+
+}
+
+
+
+
+// 적 처치 연결
+
+const oldCreateEnemy=
+createEnemy;
+
+
+
+// =========================
+// 장비
+// =========================
+
+
+let equipment={
+
+
+sword:{
+
+name:"참월",
+
+level:1,
+
+power:20
+
+},
+
+
+armor:{
+
+name:"사신복",
+
+level:1,
+
+defense:10
+
+}
+
+
+
+};
+
+
+
+function upgradeSword(){
+
+
+equipment.sword.level++;
+
+
+equipment.sword.power+=10;
+
+
+}
+
+
+
+
+// =========================
+// 저장
+// =========================
+
+
+function saveGame(){
+
+
+let save={
+
+
+player:playerData,
+
+
+equipment,
+
+
+zanpakuto,
+
+
+shikai,
+
+
+bankai,
+
+
+stage,
+
+
+position:{
+
+
+x:player.position.x,
+
+z:player.position.z
+
+}
+
+
+};
+
+
+
+localStorage.setItem(
+
+"BLEACH_SAVE",
+
+JSON.stringify(save)
+
+);
+
+
+
+alert(
+"저장 완료"
+);
+
+
+}
+
+
+
+
+function loadGame(){
+
+
+let data=
+localStorage.getItem(
+"BLEACH_SAVE"
+);
+
+
+
+if(!data)
+return;
+
+
+
+let save=
+JSON.parse(data);
+
+
+
+playerData=
+save.player;
+
+
+
+equipment=
+save.equipment;
+
+
+zanpakuto=
+save.zanpakuto;
+
+
+shikai=
+save.shikai;
+
+
+bankai=
+save.bankai;
+
+
+stage=
+save.stage;
+
+
+
+player.position.x=
+save.position.x;
+
+
+player.position.z=
+save.position.z;
+
+
+
+}
+
+
+
+
+window.saveGame=saveGame;
+
+window.loadGame=loadGame;
+
+
+</script><script>
+
+
+// =========================
+// 보스 시스템
+// =========================
+
+
+let boss=null;
+
+
+
+function createBoss(name){
+
+
+let mesh=
+new THREE.Mesh(
+
+new THREE.CapsuleGeometry(
+2,
+4,
+8,
+12
+),
+
+new THREE.MeshStandardMaterial({
+
+color:0xff0000
+
+})
+
+);
+
+
+
+mesh.position.set(
+0,
+0,
+-30
+);
+
+
+
+scene.add(mesh);
+
+
+
+boss={
+
+name,
+
+mesh,
+
+hp:3000,
+
+maxHp:3000,
+
+phase:1
+
+};
+
+
+}
+
+
+
+
+// 스테이지 마지막 보스
+
+function spawnBoss(){
+
+
+createBoss(
+"영왕급 적"
+);
+
+
+}
+
+
+
+
+
+// =========================
+// 보스 AI
+// =========================
+
+
+function bossAI(){
+
+
+if(!boss)
+return;
+
+
+
+let dir=
+new THREE.Vector3()
+.subVectors(
+
+player.position,
+
+boss.mesh.position
+
+)
+.normalize();
+
+
+
+boss.mesh.position.addScaledVector(
+
+dir,
+
+0.03
+
+);
+
+
+
+if(
+
+boss.mesh.position.distanceTo(
+player.position
+)<5
+
+){
+
+
+playerData.hp-=1;
+
+
+
+}
+
+
+
+}
+
+
+// =========================
+// 보스 페이즈
+// =========================
+
+
+function bossPhaseCheck(){
+
+
+if(!boss)
+return;
+
+
+
+let hp=
+boss.hp/boss.maxHp;
+
+
+
+if(
+hp<0.6 &&
+boss.phase===1
+
+){
+
+
+boss.phase=2;
+
+
+boss.mesh.scale.set(
+1.5,
+1.5,
+1.5
+);
+
+
+alert(
+"보스 각성!"
+);
+
+
+}
+
+
+
+if(
+hp<0.3 &&
+boss.phase===2
+
+){
+
+
+boss.phase=3;
+
+
+boss.mesh.scale.set(
+2,
+2,
+2
+);
+
+
+alert(
+"최종 형태!"
+);
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+// =========================
+// 궁극기
+// =========================
+
+
+function ultimate(){
+
+
+if(
+playerData.mp<100
+)
+return;
+
+
+
+playerData.mp=0;
+
+
+
+let effect=
+new THREE.Mesh(
+
+new THREE.SphereGeometry(
+8,
+32,
+32
+),
+
+new THREE.MeshBasicMaterial({
+
+color:0xff00ff,
+
+transparent:true,
+
+opacity:.5
+
+})
+
+);
+
+
+
+effect.position.copy(
+player.position
+);
+
+
+
+scene.add(effect);
+
+
+
+enemies.forEach(e=>{
+
+
+if(
+e.mesh.position.distanceTo(
+player.position
+)<15
+){
+
+
+e.hp-=500;
+
+
+}
+
+
+
+});
+
+
+
+setTimeout(()=>{
+
+
+scene.remove(effect);
+
+
+},500);
+
+
+
+}
+
+
+
+window.ultimate=
+ultimate;
+
+
+
+// =========================
+// UI 갱신
+// =========================
+
+
+setInterval(()=>{
+
+
+document.getElementById(
+"hp"
+).style.width=
+
+(
+playerData.hp/
+playerData.maxHp
+*100
+)+"%";
+
+
+
+document.getElementById(
+"mp"
+).style.width=
+
+(
+playerData.mp/
+playerData.maxMp
+*100
+)+"%";
+
+
+
+document.getElementById(
+"lv"
+).innerHTML=
+
+playerData.level;
+
+
+
+bossAI();
+
+bossPhaseCheck();
+
+
+
+},100);
+
+
+
+    </script>
